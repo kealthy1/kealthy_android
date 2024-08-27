@@ -1,4 +1,4 @@
-package com.example.kealthy
+package com.example.Kealthy
 
 import io.flutter.embedding.android.FlutterActivity
 
