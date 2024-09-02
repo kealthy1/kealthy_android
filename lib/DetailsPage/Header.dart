@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../MenuPage/menu_item.dart';
+
 class ImageHeader extends StatelessWidget {
-  const ImageHeader({super.key});
+  final MenuItem menuItem;
+  const ImageHeader({required this.menuItem, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -13,10 +16,12 @@ class ImageHeader extends StatelessWidget {
       child: Stack(
         children: [
           Center(
-              child: Image.asset(
-            "assets/wheat.png",
-            height: screenHeight * 0.28,
-          )),
+            child: Image.network(
+              menuItem.imageUrl,
+              height: screenHeight * 0.28,
+              fit: BoxFit.cover,
+            ),
+          ),
           Align(
             alignment: Alignment.topLeft,
             child: Padding(

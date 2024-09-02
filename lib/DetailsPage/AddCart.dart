@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kealthy/MenuPage/menu_item.dart';
 import '../Riverpod/AddCartprovider.dart';
 
 class AddToCart extends ConsumerWidget {
-  final double pricePerUnit;
+  final MenuItem menuItem;
 
-  const AddToCart({required this.pricePerUnit, super.key});
+  const AddToCart({required this.menuItem, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final quantity = ref.watch(quantityProvider);
-    final totalPrice = pricePerUnit * quantity;
+
+    // Calculate the total price based on the quantity
+    final totalPrice = menuItem.price * quantity;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -72,9 +75,8 @@ class AddToCart extends ConsumerWidget {
               ),
               const Spacer(),
               Text(
-                '₹${totalPrice.toStringAsFixed(2)}',
-                style: const TextStyle(
-                    fontSize: 20.0, fontWeight: FontWeight.bold),
+                'Price: ₹${totalPrice.toStringAsFixed(0)}',
+                style: const TextStyle(fontSize: 24),
               ),
             ],
           ),

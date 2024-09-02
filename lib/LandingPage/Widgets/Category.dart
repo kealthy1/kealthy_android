@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:kealthy/DetailsPage/HomePage.dart';
+import 'package:kealthy/MenuPage/ProductList.dart';
 
 class CategoryGrid extends StatelessWidget {
   const CategoryGrid({super.key});
@@ -22,32 +22,24 @@ class CategoryGrid extends StatelessWidget {
               Navigator.push(
                   context,
                   CupertinoModalPopupRoute(
-                    builder: (context) => const HomePage(),
+                    builder: (context) => const MenuPage(),
                   ));
             },
-            child: _buildCategoryAvatar('Vegetables', 'assets/healthy1.jpg'),
+            child: _buildCategoryAvatar('SNACKS', 'assets/snacks.greeen.png'),
           ),
           SizedBox(
             width: screenWidth * 0.06,
           ),
           GestureDetector(
             onTap: () {},
-            child:
-                _buildCategoryAvatar('Nuts & Seeds', 'assets/Nuts & Seeds.jpg'),
+            child: _buildCategoryAvatar(' Healthy Meals', 'assets/100.png'),
           ),
           SizedBox(
             width: screenWidth * 0.06,
           ),
           GestureDetector(
             onTap: () {},
-            child: _buildCategoryAvatar('Protein', 'assets/Protein.jpg'),
-          ),
-          SizedBox(
-            width: screenWidth * 0.06,
-          ),
-          GestureDetector(
-            onTap: () {},
-            child: _buildCategoryAvatar('Snacks', 'assets/snacks.jpg'),
+            child: _buildCategoryAvatar('Drinks', 'assets/102.jpeg'),
           ),
         ],
       ),
@@ -70,7 +62,7 @@ class CategoryGrid extends StatelessWidget {
             ),
             child: CircleAvatar(
               backgroundImage: AssetImage(imagePath),
-              radius: 40,
+              radius: 50,
             ),
           ),
           const SizedBox(height: 8.0),

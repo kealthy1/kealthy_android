@@ -1,8 +1,10 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import '../../Riverpod/carousel_slider_notifier.dart';
 
-class CarouselSliderWidget extends StatefulWidget {
+class CarouselSliderWidget extends ConsumerWidget {
   final List<String> assetImagePaths = [
     'assets/healthy1.jpg',
     'assets/2.png',
@@ -15,69 +17,55 @@ class CarouselSliderWidget extends StatefulWidget {
     'assets/8.png',
   ];
 
-  final bool autoPlay;
-
-  CarouselSliderWidget({
-    super.key,
-    this.autoPlay = true,
-  });
+  CarouselSliderWidget({super.key});
 
   @override
-  _CarouselSliderWidgetState createState() => _CarouselSliderWidgetState();
-}
-
-class _CarouselSliderWidgetState extends State<CarouselSliderWidget> {
-  int activeIndex = 0;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final mediaQuery = MediaQuery.of(context);
-    final screenHeight = mediaQuery.size.height;
-    final double responsiveHeight = screenHeight * 0.2;
+    final screenWidth = mediaQuery.size.width;
+    final activeIndex = ref.watch(carouselSliderProvider);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         CarouselSlider.builder(
-          itemCount: widget.assetImagePaths.length,
+          itemCount: assetImagePaths.length,
           itemBuilder: (context, index, realIndex) {
-            final assetImagePath = widget.assetImagePaths[index];
+            final assetImagePath = assetImagePaths[index];
             return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 5.0),
+              width: screenWidth * 19,
+              margin: const EdgeInsets.symmetric(horizontal: 2.0),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(20.0), // Circular edges
-                child: SizedBox(
-                  height: responsiveHeight, // Reduced height
-                  child: Image.asset(
-                    assetImagePath,
-                    fit: BoxFit.cover,
-                  ),
+                borderRadius: BorderRadius.circular(10.0),
+                child: Image.asset(
+                  assetImagePath,
+                  fit: BoxFit.cover,
                 ),
               ),
             );
           },
           options: CarouselOptions(
             viewportFraction: 0.8,
-            autoPlay: widget.autoPlay,
-            enlargeCenterPage: false,
-            aspectRatio: 22 / 9,
-            autoPlayCurve: Curves.linear,
+            autoPlay: true,
+            enlargeCenterPage: true,
+            aspectRatio: 19 / 8,
             autoPlayAnimationDuration: const Duration(milliseconds: 800),
             scrollDirection: Axis.horizontal,
             enableInfiniteScroll: true,
-            onPageChanged: (index, reason) =>
-                setState(() => activeIndex = index),
+            onPageChanged: (index, reason) {
+              ref.read(carouselSliderProvider.notifier).updateIndex(index);
+            },
           ),
         ),
         const SizedBox(height: 16.0),
-        buildIndicator(),
+        buildIndicator(activeIndex),
       ],
     );
   }
 
-  Widget buildIndicator() => AnimatedSmoothIndicator(
+  Widget buildIndicator(int activeIndex) => AnimatedSmoothIndicator(
         activeIndex: activeIndex,
-        count: widget.assetImagePaths.length,
+        count: 8,
         effect: const ExpandingDotsEffect(
           dotHeight: 10,
           dotWidth: 10,

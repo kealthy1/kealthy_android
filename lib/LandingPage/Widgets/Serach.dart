@@ -12,7 +12,6 @@ class SearchInput extends StatelessWidget {
       children: [
         Expanded(
           child: Container(
-            height: screenHeight * 0.05,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
               color: Colors.white,
@@ -28,6 +27,8 @@ class SearchInput extends StatelessWidget {
             width: screenWidth * 0.7,
             child: TextField(
               decoration: InputDecoration(
+                hintText: "Salad",
+                hintStyle: const TextStyle(color: Colors.grey),
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                 border: OutlineInputBorder(
@@ -41,7 +42,7 @@ class SearchInput extends StatelessWidget {
           ),
         ),
         Container(
-          height: screenHeight * 0.05,
+          height: screenHeight * 0.06,
           margin: const EdgeInsets.only(left: 8),
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(

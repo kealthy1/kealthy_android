@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-
+import '../MenuPage/menu_item.dart';
 import 'AddCart.dart';
 import 'Desc.dart';
 import 'Header.dart';
+import 'NutritionInfo.dart';
 import 'Rating .dart';
-import 'RedNutritionSection.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  
+  final MenuItem menuItem;
+  const HomePage({super.key, required this.menuItem});
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +29,11 @@ class HomePage extends StatelessWidget {
                 vertical: 16.0,
                 horizontal: screenWidth * 0.05,
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ImageHeader(),
-                  TitleAndRating(),
+                  ImageHeader(menuItem: menuItem),
+                  TitleAndRating(MenuItem: menuItem),
                 ],
               ),
             ),
@@ -57,13 +59,15 @@ class HomePage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const RedNutritionSection(),
+                  RedNutritionSection(menuItem: menuItem,
+                    
+                  ),
                   const SizedBox(height: 16.0),
                   const DescriptionSection(),
                   SizedBox(
                     height: screenHeight * 0.02,
                   ),
-                  const AddToCart(pricePerUnit: 120),
+                  AddToCart(menuItem: menuItem),
                   SizedBox(
                     height: screenHeight * 0.1,
                   ),

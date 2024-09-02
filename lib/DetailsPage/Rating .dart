@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 
 class TitleAndRating extends StatelessWidget {
-  const TitleAndRating({super.key});
+  final MenuItem;
+  const TitleAndRating({required this.MenuItem, super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       children: [
         Text(
-          'Whole Wheat Pasta',
-          style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+          '${MenuItem.name}',
+          style: const TextStyle(fontSize: 24),
         ),
-        SizedBox(height: 8.0),
-        Row(
+        const SizedBox(height: 8.0),
+        const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.star, color: Colors.orange, size: 20.0),
@@ -21,7 +22,6 @@ class TitleAndRating extends StatelessWidget {
             Icon(Icons.star, color: Colors.orange, size: 20.0),
             Icon(Icons.star_half, color: Colors.orange, size: 20.0),
             SizedBox(width: 8.0),
-            Text('4/5', style: TextStyle(fontSize: 16.0)),
           ],
         ),
       ],
