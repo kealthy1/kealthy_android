@@ -1,15 +1,16 @@
+import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
-import 'package:kealthy/Cart/Cart_Items.dart';
-import 'package:kealthy/LandingPage/Widgets/Appbar.dart';
-import 'package:kealthy/LandingPage/Widgets/Carousel.dart';
-import 'package:kealthy/LandingPage/Widgets/SideBar.dart';
-import 'package:kealthy/LandingPage/Widgets/items.dart';
+import '../MenuPage/ProductList.dart';
 import '../Riverpod/NavBar.dart';
+import 'Allitems.dart';
+import 'Widgets/Appbar.dart';
+import 'Widgets/Carousel.dart';
 import 'Widgets/Category.dart';
 import 'Widgets/Serach.dart';
+import 'Widgets/SideBar.dart';
 import 'Widgets/floating_bottom_navigation_bar.dart';
+import 'Widgets/items.dart';
 
 class MyHomePage extends ConsumerWidget {
   const MyHomePage({super.key});
@@ -19,23 +20,21 @@ class MyHomePage extends ConsumerWidget {
     final currentIndex = ref.watch(bottomNavIndexProvider);
 
     final List<Widget> pages = [
-      _buildHomePage(context),
-      const ShowCart(),
-      _buildHomePage(context),
-      const ShowCart(),         
+      _buildHomePage(context, ref),
+      _buildHomePage(context, ref),
+      const SidebarPage()
     ];
 
     return Scaffold(
-      endDrawer: const Sidebar(),
       backgroundColor: Colors.white,
       appBar: const CustomAppBar(),
-      body: pages[currentIndex], 
+      body: pages[currentIndex],
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: currentIndex,
         navbarItems: [
-          FloatingNavbarItem(icon: Icons.home, title: 'Kealthy Foods'),
-          FloatingNavbarItem(icon: Icons.food_bank,title: 'Kealthy Snacks'),
-          FloatingNavbarItem(icon: Icons.shopping_cart, title: 'Cart'),
+          FloatingNavbarItem(icon: Icons.home, title: 'Home'),
+          FloatingNavbarItem(
+              icon: Icons.food_bank_outlined, title: 'My Orders'),
           FloatingNavbarItem(icon: Icons.settings, title: 'Settings'),
         ],
         onTap: (index) {
@@ -45,8 +44,9 @@ class MyHomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHomePage(BuildContext context) {
+  Widget _buildHomePage(BuildContext context, WidgetRef ref) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final menuItemsAsyncValue = ref.watch(menuProvider);
 
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
@@ -71,18 +71,52 @@ class MyHomePage extends ConsumerWidget {
           ),
           const CategoryGrid(),
           SizedBox(height: screenHeight * 0.03),
-          ...List.generate(3, (index) {
-            return const Center(
-              child: ItemCard(
-                imagePath: 'assets/pancakes.jpg',
-                title: 'Breakfast',
-                itemName: 'Pancakes',
-                description: 'Delicious pancakes\n with syrup and fresh fruits.',
-                AvatarText: '4.4⭐',
-              ),
-            );
-          }),
-          SizedBox(height: screenHeight * 0.1),
+          menuItemsAsyncValue.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text('Error: $err')),
+            data: (menuItems) {
+              final displayedItems = menuItems.take(5).toList();
+              return Column(
+                children: [
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: displayedItems.length,
+                    itemBuilder: (context, index) {
+                      return ItemCard(menuItem: displayedItems[index]);
+                    },
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 16),
+                  ),
+                  if (menuItems.length > 5)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      child: Center(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const AllItemsPage()),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 15, vertical: 5),
+                            textStyle: const TextStyle(fontSize: 18),
+                          ),
+                          child: const Text(
+                            'View All',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
         ],
       ),
     );

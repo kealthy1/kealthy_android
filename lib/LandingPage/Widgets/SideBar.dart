@@ -2,14 +2,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:kealthy/Cart/Cart_Items.dart';
 
-class Sidebar extends StatelessWidget {
-  const Sidebar({super.key});
+class SidebarPage extends StatelessWidget {
+  const SidebarPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      width: 220,
-      child: Container(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Sidebar"),
+        backgroundColor: const Color.fromARGB(255, 79, 170, 82),
+      ),
+      body: Container(
         color: Colors.white,
         child: ListView(
           padding: EdgeInsets.zero,

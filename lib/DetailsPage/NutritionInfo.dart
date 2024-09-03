@@ -23,7 +23,7 @@ class RedNutritionSection extends StatelessWidget {
           Column(
             children: [
               Text(
-                '${menuItem.protein.toInt()} g', // Display protein value with 'g'
+                '${menuItem.protein.toStringAsFixed(menuItem.protein.truncateToDouble() == menuItem.protein ? 0 : 1)} g', 
                 style: const TextStyle(
                     fontSize: 20.0,
                     fontWeight: FontWeight.bold,
@@ -39,7 +39,7 @@ class RedNutritionSection extends StatelessWidget {
           Column(
             children: [
               Text(
-                '${menuItem.carbs.toInt()} g', // Display carbs value with 'g'
+                '${menuItem.carbs.toStringAsFixed(menuItem.carbs.truncateToDouble() == menuItem.carbs ? 0 : 1)} g', 
                 style: const TextStyle(
                     fontSize: 20.0,
                     fontWeight: FontWeight.bold,
@@ -55,7 +55,7 @@ class RedNutritionSection extends StatelessWidget {
           Column(
             children: [
               Text(
-                '${menuItem.kcal.toInt()}', // Display kcal value (commonly kcal doesn't use g)
+                '${menuItem.kcal.toInt()}', 
                 style: const TextStyle(
                     fontSize: 20.0,
                     fontWeight: FontWeight.bold,
@@ -71,7 +71,7 @@ class RedNutritionSection extends StatelessWidget {
           Column(
             children: [
               Text(
-                '${menuItem.fat.toInt()} g', // Display fat value with 'g'
+                '${menuItem.fat.toStringAsFixed(menuItem.fat.truncateToDouble() == menuItem.fat ? 0 : 1)} g', // Show one decimal place only if needed
                 style: const TextStyle(
                     fontSize: 20.0,
                     fontWeight: FontWeight.bold,

@@ -27,21 +27,37 @@ class MenuItem {
     required this.imageUrl,
   });
 
-  // Factory method to create a MenuItem from a Firestore document snapshot
   factory MenuItem.fromFirestore(Map<String, dynamic> data) {
     return MenuItem(
-      name: data['Name'],
-      price: data['Price'].toDouble(),
-      category: data['Category'],
-      time: data['Time'],
-      delivery: data['Delivery'],
-      description: data['Description'],
-      protein: data['Protein'].toDouble(),
-      carbs: data['Carbs'].toDouble(),
-      kcal: data['Kcal'].toDouble(),
-      fat: data['Fat'].toDouble(),
-      rating: data['Rating'].toDouble(),
-      imageUrl: data['ImageUrl'],
+      name: data['Name'] ?? '',
+      price: _parseDouble(data['Price']),
+      category: data['Category'] ?? '',
+      time: data['Time'] ?? '',
+      delivery: data['Delivery'] ?? '',
+      description: data['Description'] ?? '',
+      protein: _parseDouble(data['Protein']),
+      carbs: _parseDouble(data['Carbs']),
+      kcal: _parseDouble(data['Kcal']),
+      fat: _parseDouble(data['Fat']),
+      rating: _parseDouble(data['Rating']),
+      imageUrl: data['ImageUrl'] ?? '',
     );
+  }
+
+ static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) {
+      // Remove the "g" unit from the string
+      String cleanedValue = value.replaceAll('g', '').trim();
+
+      if (cleanedValue.startsWith('.')) {
+        cleanedValue = '0$cleanedValue';
+      }
+
+      return double.tryParse(cleanedValue) ?? 0.0; 
+    }
+    return 0.0;
   }
 }

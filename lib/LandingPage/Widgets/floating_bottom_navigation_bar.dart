@@ -15,16 +15,17 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    double defaultIconSize = screenWidth < 400 ? 24 : 30;
-    double selectedIconSize = defaultIconSize + 10;
     double bottomNavBarHeight = 65.0;
 
     return Container(
       height: bottomNavBarHeight,
-      decoration: const BoxDecoration(
-        color: Colors.green,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        border: Border.all(
+          color: Colors.black, // Add black border
+          width: 1.0, // Adjust border width as needed
+        ),
       ),
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -39,14 +40,14 @@ class CustomBottomNavigationBar extends StatelessWidget {
                 children: [
                   Icon(
                     item.icon,
-                    size: isSelected ? selectedIconSize : defaultIconSize,
-                    color: isSelected ? Colors.white : Colors.grey,
+                    size: 30,
+                    color: isSelected ? Colors.green : Colors.grey,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     item.title ?? '',
                     style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.grey,
+                      color: isSelected ? Colors.green : Colors.grey,
                       fontSize: 12,
                     ),
                   ),

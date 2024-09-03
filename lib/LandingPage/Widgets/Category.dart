@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:kealthy/MenuPage/ProductList.dart';
+import 'package:kealthy/MenuPage/Drinks/DrinksPage.dart';
+import 'package:kealthy/MenuPage/Food/FoodPage.dart';
+import '../../MenuPage/Snacks/SnacksPage.dart';
 
 class CategoryGrid extends StatelessWidget {
   const CategoryGrid({super.key});
@@ -22,24 +24,37 @@ class CategoryGrid extends StatelessWidget {
               Navigator.push(
                   context,
                   CupertinoModalPopupRoute(
-                    builder: (context) => const MenuPage(),
+                    builder: (context) => const SnacksMenuPage(),
                   ));
             },
-            child: _buildCategoryAvatar('SNACKS', 'assets/snacks.greeen.png'),
+            child: _buildCategoryAvatar(
+                'Kealthy Snacks', 'assets/snacks.greeen.png'),
           ),
           SizedBox(
             width: screenWidth * 0.06,
           ),
           GestureDetector(
-            onTap: () {},
-            child: _buildCategoryAvatar(' Healthy Meals', 'assets/100.png'),
+            onTap: () {
+              Navigator.push(
+                  context,
+                  CupertinoModalPopupRoute(
+                    builder: (context) => const FoodMenuPage(),
+                  ));
+            },
+            child: _buildCategoryAvatar(' Kealthy Foods', 'assets/100.png'),
           ),
           SizedBox(
             width: screenWidth * 0.06,
           ),
           GestureDetector(
-            onTap: () {},
-            child: _buildCategoryAvatar('Drinks', 'assets/102.jpeg'),
+            onTap: () {
+              Navigator.push(
+                  context,
+                  CupertinoModalPopupRoute(
+                    builder: (context) => const DrinksMenuPage(),
+                  ));
+            },
+            child: _buildCategoryAvatar('Kealthy Drinks', 'assets/102.jpeg'),
           ),
         ],
       ),
