@@ -1,14 +1,13 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'LandingPage/HomePage.dart';
+import 'package:kealthy/Login/login_page.dart';
 import 'Services/Connection.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(
+  runApp( 
     const ProviderScope(
       child: MyApp(),
     ),
@@ -17,7 +16,6 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -26,8 +24,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.green,
       ),
-      home: const ConnectivityWidget(
-        child: MyHomePage(),
+      home: const ConnectivityWidget( 
+        child: LoginFields(),
       ),
     );
   }

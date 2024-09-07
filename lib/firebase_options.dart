@@ -42,17 +42,17 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyD9KKVLV97Uj6sKAaBpM8621uwDWL-215w',
-    appId: '1:486140167563:web:1c5da27cf67f8ba8ae5b8e',
+    appId: '1:486140167563:web:688322367985fb85ae5b8e',
     messagingSenderId: '486140167563',
     projectId: 'kealthy-90c55',
     authDomain: 'kealthy-90c55.firebaseapp.com',
     storageBucket: 'kealthy-90c55.appspot.com',
-    measurementId: 'G-QNC9FFB3TK',
+    measurementId: 'G-JBJ7QS2885',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAtCIdSOs_cpsz6TLXcJaMloWKFJcB2BlM',
-    appId: '1:486140167563:android:4c53fdb585b4a976ae5b8e',
+    appId: '1:486140167563:android:8ddf0b570c6657faae5b8e',
     messagingSenderId: '486140167563',
     projectId: 'kealthy-90c55',
     storageBucket: 'kealthy-90c55.appspot.com',

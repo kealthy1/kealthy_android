@@ -6,7 +6,6 @@ import '../../Riverpod/carousel_slider_notifier.dart';
 
 class CarouselSliderWidget extends ConsumerWidget {
   final List<String> assetImagePaths = [
-    'assets/healthy1.jpg',
     'assets/2.png',
     'assets/50%off.png',
     'assets/3.png',

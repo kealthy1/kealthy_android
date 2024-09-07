@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-
 import '../DetailsPage/HomePage.dart';
 import '../Services/Fetchimage.dart';
 import 'menu_item.dart';

@@ -23,8 +23,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
         color: Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         border: Border.all(
-          color: Colors.black, // Add black border
-          width: 1.0, // Adjust border width as needed
+          color: Colors.grey, 
+          width: 3.0, 
         ),
       ),
       child: ClipRRect(

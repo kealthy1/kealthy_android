@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../Riverpod/CartItems.dart';
+import '../Services/FirestoreCart.dart';
 import 'Category/Categories.dart';
 
 class ShowCart extends ConsumerWidget {
@@ -8,6 +8,8 @@ class ShowCart extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.read(addCartProvider.notifier).fetchCartItems();
+
     final cartItems = ref.watch(addCartProvider);
 
     final mediaQuery = MediaQuery.of(context);
@@ -40,24 +42,33 @@ class ShowCart extends ConsumerWidget {
                         EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
                     child: Column(
                       children: [
-                        CategoryContainer(
-                          category: 'Snacks',
-                          items: cartItems,
-                          screenWidth: screenWidth,
-                          screenHeight: screenHeight,
-                        ),
-                        CategoryContainer(
-                          category: 'Drinks', // Add Drinks category
-                          items: cartItems,
-                          screenWidth: screenWidth,
-                          screenHeight: screenHeight,
-                        ),
-                        CategoryContainer(
-                          category: 'Food',
-                          items: cartItems,
-                          screenWidth: screenWidth,
-                          screenHeight: screenHeight,
-                        ),
+                        if (cartItems.any((item) => item.category == 'Snacks'))
+                          CategoryContainer(
+                            category: 'Snacks',
+                            items: cartItems
+                                .where((item) => item.category == 'Snacks')
+                                .toList(),
+                            screenWidth: screenWidth,
+                            screenHeight: screenHeight,
+                          ),
+                        if (cartItems.any((item) => item.category == 'Drinks'))
+                          CategoryContainer(
+                            category: 'Drinks',
+                            items: cartItems
+                                .where((item) => item.category == 'Drinks')
+                                .toList(),
+                            screenWidth: screenWidth,
+                            screenHeight: screenHeight,
+                          ),
+                        if (cartItems.any((item) => item.category == 'Food'))
+                          CategoryContainer(
+                            category: 'Food',
+                            items: cartItems
+                                .where((item) => item.category == 'Food')
+                                .toList(),
+                            screenWidth: screenWidth,
+                            screenHeight: screenHeight,
+                          ),
                       ],
                     ),
                   ),
@@ -113,14 +124,23 @@ class ShowCart extends ConsumerWidget {
                   ],
                 ),
                 Divider(height: screenHeight * 0.02),
-                _buildCategoryTotal(
-                    'Snacks', cartItems, screenWidth, screenHeight),
-                SizedBox(height: screenHeight * 0.01),
-                _buildCategoryTotal(
-                    'Drinks', cartItems, screenWidth, screenHeight), // Add Drinks total
-                SizedBox(height: screenHeight * 0.01),
-                _buildCategoryTotal(
-                    'Food', cartItems, screenWidth, screenHeight),
+                Column(
+                  children: [
+                    if (cartItems.any((item) => item.category == 'Snacks')) ...[
+                      _buildCategoryTotal(
+                          'Snacks', cartItems, screenWidth, screenHeight),
+                      SizedBox(height: screenHeight * 0.01),
+                    ],
+                    if (cartItems.any((item) => item.category == 'Drinks')) ...[
+                      _buildCategoryTotal(
+                          'Drinks', cartItems, screenWidth, screenHeight),
+                      SizedBox(height: screenHeight * 0.01),
+                    ],
+                    if (cartItems.any((item) => item.category == 'Food'))
+                      _buildCategoryTotal(
+                          'Food', cartItems, screenWidth, screenHeight),
+                  ],
+                )
               ],
             ),
           ),

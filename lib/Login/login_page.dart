@@ -1,0 +1,194 @@
+import 'dart:convert';
+import 'dart:ui';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart'as http;
+import 'package:kealthy/Login/otp_screen.dart';
+import '../Riverpod/Texanimation.dart';
+
+final phoneNumberProvider = StateProvider<String>((ref) => '');
+
+class LoginFields extends ConsumerStatefulWidget {
+  const LoginFields({super.key});
+
+  @override
+  _LoginFieldsState createState() => _LoginFieldsState();
+}
+
+class _LoginFieldsState extends ConsumerState<LoginFields> {
+  final _phoneController = TextEditingController(text: '+91');
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _startAnimation();
+  }
+
+  void _startAnimation() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(opacityProvider.notifier).state = 0.0;
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          ref.read(opacityProvider.notifier).state = 1.0;
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+void _sendOtp() async {
+  final phoneNumber = _phoneController.text.trim();
+  const url = 'https://us-central1-kealthy-90c55.cloudfunctions.net/api/send-otp';
+
+  try {
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'phoneNumber': phoneNumber}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final verificationId = data['verificationId'];
+      print('OTP sent successfully! Response: ${response.body}');
+      
+      // Navigate to OTP screen with verificationId and phoneNumber
+      Navigator.push(
+        context,
+        CupertinoPageRoute(
+          builder: (context) => OTPScreen(
+            verificationId: verificationId,
+            phoneNumber: phoneNumber,
+          ),
+        ),
+      );
+    } else {
+      print('Failed to send OTP: ${response.body}');
+    }
+  } catch (e) {
+    print('Error: $e');
+  }
+}
+
+
+  @override
+  Widget build(BuildContext context) {
+    final phoneNumber = ref.watch(phoneNumberProvider);
+    return Scaffold(
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(
+                    "assets/a-photo-of-a-family-sitting-at-a-table-eating-heal-WzTfpXsNT66riCX_SEJ3BA-uXSmtXOlRKa79_7mMqYIGw.png"),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 1.0, sigmaY: 1.0),
+            child: Container(
+              color: Colors.black.withOpacity(0.3),
+            ),
+          ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(
+                  left: 15, top: 100, bottom: 35, right: 15),
+              child: SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const FadeInText(
+                        text: 'YOUR JOURNEY TO WELLNESS ',
+                        duration: Duration(seconds: 1),
+                        color: Colors.greenAccent,
+                        fontSize: 30.0,
+                      ),
+                      const FadeInText(
+                        text: 'STARTS HERE.',
+                        duration: Duration(seconds: 1),
+                        color: Colors.white,
+                        fontSize: 90.0,
+                      ),
+                      const SizedBox(height: 50),
+                      const FadeInText(
+                        text: 'Phone no.',
+                        color: Colors.white,
+                        fontSize: 20.0,
+                      ),
+                      const SizedBox(height: 10),
+                      TextFormField(
+                        controller: _phoneController,
+                        cursorColor: Colors.white,
+                        keyboardType: TextInputType.phone,
+                        onChanged: (value) {
+                          ref.read(phoneNumberProvider.notifier).state = value;
+                        },
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(CupertinoIcons.phone),
+                          hintText: 'Enter Phone Number',
+                          hintStyle: const TextStyle(color: Colors.black54),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white70,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          
+                        ),
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                      const SizedBox(height: 30),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            
+                            if (_formKey.currentState!.validate()) {
+                              _sendOtp();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.greenAccent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 15.0, horizontal: 30.0),
+                          ),
+                          child: const Text(
+                            'Continue',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

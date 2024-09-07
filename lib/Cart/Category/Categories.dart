@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../Riverpod/CartItems.dart';
+
+import '../../Services/FirestoreCart.dart';
 
 class CategoryContainer extends ConsumerWidget {
   final String category;
@@ -18,7 +19,8 @@ class CategoryContainer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filteredItems = items.where((item) => item.category == category).toList();
+    final filteredItems =
+        items.where((item) => item.category == category).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,7 +44,7 @@ class CategoryContainer extends ConsumerWidget {
               )
             : ListView.builder(
                 itemCount: filteredItems.length,
-                shrinkWrap: true, 
+                shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemBuilder: (context, index) {
                   final item = filteredItems[index];
@@ -50,8 +52,14 @@ class CategoryContainer extends ConsumerWidget {
                     item: item,
                     screenWidth: screenWidth,
                     screenHeight: screenHeight,
-                    onIncrement: () => ref.read(addCartProvider.notifier).incrementItem(item.id),
-                    onDecrement: () => ref.read(addCartProvider.notifier).decrementItem(item.id),
+                    onIncrement: () => ref
+                        .read(addCartProvider.notifier)
+                        .incrementItem(item.id),
+                    onDecrement: () => ref
+                        .read(addCartProvider.notifier)
+                        .decrementItem(item.id),
+                    onDelete: () =>
+                        ref.read(addCartProvider.notifier).removeItem(item.id),
                   );
                 },
               ),
@@ -66,6 +74,7 @@ class CartItemWidget extends StatelessWidget {
   final double screenHeight;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
+  final VoidCallback onDelete;
 
   const CartItemWidget({
     required this.item,
@@ -73,46 +82,50 @@ class CartItemWidget extends StatelessWidget {
     required this.screenHeight,
     required this.onIncrement,
     required this.onDecrement,
+    required this.onDelete,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10.0),
-      padding: EdgeInsets.symmetric(
-        horizontal: screenWidth * 0.05,
-        vertical: 15.0,
-      ),
+      margin: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
+      padding: EdgeInsets.all(screenWidth * 0.02),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 248, 243, 243),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: const Color.fromARGB(255, 12, 12, 12).withOpacity(0.2),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 5),
-          ),
-        ],
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          if (item.imagePath.startsWith('http'))
-            Image.network(
-              item.imagePath,
-              width: 80,
-              height: 80,
-              fit: BoxFit.cover,
-            )
-          else
-            Image.asset(
-              item.imagePath,
-              width: 80,
-              height: 80,
-              fit: BoxFit.cover,
-            ),
+          // Column for Image and Delete Button
+          Column(
+            children: [
+              if (item.imagePath.startsWith('http'))
+                Image.network(
+                  item.imagePath,
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                )
+              else
+                Image.asset(
+                  item.imagePath,
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                ),
+              const SizedBox(
+                height: 3,
+              ),
+              GestureDetector(onTap: onDelete,
+                child: const Text(
+                  "Remove Item",
+                  style: TextStyle(fontSize: 10, color: Colors.red),
+                ),
+              ),
+            ],
+          ),
           SizedBox(width: screenWidth * 0.05),
           Expanded(
             child: Column(

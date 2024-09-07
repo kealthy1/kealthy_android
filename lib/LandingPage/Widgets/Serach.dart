@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../Riverpod/Searchbar.dart';
+import '../Allitems.dart';
 
 class SearchInput extends ConsumerWidget {
   const SearchInput({super.key});
@@ -11,6 +12,7 @@ class SearchInput extends ConsumerWidget {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
+    final searchController = TextEditingController();
 
     return Row(
       children: [
@@ -29,11 +31,21 @@ class SearchInput extends ConsumerWidget {
               ],
             ),
             width: screenWidth * 0.7,
-            child: TextField(
+            child: TextField(readOnly: true,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AllItemsPage(searchQuery: ""),
+                  ),
+                );
+              },
+              controller: searchController,
               decoration: InputDecoration(
                 hintText: "Search \"${hints[hintIndex]}\"",
                 hintStyle: const TextStyle(color: Colors.black),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(color: Colors.grey[300]!),
@@ -46,7 +58,13 @@ class SearchInput extends ConsumerWidget {
         ),
         GestureDetector(
           onTap: () {
-            ref.read(searchHintProvider.notifier).nextHint();
+            final query = searchController.text;
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AllItemsPage(searchQuery: query),
+              ),
+            );
           },
           child: Container(
             height: screenHeight * 0.06,

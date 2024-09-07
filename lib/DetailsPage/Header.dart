@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/Cart/Cart_Items.dart';
 import '../MenuPage/menu_item.dart';
 import '../Riverpod/AddCart.dart';
-import '../Riverpod/CartItems.dart';
+import '../Services/FirestoreCart.dart';
 import 'CartAnimation.dart';
 
 class ImageHeader extends ConsumerWidget {

@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../Cart/Cart_Items.dart';
 import '../MenuPage/menu_item.dart';
 import '../Riverpod/AddCart.dart';
-import '../Riverpod/CartItems.dart';
 import '../Riverpod/Increment.dart';
+import '../Services/FirestoreCart.dart';
 
 class AddToCart extends ConsumerWidget {
   final MenuItem menuItem;
@@ -35,7 +35,7 @@ class AddToCart extends ConsumerWidget {
                   isItemAddedToCart ? 'Go To Cart' : 'Add to Cart';
 
               return ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (buttonText == 'Go To Cart') {
                     Navigator.push(
                       context,
@@ -58,7 +58,6 @@ class AddToCart extends ConsumerWidget {
                     );
 
                     ref.read(addCartProvider.notifier).addItem(cartItem);
-
                     cartAnimation.state = true;
 
                     Future.delayed(const Duration(milliseconds: 300), () {

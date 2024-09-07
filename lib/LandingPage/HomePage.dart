@@ -1,6 +1,8 @@
 import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kealthy/LandingPage/Analysis/DietHomePage.dart';
+import 'package:shimmer/shimmer.dart';
 import '../MenuPage/ProductList.dart';
 import '../Riverpod/NavBar.dart';
 import 'Allitems.dart';
@@ -21,6 +23,7 @@ class MyHomePage extends ConsumerWidget {
 
     final List<Widget> pages = [
       _buildHomePage(context, ref),
+      const DietHomepage(),
       _buildHomePage(context, ref),
       const SidebarPage()
     ];
@@ -33,6 +36,7 @@ class MyHomePage extends ConsumerWidget {
         currentIndex: currentIndex,
         navbarItems: [
           FloatingNavbarItem(icon: Icons.home, title: 'Home'),
+          FloatingNavbarItem(icon: Icons.analytics_outlined, title: 'Analysis'),
           FloatingNavbarItem(
               icon: Icons.food_bank_outlined, title: 'My Orders'),
           FloatingNavbarItem(icon: Icons.settings, title: 'Settings'),
@@ -72,7 +76,15 @@ class MyHomePage extends ConsumerWidget {
           const CategoryGrid(),
           SizedBox(height: screenHeight * 0.03),
           menuItemsAsyncValue.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => Center(
+              child: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Container(
+                  color: Colors.grey[300],
+                ),
+              ),
+            ),
             error: (err, stack) => Center(child: Text('Error: $err')),
             data: (menuItems) {
               final displayedItems = menuItems.take(5).toList();
@@ -97,7 +109,9 @@ class MyHomePage extends ConsumerWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const AllItemsPage()),
+                                  builder: (context) => const AllItemsPage(
+                                        searchQuery: '',
+                                      )),
                             );
                           },
                           style: ElevatedButton.styleFrom(
