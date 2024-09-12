@@ -27,8 +27,7 @@ class CategoryGrid extends StatelessWidget {
                     builder: (context) => const SnacksMenuPage(),
                   ));
             },
-            child: _buildCategoryAvatar(
-                'Kealthy Snacks', 'assets/snacks.greeen.png'),
+            child: _buildCategoryAvatar('Kealthy Snacks', 'assets/snacks.greeen_11zon (1).png'),
           ),
           SizedBox(
             width: screenWidth * 0.06,
@@ -41,7 +40,7 @@ class CategoryGrid extends StatelessWidget {
                     builder: (context) => const FoodMenuPage(),
                   ));
             },
-            child: _buildCategoryAvatar(' Kealthy Foods', 'assets/100.png'),
+            child: _buildCategoryAvatar('  Foods', 'assets/100_11zon (1).png'),
           ),
           SizedBox(
             width: screenWidth * 0.06,
@@ -54,7 +53,7 @@ class CategoryGrid extends StatelessWidget {
                     builder: (context) => const DrinksMenuPage(),
                   ));
             },
-            child: _buildCategoryAvatar('Kealthy Drinks', 'assets/102.jpeg'),
+            child: _buildCategoryAvatar(' Drinks', 'assets/102_11zon.jpeg'),
           ),
         ],
       ),

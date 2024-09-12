@@ -19,13 +19,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
     return Container(
       height: bottomNavBarHeight,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        border: Border.all(
-          color: Colors.grey, 
-          width: 3.0, 
-        ),
       ),
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),

@@ -20,9 +20,6 @@ class ItemCard extends ConsumerWidget {
         final cardWidth = constraints.maxWidth * 0.9;
         final imageSize = cardWidth * 0.3;
 
-        final showFullDescription =
-            ref.watch(showFullDescriptionProvider(menuItem));
-
         return GestureDetector(
           onTap: () {
             Navigator.push(
@@ -57,7 +54,7 @@ class ItemCard extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 5),
+                        const SizedBox(height: 8),
                         RoundedBackgroundText(
                           menuItem.name,
                           style: const TextStyle(
@@ -65,34 +62,18 @@ class ItemCard extends ConsumerWidget {
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
-                          backgroundColor: const Color.fromARGB(255, 89, 161, 91),
+                          backgroundColor:
+                              const Color.fromARGB(255, 89, 161, 91),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         Text(
-                          showFullDescription
-                              ? menuItem.description
-                              : '${menuItem.description.substring(0, 50)}...',
+                          menuItem.description,
                           style: const TextStyle(
                             color: Colors.black87,
                             fontSize: 12,
                           ),
                         ),
-                        if (!showFullDescription)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4.0, bottom: 4.0),
-                            child: TextButton(
-                              onPressed: () {
-                                ref
-                                    .read(showFullDescriptionProvider(menuItem)
-                                        .notifier)
-                                    .state = !showFullDescription;
-                              },
-                              child: const Text(
-                                'Read More',
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ),
-                          ),
+                        const SizedBox(height: 8),
                         Text(
                           'Price:₹${menuItem.price.toStringAsFixed(2)}',
                           style: const TextStyle(
@@ -155,7 +136,3 @@ class ItemCard extends ConsumerWidget {
     );
   }
 }
-
-final showFullDescriptionProvider = StateProvider.family<bool, MenuItem>(
-  (ref, menuItem) => false,
-);

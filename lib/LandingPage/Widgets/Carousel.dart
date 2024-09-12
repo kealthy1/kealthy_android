@@ -1,75 +1,179 @@
-import 'package:carousel_slider/carousel_slider.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:kealthy/Analysis/Calorie.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import '../../Riverpod/carousel_slider_notifier.dart';
+import 'package:shimmer/shimmer.dart';
+import '../../Cart/Cart_Items.dart';
+import '../../Riverpod/Carousel.dart';
+import '../../Services/image_links.dart';
 
-class CarouselSliderWidget extends ConsumerWidget {
-  final List<String> assetImagePaths = [
-    'assets/2.png',
-    'assets/50%off.png',
-    'assets/3.png',
-    'assets/4.png',
-    'assets/5.png',
-    'assets/6.png',
-    'assets/7.png',
-    'assets/8.png',
-  ];
-
-  CarouselSliderWidget({super.key});
+class CarouselSliderWidget extends ConsumerStatefulWidget {
+  const CarouselSliderWidget({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-    final activeIndex = ref.watch(carouselSliderProvider);
+  _CarouselSliderWidgetState createState() => _CarouselSliderWidgetState();
+}
+
+class _CarouselSliderWidgetState extends ConsumerState<CarouselSliderWidget> {
+  late PageController _pageController;
+  late Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 1.0);
+    _startAutoScroll();
+  }
+
+  void _startAutoScroll() {
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      final currentIndex = ref.read(carouselIndexProvider);
+      final nextIndex = (currentIndex + 1) % ImageLinks.networkImageUrls.length;
+
+      ref.read(carouselIndexProvider.notifier).setIndex(nextIndex);
+      _pageController.animateToPage(
+        nextIndex,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.watch(carouselIndexProvider);
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        CarouselSlider.builder(
-          itemCount: assetImagePaths.length,
-          itemBuilder: (context, index, realIndex) {
-            final assetImagePath = assetImagePaths[index];
-            return Container(
-              width: screenWidth * 19,
-              margin: const EdgeInsets.symmetric(horizontal: 2.0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10.0),
-                child: Image.asset(
-                  assetImagePath,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            );
-          },
-          options: CarouselOptions(
-            viewportFraction: 0.8,
-            autoPlay: true,
-            enlargeCenterPage: true,
-            aspectRatio: 19 / 8,
-            autoPlayAnimationDuration: const Duration(milliseconds: 800),
-            scrollDirection: Axis.horizontal,
-            enableInfiniteScroll: true,
-            onPageChanged: (index, reason) {
-              ref.read(carouselSliderProvider.notifier).updateIndex(index);
-            },
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SizedBox(
+            height: 150,
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: ImageLinks.networkImageUrls.length,
+              onPageChanged: (index) {
+                ref.read(carouselIndexProvider.notifier).setIndex(index);
+              },
+              itemBuilder: (context, index) {
+                return Container(
+                  width: MediaQuery.of(context).size.width,
+                  padding: EdgeInsets.zero,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Stack(
+                    children: [
+                      CachedNetworkImage(
+                        imageUrl: ImageLinks.networkImageUrls[index],
+                        placeholder: (context, url) => Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: Container(
+                            color: Colors.grey[300],
+                          ),
+                        ),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                        imageBuilder: (context, imageProvider) => Container(
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image: imageProvider,
+                              fit: BoxFit.cover,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: TextButton(
+                          onPressed: () {
+                            final page = _getDetailPage(index);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => page),
+                            );
+                          },
+                          child: const Row(
+                            children: [
+                              Icon(Icons.arrow_forward_ios,
+                                  color: Colors.white),
+                              SizedBox(width: 4),
+                              Text(
+                                'Explore',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Align(
+                          alignment: Alignment.topLeft,
+                          child: Text(
+                            ImageLinks.textsForImages[index],
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            textAlign: TextAlign.left,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ),
-        const SizedBox(height: 16.0),
-        buildIndicator(activeIndex),
+        const SizedBox(height: 8.0),
+        SmoothPageIndicator(
+          controller: _pageController,
+          count: ImageLinks.networkImageUrls.length,
+          effect: const ExpandingDotsEffect(
+            dotHeight: 10,
+            dotWidth: 10,
+            activeDotColor: Colors.green,
+            dotColor: Colors.grey,
+            spacing: 4.0,
+          ),
+        ),
       ],
     );
   }
 
-  Widget buildIndicator(int activeIndex) => AnimatedSmoothIndicator(
-        activeIndex: activeIndex,
-        count: 8,
-        effect: const ExpandingDotsEffect(
-          dotHeight: 10,
-          dotWidth: 10,
-          activeDotColor: Colors.green,
-          dotColor: Colors.grey,
-        ),
-      );
+  Widget _getDetailPage(int index) {
+    switch (index) {
+      case 0:
+        return const ShowCart();
+      case 1:
+        return const ShowCart();
+      case 2:
+        return const ShowCart();
+      case 3:
+        return const CalorieIntakePage();
+      // case 4:
+      //   return ImageDetailPage5();
+      default:
+        return const Scaffold(
+          body: Center(child: Text('  ')),
+        );
+    }
+  }
 }

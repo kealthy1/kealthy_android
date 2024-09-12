@@ -1,7 +1,13 @@
+import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kealthy/LandingPage/Analysis/DietHomePage.dart';
+import 'package:ionicons/ionicons.dart';
+import 'package:kealthy/Analysis/Calorie.dart';
+import 'package:kealthy/Analysis/DietHomePage.dart';
+import 'package:kealthy/MenuPage/DietProvider.dart';
 import 'package:shimmer/shimmer.dart';
 import '../MenuPage/ProductList.dart';
 import '../Riverpod/NavBar.dart';
@@ -9,8 +15,8 @@ import 'Allitems.dart';
 import 'Widgets/Appbar.dart';
 import 'Widgets/Carousel.dart';
 import 'Widgets/Category.dart';
+import 'Widgets/Receipe.dart';
 import 'Widgets/Serach.dart';
-import 'Widgets/SideBar.dart';
 import 'Widgets/floating_bottom_navigation_bar.dart';
 import 'Widgets/items.dart';
 
@@ -23,9 +29,9 @@ class MyHomePage extends ConsumerWidget {
 
     final List<Widget> pages = [
       _buildHomePage(context, ref),
-      const DietHomepage(),
+       const DietHomepage(),
       _buildHomePage(context, ref),
-      const SidebarPage()
+      const CalorieIntakePage()
     ];
 
     return Scaffold(
@@ -35,11 +41,10 @@ class MyHomePage extends ConsumerWidget {
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: currentIndex,
         navbarItems: [
-          FloatingNavbarItem(icon: Icons.home, title: 'Home'),
-          FloatingNavbarItem(icon: Icons.analytics_outlined, title: 'Analysis'),
-          FloatingNavbarItem(
-              icon: Icons.food_bank_outlined, title: 'My Orders'),
-          FloatingNavbarItem(icon: Icons.settings, title: 'Settings'),
+          FloatingNavbarItem(icon: FeatherIcons.home, title: 'Home'),
+          FloatingNavbarItem(icon: FeatherIcons.activity, title: 'Analysis'),
+          FloatingNavbarItem(icon: BootstrapIcons.cart, title: 'My Orders'),
+          FloatingNavbarItem(icon: Ionicons.person_outline, title: 'Prfoile'),
         ],
         onTap: (index) {
           ref.read(bottomNavIndexProvider.notifier).updateIndex(index);
@@ -51,6 +56,7 @@ class MyHomePage extends ConsumerWidget {
   Widget _buildHomePage(BuildContext context, WidgetRef ref) {
     final screenHeight = MediaQuery.of(context).size.height;
     final menuItemsAsyncValue = ref.watch(menuProvider);
+    final dietItemsAsyncValue = ref.watch(dietProvider);
 
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
@@ -61,7 +67,7 @@ class MyHomePage extends ConsumerWidget {
             padding: EdgeInsets.all(16.0),
             child: SearchInput(),
           ),
-          CarouselSliderWidget(),
+          const CarouselSliderWidget(),
           SizedBox(height: screenHeight * 0.01),
           const Padding(
             padding: EdgeInsets.only(left: 23),
@@ -74,6 +80,40 @@ class MyHomePage extends ConsumerWidget {
             ),
           ),
           const CategoryGrid(),
+          SizedBox(height: screenHeight * 0.03),
+          const Padding(
+            padding: EdgeInsets.only(left: 23),
+            child: Text(
+              'Diets For You',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          SizedBox(height: screenHeight * 0.03),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: dietItemsAsyncValue.when(
+              loading: () => Center(
+                child: Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(
+                    height: 100,
+                    width: double.infinity,
+                    color: Colors.grey[300],
+                  ),
+                ),
+              ),
+              error: (err, stack) => Center(child: Text('Error: $err')),
+              data: (dietItems) {
+                return RecipeCardList(
+                  dietItems: dietItems,
+                );
+              },
+            ),
+          ),
           SizedBox(height: screenHeight * 0.03),
           menuItemsAsyncValue.when(
             loading: () => Center(
@@ -101,30 +141,28 @@ class MyHomePage extends ConsumerWidget {
                         const SizedBox(height: 16),
                   ),
                   if (menuItems.length > 5)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      child: Center(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const AllItemsPage(
-                                        searchQuery: '',
-                                      )),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 15, vertical: 5),
-                            textStyle: const TextStyle(fontSize: 18),
-                          ),
-                          child: const Text(
-                            'View All',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
+                    GestureDetector(
+                      onTap: () {},
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text("More"),
+                          IconButton(
+                              color: Colors.white,
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  CupertinoModalPopupRoute(
+                                      builder: (context) => const AllItemsPage(
+                                            searchQuery: '',
+                                          )),
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.black,
+                              )),
+                        ],
                       ),
                     ),
                 ],

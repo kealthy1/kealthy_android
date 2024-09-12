@@ -1,85 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import '../LandingPage/HomePage.dart';
-
-// OtpState now includes loading and error states.
-class OtpState {
-  final String? otp;
-  final bool isLoading;
-  final String? error;
-
-  OtpState({
-    this.otp,
-    this.isLoading = false,
-    this.error,
-  });
-}
-
-// StateNotifier to manage the state
-class OtpNotifier extends StateNotifier<OtpState> {
-  OtpNotifier() : super(OtpState());
-
-  void setOtp(String otp) {
-    state = OtpState(otp: otp);
-  }
-
-  Future<void> verifyOtp(String verificationId, String otp, BuildContext context) async {
-    state = OtpState(isLoading: true);
-    const url = 'https://us-central1-kealthy-90c55.cloudfunctions.net/api/verify-otp';
-
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'verificationId': verificationId,
-          'otp': otp,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        state = OtpState();
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MyHomePage()),
-        );
-      } else {
-        state = OtpState(error: 'OTP verification failed');
-      }
-    } catch (e) {
-      state = OtpState(error: 'An error occurred');
-    }
-  }
-
-  Future<void> resendOtp(String phoneNumber) async {
-    const url = 'https://us-central1-kealthy-90c55.cloudfunctions.net/api/send-otp';
-    state = OtpState(isLoading: true);
-
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phoneNumber': phoneNumber}),
-      );
-
-      if (response.statusCode == 200) {
-        state = OtpState();
-      } else {
-        state = OtpState(error: 'Failed to resend OTP');
-      }
-    } catch (e) {
-      state = OtpState(error: 'An error occurred while resending OTP');
-    }
-  }
-}
-
-final otpProvider = StateNotifierProvider<OtpNotifier, OtpState>(
-  (ref) => OtpNotifier(),
-);
+import 'package:telephony/telephony.dart';
+import 'package:shared_preferences/shared_preferences.dart'; 
+import '../Riverpod/otp.dart';
 
 class OTPScreen extends ConsumerStatefulWidget {
   final String verificationId;
@@ -96,15 +22,53 @@ class OTPScreen extends ConsumerStatefulWidget {
 }
 
 class _OTPScreenState extends ConsumerState<OTPScreen> {
+  final Telephony telephony = Telephony.instance;
+  String textReceived = "";
   final _otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   late Timer _timer;
-  int _start = 30; // OTP timeout duration in seconds
+  int _start = 30;
 
   @override
   void initState() {
     super.initState();
+    startListening();
     _startTimer();
+  }
+
+  void startListening() {
+    telephony.listenIncomingSms(
+      onNewMessage: (SmsMessage message) {
+        if (message.body != null &&
+            message.body!.contains("Your OTP code is:")) {
+          _extractAndFillOtp(message.body!);
+          setState(() {
+            textReceived = message.body ?? "";
+          });
+        } else {
+          setState(() {
+            textReceived = "Ignored message: ${message.body ?? ""}";
+          });
+        }
+      },
+      listenInBackground: false,
+    );
+  }
+
+  void _extractAndFillOtp(String message) {
+    final RegExp otpRegExp = RegExp(r'Your OTP code is:\s*(\d{4})');
+    final match = otpRegExp.firstMatch(message);
+    if (match != null) {
+      final extractedOtp = match.group(1);
+      if (extractedOtp != null) {
+        _otpController.text = extractedOtp;
+        if (_otpController.text.length == 4) {
+          _formKey.currentState?.validate();
+          ref.read(otpProvider.notifier).verifyOtp(
+              widget.verificationId, extractedOtp, context, onSuccess: _savePhoneNumber); // Pass the save function
+        }
+      }
+    }
   }
 
   void _startTimer() {
@@ -121,6 +85,11 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
     });
   }
 
+  void _savePhoneNumber() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('phoneNumber', widget.phoneNumber);
+  }
+
   @override
   void dispose() {
     _timer.cancel();
@@ -133,6 +102,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Enter OTP'),
       ),
       body: Padding(
@@ -140,7 +110,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
         child: Column(
           children: [
             Text('OTP sent to ${widget.phoneNumber}'),
-            const SizedBox(height: 10),
+            const SizedBox(height: 50),
             Form(
               key: _formKey,
               child: PinCodeTextField(
@@ -151,17 +121,19 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                 onCompleted: (otp) {
                   if (_formKey.currentState?.validate() == true) {
                     final verificationId = widget.verificationId;
-                    ref.read(otpProvider.notifier).verifyOtp(verificationId, otp, context);
+                    ref.read(otpProvider.notifier).verifyOtp(
+                        verificationId, otp, context, onSuccess: _savePhoneNumber);
                   }
                 },
                 pinTheme: PinTheme(
+                  borderWidth: 10,
                   shape: PinCodeFieldShape.box,
                   borderRadius: BorderRadius.circular(5),
                   fieldHeight: 50,
                   fieldWidth: 40,
-                  activeColor: Colors.blue,
+                  activeColor: Colors.green,
                   inactiveColor: Colors.grey,
-                  selectedColor: Colors.blue,
+                  selectedColor: Colors.green,
                 ),
                 keyboardType: TextInputType.number,
               ),
@@ -175,17 +147,21 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
             ],
             const SizedBox(height: 20),
             otpState.isLoading
-                ? const CircularProgressIndicator()
+                ? const SpinKitCircle(
+                    color: Colors.black,
+                    size: 50.0,
+                  )
                 : ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState?.validate() == true) {
                         final otp = _otpController.text.trim();
                         final verificationId = widget.verificationId;
-                        ref.read(otpProvider.notifier).verifyOtp(verificationId, otp, context);
+                        ref.read(otpProvider.notifier).verifyOtp(
+                            verificationId, otp, context, onSuccess: _savePhoneNumber);
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.greenAccent,
+                      backgroundColor: Colors.green,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -195,14 +171,14 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                     child: const Text(
                       'Continue',
                       style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900),
+                        color: Colors.white,
+                        fontSize: 18,
+                      ),
                     ),
                   ),
             const SizedBox(height: 20),
             _start == 0
-                ? ElevatedButton(
+                ? TextButton(
                     onPressed: () {
                       ref.read(otpProvider.notifier).resendOtp(widget.phoneNumber);
                       setState(() {
@@ -210,26 +186,20 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                       });
                       _startTimer();
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 15.0, horizontal: 30.0),
-                    ),
                     child: const Text(
-                      'Resend OTP',
+                      'Resend',
                       style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900),
+                        color: Colors.black,
+                        fontSize: 18,
+                      ),
                     ),
                   )
                 : Text(
                     'Resend OTP in $_start seconds',
                     style: const TextStyle(fontSize: 16, color: Colors.grey),
                   ),
+            const SizedBox(height: 20),
+            Text(textReceived)
           ],
         ),
       ),

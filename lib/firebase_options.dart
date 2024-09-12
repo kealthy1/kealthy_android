@@ -17,17 +17,29 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      return web;
+      throw UnsupportedError(
+        'DefaultFirebaseOptions have not been configured for web - '
+        'you can reconfigure this by running the FlutterFire CLI again.',
+      );
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        return ios;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for ios - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.macOS:
-        return macos;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.windows:
-        return windows;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for windows - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -40,49 +52,11 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyD9KKVLV97Uj6sKAaBpM8621uwDWL-215w',
-    appId: '1:486140167563:web:688322367985fb85ae5b8e',
-    messagingSenderId: '486140167563',
-    projectId: 'kealthy-90c55',
-    authDomain: 'kealthy-90c55.firebaseapp.com',
-    storageBucket: 'kealthy-90c55.appspot.com',
-    measurementId: 'G-JBJ7QS2885',
-  );
-
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAtCIdSOs_cpsz6TLXcJaMloWKFJcB2BlM',
     appId: '1:486140167563:android:8ddf0b570c6657faae5b8e',
     messagingSenderId: '486140167563',
     projectId: 'kealthy-90c55',
     storageBucket: 'kealthy-90c55.appspot.com',
-  );
-
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAm8Rza2XPXSEBOzTbkGxsUpGwV1EYKNfg',
-    appId: '1:486140167563:ios:15cfab50ea63e6f1ae5b8e',
-    messagingSenderId: '486140167563',
-    projectId: 'kealthy-90c55',
-    storageBucket: 'kealthy-90c55.appspot.com',
-    iosBundleId: 'com.example.kealthy',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAm8Rza2XPXSEBOzTbkGxsUpGwV1EYKNfg',
-    appId: '1:486140167563:ios:15cfab50ea63e6f1ae5b8e',
-    messagingSenderId: '486140167563',
-    projectId: 'kealthy-90c55',
-    storageBucket: 'kealthy-90c55.appspot.com',
-    iosBundleId: 'com.example.kealthy',
-  );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyD9KKVLV97Uj6sKAaBpM8621uwDWL-215w',
-    appId: '1:486140167563:web:5c44aa181e663e5fae5b8e',
-    messagingSenderId: '486140167563',
-    projectId: 'kealthy-90c55',
-    authDomain: 'kealthy-90c55.firebaseapp.com',
-    storageBucket: 'kealthy-90c55.appspot.com',
-    measurementId: 'G-B5E87VPVDR',
   );
 }

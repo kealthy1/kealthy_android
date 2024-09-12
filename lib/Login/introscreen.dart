@@ -21,8 +21,7 @@ class _IntroScreenState extends ConsumerState<IntroScreen> {
   @override
   void initState() {
     super.initState();
-    _pageController =
-        PageController(); 
+    _pageController = PageController();
     _pageController.addListener(() {
       ref.read(pageIndexProvider.notifier).state =
           _pageController.page?.round() ?? 0;
@@ -31,7 +30,7 @@ class _IntroScreenState extends ConsumerState<IntroScreen> {
 
   @override
   void dispose() {
-    _pageController.dispose(); 
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -90,9 +89,10 @@ class _IntroScreenState extends ConsumerState<IntroScreen> {
                       );
                     } else {
                       Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => const LoginFields()),
-                      );
+                          context,
+                          CupertinoModalPopupRoute(
+                            builder: (context) => const LoginFields(),
+                          ));
                     }
                   },
                   icon: const Icon(
@@ -139,18 +139,16 @@ class _IntroPage1State extends ConsumerState<IntroPage1> {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage(
-                    "assets/1dd0cf5b057eafa743335515fedd60a1.jpg"),
+                image:
+                    AssetImage("assets/4d764a40a44d899b8a392ceea441bff5.jpg"),
                 fit: BoxFit.cover,
               ),
             ),
           ),
           BackdropFilter(
-            filter: ImageFilter.blur(
-                sigmaX: 1.0, sigmaY: 1.0), 
+            filter: ImageFilter.dilate(),
             child: Container(
-              color: Colors.black.withOpacity(
-                  0.3),
+              color: Colors.black.withOpacity(0.3),
             ),
           ),
           const SafeArea(
@@ -214,17 +212,15 @@ class _IntroPage2State extends ConsumerState<IntroPage2> {
             decoration: const BoxDecoration(
               image: DecorationImage(
                 image: AssetImage(
-                    "assets/9ae5cf7d39ac604f9c2fc2cc01e99862.jpg"),
+                    "assets/9ae5cf7d39ac604f9c2fc2cc01e99862_11zon.jpg"),
                 fit: BoxFit.cover,
               ),
             ),
           ),
           BackdropFilter(
-            filter: ImageFilter.blur(
-                sigmaX: 1.0, sigmaY: 1.0),
+            filter: ImageFilter.dilate(),
             child: Container(
-              color: Colors.black.withOpacity(
-                  0.3), 
+              color: Colors.black.withOpacity(0.3),
             ),
           ),
           const SafeArea(

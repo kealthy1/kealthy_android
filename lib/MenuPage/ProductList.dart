@@ -18,6 +18,7 @@ final menuProvider = FutureProvider<List<MenuItem>>((ref) async {
   return menuItems;
 });
 
+
 class PaginatedMenuState {
   final List<MenuItem> items;
   final bool isLoading;

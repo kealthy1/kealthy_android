@@ -31,7 +31,8 @@ class SearchInput extends ConsumerWidget {
               ],
             ),
             width: screenWidth * 0.7,
-            child: TextField(readOnly: true,
+            child: TextField(
+              readOnly: true,
               onTap: () {
                 Navigator.push(
                   context,
@@ -84,7 +85,7 @@ class SearchInput extends ConsumerWidget {
             ),
             child: const Icon(
               Icons.search,
-              color: Colors.black,
+              color: Colors.white,
               size: 24,
             ),
           ),

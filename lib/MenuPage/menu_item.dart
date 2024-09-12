@@ -61,3 +61,48 @@ class MenuItem {
     return 0.0;
   }
 }
+
+
+class DietItem {
+  final String name;
+  
+  final String category;
+  final String description;
+  final double rating;
+  final String imageUrl;
+
+  DietItem({
+    required this.name,
+    required this.category,
+    required this.description,
+    required this.rating,
+    required this.imageUrl,
+  });
+
+  factory DietItem.fromFirestore(Map<String, dynamic> data) {
+    return DietItem(
+      name: data['Name'] ?? '',
+      category: data['Category'] ?? '',
+      description: data['Description'] ?? '',
+      rating: _parseDouble(data['Rating']),
+      imageUrl: data['ImageUrl'] ?? '',
+    );
+  }
+
+ static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) {
+      // Remove the "g" unit from the string
+      String cleanedValue = value.replaceAll('g', '').trim();
+
+      if (cleanedValue.startsWith('.')) {
+        cleanedValue = '0$cleanedValue';
+      }
+
+      return double.tryParse(cleanedValue) ?? 0.0; 
+    }
+    return 0.0;
+  }
+}

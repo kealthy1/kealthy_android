@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/Cart/Cart_Items.dart';
-
 import '../../Services/FirestoreCart.dart';
 
 class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
@@ -13,29 +13,27 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    int currentHour = DateTime.now().hour;
+
+    String greeting;
+    if (currentHour < 12) {
+      greeting = "Good Morning";
+    } else if (currentHour < 18) {
+      greeting = "Good Afternoon";
+    } else {
+      greeting = "Good Night";
+    }
+
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(
         bottom: Radius.circular(15),
       ),
       child: AppBar(
-        leading: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              padding: const EdgeInsets.all(3.0),
-              decoration: const BoxDecoration(
-                color: Colors.green,
-                shape: BoxShape.circle,
-              ),
-              child: const CircleAvatar(
-                backgroundImage: AssetImage("assets/sara2.jpg"),
-                radius: 50.0,
-              ),
-            )),
         automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
-        title: const Text(
-          "Hello Sara  👋 ",
-          style: TextStyle(
+        title: Text(
+          "$greeting Sara",
+          style: const TextStyle(
               color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
         ),
         actions: <Widget>[
@@ -53,8 +51,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
                 },
                 icon: const Icon(Icons.shopping_cart_outlined),
               ),
-
-              Consumer( 
+              Consumer(
                 builder: (context, ref, child) {
                   final cartItemCount = ref.watch(addCartProvider).length;
                   return Positioned(
@@ -87,10 +84,12 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Image.asset(
-              "assets/customer-service.png",
-              height: 30,
-            ),
+            child: GestureDetector(
+                onTap: () {},
+                child: const Icon(
+                  FeatherIcons.helpCircle,
+                  size: 30,
+                )),
           ),
         ],
       ),
