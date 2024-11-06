@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:kealthy/Analysis/Calorie.dart';
+import 'package:kealthy/MenuPage/Drinks/DrinksPage.dart';
+import 'package:kealthy/MenuPage/Food/FoodPage.dart';
+import 'package:kealthy/MenuPage/Snacks/SnacksPage.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:shimmer/shimmer.dart';
-import '../../Cart/Cart_Items.dart';
 import '../../Riverpod/Carousel.dart';
 import '../../Services/image_links.dart';
 
@@ -73,27 +75,36 @@ class _CarouselSliderWidgetState extends ConsumerState<CarouselSliderWidget> {
                   ),
                   child: Stack(
                     children: [
-                      CachedNetworkImage(
-                        imageUrl: ImageLinks.networkImageUrls[index],
-                        placeholder: (context, url) => Shimmer.fromColors(
-                          baseColor: Colors.grey[300]!,
-                          highlightColor: Colors.grey[100]!,
-                          child: Container(
-                            color: Colors.grey[300],
-                          ),
-                        ),
-                        errorWidget: (context, url, error) =>
-                            const Icon(Icons.error),
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                        imageBuilder: (context, imageProvider) => Container(
-                          decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: imageProvider,
-                              fit: BoxFit.cover,
+                      GestureDetector(
+                        onTap: () {
+                          final page = _getDetailPage(index);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => page),
+                          );
+                        },
+                        child: CachedNetworkImage(
+                          imageUrl: ImageLinks.networkImageUrls[index],
+                          placeholder: (context, url) => Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.grey[100]!,
+                            child: Container(
+                              color: Colors.grey[300],
                             ),
-                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          errorWidget: (context, url, error) =>
+                              const Icon(Icons.error),
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                          imageBuilder: (context, imageProvider) => Container(
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: imageProvider,
+                                fit: BoxFit.cover,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                           ),
                         ),
                       ),
@@ -161,17 +172,17 @@ class _CarouselSliderWidgetState extends ConsumerState<CarouselSliderWidget> {
   Widget _getDetailPage(int index) {
     switch (index) {
       case 0:
-        return const ShowCart();
+        return const FoodMenuPage();
       case 1:
-        return const ShowCart();
+        return const DrinksMenuPage();
       case 2:
-        return const ShowCart();
+        return const SnacksMenuPage();
       case 3:
         return const CalorieIntakePage();
       // case 4:
       //   return ImageDetailPage5();
       default:
-        return const Scaffold(
+        return const Scaffold(backgroundColor: Colors.white,
           body: Center(child: Text('  ')),
         );
     }

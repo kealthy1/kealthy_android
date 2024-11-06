@@ -26,7 +26,16 @@ class HomePage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Container(
-                    color: const Color.fromARGB(255, 121, 184, 125),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color.fromARGB(255, 231, 236, 232), 
+                          Color.fromARGB(255, 11, 99, 40),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
                     padding: EdgeInsets.symmetric(
                       vertical: 16.0,
                       horizontal: screenWidth * 0.05,
@@ -62,7 +71,7 @@ class HomePage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         RedNutritionSection(menuItem: menuItem),
-                        const SizedBox(height: 16.0),
+                         SizedBox(height: screenHeight * 0.02,),
                         DescriptionSection(menuItem: menuItem),
                         SizedBox(
                           height: screenHeight * 0.02,
@@ -76,7 +85,7 @@ class HomePage extends StatelessWidget {
           ),
           Container(
             padding: EdgeInsets.symmetric(
-              vertical: screenHeight * 0.02,
+              vertical: screenHeight * 0.04,
               horizontal: screenWidth * 0.05,
             ),
             color: Colors.white,

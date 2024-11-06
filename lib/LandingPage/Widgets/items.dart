@@ -5,13 +5,11 @@ import 'package:rounded_background_text/rounded_background_text.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../DetailsPage/HomePage.dart';
 import '../../MenuPage/menu_item.dart';
-import '../../Services/Fetchimage.dart';
 
 class ItemCard extends ConsumerWidget {
   final MenuItem menuItem;
-  final CustomCacheManager cacheManager = CustomCacheManager();
 
-  ItemCard({super.key, required this.menuItem});
+  const ItemCard({super.key, required this.menuItem});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -75,7 +73,7 @@ class ItemCard extends ConsumerWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Price:₹${menuItem.price.toStringAsFixed(2)}',
+                          'Price:₹${menuItem.price.toStringAsFixed(0)}/-',
                           style: const TextStyle(
                             color: Colors.black,
                             fontSize: 14,
@@ -91,7 +89,6 @@ class ItemCard extends ConsumerWidget {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: CachedNetworkImage(
-                          cacheManager: cacheManager,
                           imageUrl: menuItem.imageUrl,
                           height: imageSize,
                           width: imageSize,

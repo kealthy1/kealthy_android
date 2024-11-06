@@ -37,7 +37,7 @@ class SearchInput extends ConsumerWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const AllItemsPage(searchQuery: ""),
+                    builder: (context) => const AllItemsPage( )
                   ),
                 );
               },
@@ -59,11 +59,10 @@ class SearchInput extends ConsumerWidget {
         ),
         GestureDetector(
           onTap: () {
-            final query = searchController.text;
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => AllItemsPage(searchQuery: query),
+                builder: (context) => const AllItemsPage(),
               ),
             );
           },

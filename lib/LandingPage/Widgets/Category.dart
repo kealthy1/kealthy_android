@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kealthy/MenuPage/Drinks/DrinksPage.dart';
 import 'package:kealthy/MenuPage/Food/FoodPage.dart';
-import '../../MenuPage/Snacks/SnacksPage.dart';
+import 'package:kealthy/MenuPage/Snacks/SnacksPage.dart';
+import '../../Services/ServiceableAlert.dart';
 
 class CategoryGrid extends StatelessWidget {
   const CategoryGrid({super.key});
@@ -16,48 +18,71 @@ class CategoryGrid extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          SizedBox(
-            width: screenWidth * 0.06,
-          ),
+          SizedBox(width: screenWidth * 0.06),
           GestureDetector(
-            onTap: () {
-              Navigator.push(
-                  context,
-                  CupertinoModalPopupRoute(
-                    builder: (context) => const SnacksMenuPage(),
-                  ));
-            },
-            child: _buildCategoryAvatar('Kealthy Snacks', 'assets/snacks.greeen_11zon (1).png'),
+            onTap: () => _onCategoryTap(
+              context,
+              const SnacksMenuPage(),
+              checkServiceable: false,
+            ),
+            child: _buildCategoryAvatar(
+              'Kealthy Snacks',
+              'assets/snacks.greeen_11zon (1).png',
+            ),
           ),
-          SizedBox(
-            width: screenWidth * 0.06,
-          ),
+          SizedBox(width: screenWidth * 0.06),
           GestureDetector(
-            onTap: () {
-              Navigator.push(
-                  context,
-                  CupertinoModalPopupRoute(
-                    builder: (context) => const FoodMenuPage(),
-                  ));
-            },
-            child: _buildCategoryAvatar('  Foods', 'assets/100_11zon (1).png'),
+            onTap: () => _onCategoryTap(
+              context,
+              const FoodMenuPage(),
+              checkServiceable: true, 
+            ),
+            child: _buildCategoryAvatar(
+              '  Foods',
+              'assets/100_11zon__1_-removebg-preview.png',
+            ),
           ),
-          SizedBox(
-            width: screenWidth * 0.06,
-          ),
+          SizedBox(width: screenWidth * 0.06),
           GestureDetector(
-            onTap: () {
-              Navigator.push(
-                  context,
-                  CupertinoModalPopupRoute(
-                    builder: (context) => const DrinksMenuPage(),
-                  ));
-            },
-            child: _buildCategoryAvatar(' Drinks', 'assets/102_11zon.jpeg'),
+            onTap: () => _onCategoryTap(
+              context,
+              const DrinksMenuPage(),
+              checkServiceable: false,
+            ),
+            child: _buildCategoryAvatar(
+              ' Drinks',
+              'assets/102_11zon.jpeg',
+            ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _onCategoryTap(BuildContext context, Widget destinationPage,
+      {bool checkServiceable = false}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedAddress = prefs.getString('currentaddress') ?? '';
+    List<String> serviceablePincodes = ['682030', '682037', '683565'];
+    bool isServiceable =
+        serviceablePincodes.any((pincode) => savedAddress.contains(pincode));
+
+    if (!isServiceable && checkServiceable) {
+      ServiceableAlert.show(
+        context: context,
+        onContinue: () {
+          Navigator.push(
+            context,
+            CupertinoModalPopupRoute(builder: (context) => destinationPage),
+          );
+        },
+      );
+    } else {
+      Navigator.push(
+        context,
+        CupertinoModalPopupRoute(builder: (context) => destinationPage),
+      );
+    }
   }
 
   Widget _buildCategoryAvatar(String label, String imagePath) {
@@ -75,6 +100,7 @@ class CategoryGrid extends StatelessWidget {
               ),
             ),
             child: CircleAvatar(
+              backgroundColor: Colors.transparent,
               backgroundImage: AssetImage(imagePath),
               radius: 50,
             ),

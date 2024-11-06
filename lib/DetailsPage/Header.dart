@@ -1,11 +1,27 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kealthy/Cart/Cart_Items.dart';
+import '../Cart/Cart_Items.dart';
 import '../MenuPage/menu_item.dart';
 import '../Riverpod/AddCart.dart';
 import '../Services/FirestoreCart.dart';
 import 'CartAnimation.dart';
+
+class ImageCacheNotifier extends StateNotifier<Image?> {
+  ImageCacheNotifier() : super(null);
+
+  Future<void> cacheImage(String imageUrl, BuildContext context) async {
+    await precacheImage(NetworkImage(imageUrl), context);
+
+    state = Image.network(imageUrl);
+  }
+}
+
+final imageCacheProvider =
+    StateNotifierProvider<ImageCacheNotifier, Image?>((ref) {
+  return ImageCacheNotifier();
+});
 
 class ImageHeader extends ConsumerWidget {
   final MenuItem menuItem;
@@ -15,21 +31,33 @@ class ImageHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isCartAnimationActive = ref.watch(cartAnimationProvider);
+    ref.watch(imageCacheProvider);
 
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(imageCacheProvider.notifier)
+          .cacheImage(menuItem.imageUrl, context);
+    });
 
     return Container(
       padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
       child: Stack(
         children: [
           Center(
-            child: Image.network(
-              menuItem.imageUrl,
-              height: screenHeight * 0.28,
-              fit: BoxFit.cover,
-            ),
-          ),
+              child: CachedNetworkImage(
+                imageUrl: menuItem.imageUrl,
+                width: screenWidth * 0.5,
+                height: screenHeight * 0.3,
+                placeholder: (context, url) => SizedBox(
+                  width: screenWidth * 0.5,
+                  height: screenHeight * 0.3,
+                  
+                ),
+                errorWidget: (context, url, error) => const Icon(Icons.error),
+              )),
           Align(
             alignment: Alignment.topRight,
             child: Padding(
@@ -46,10 +74,11 @@ class ImageHeader extends ConsumerWidget {
                       ),
                       onPressed: () {
                         Navigator.push(
-                            context,
-                            CupertinoModalPopupRoute(
-                              builder: (context) => const ShowCart(),
-                            ));
+                          context,
+                          CupertinoModalPopupRoute(
+                            builder: (context) => const ShowCart(),
+                          ),
+                        );
                       },
                       color:
                           isCartAnimationActive ? Colors.black : Colors.white,

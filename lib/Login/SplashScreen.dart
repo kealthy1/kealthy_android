@@ -20,24 +20,28 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(const Duration(seconds: 2), () async {
       final hasPhoneNumber = await _checkPhoneNumber();
 
-      Navigator.pushReplacement(
+      if (mounted) {
+        Navigator.pushReplacement(
           context,
           CupertinoModalPopupRoute(
             builder: (context) =>
                 hasPhoneNumber ? const MyHomePage() : const IntroScreen(),
-          ));
+          ),
+        );
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              'assets/2.png',
+              'assets/Kealthy.jpeg',
               width: 200,
               height: 200,
             ),

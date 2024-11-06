@@ -25,7 +25,7 @@ class OtpNotifier extends StateNotifier<OtpState> {
 
   Future<void> verifyOtp(String verificationId, String otp, BuildContext context, {Function? onSuccess}) async {
     state = OtpState(isLoading: true);
-    const url = 'https://us-central1-kealthy-90c55.cloudfunctions.net/api/verify-otp';
+    const url = 'https://api-jfnhkjk4nq-uc.a.run.app/verify-otp';
 
     try {
       final response = await http.post(
@@ -42,9 +42,9 @@ class OtpNotifier extends StateNotifier<OtpState> {
         if (onSuccess != null) {
           onSuccess();
         }
-        Navigator.pushReplacement(
+        Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const MyHomePage()),
+          MaterialPageRoute(builder: (context) =>  const MyHomePage()),
         );
       } else {
         state = OtpState(error: 'OTP verification failed');

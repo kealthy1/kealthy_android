@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -48,6 +49,8 @@ class CategoryContainer extends ConsumerWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 itemBuilder: (context, index) {
                   final item = filteredItems[index];
+                  final isLoading =
+                      ref.watch(addCartProvider.notifier).isLoading(item.id);
                   return CartItemWidget(
                     item: item,
                     screenWidth: screenWidth,
@@ -60,6 +63,7 @@ class CategoryContainer extends ConsumerWidget {
                         .decrementItem(item.id),
                     onDelete: () =>
                         ref.read(addCartProvider.notifier).removeItem(item.id),
+                    isLoading: isLoading,
                   );
                 },
               ),
@@ -75,6 +79,7 @@ class CartItemWidget extends StatelessWidget {
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
   final VoidCallback onDelete;
+  final bool isLoading;
 
   const CartItemWidget({
     required this.item,
@@ -83,6 +88,7 @@ class CartItemWidget extends StatelessWidget {
     required this.onIncrement,
     required this.onDecrement,
     required this.onDelete,
+    required this.isLoading,
     super.key,
   });
 
@@ -98,19 +104,18 @@ class CartItemWidget extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Column for Image and Delete Button
           Column(
             children: [
-              if (item.imagePath.startsWith('http'))
-                Image.network(
-                  item.imagePath,
+              if (item.imageUrl.startsWith('http'))
+                CachedNetworkImage(
                   width: 80,
                   height: 80,
                   fit: BoxFit.cover,
+                  imageUrl: item.imageUrl,
                 )
               else
                 Image.asset(
-                  item.imagePath,
+                  item.imageUrl,
                   width: 80,
                   height: 80,
                   fit: BoxFit.cover,
@@ -118,7 +123,8 @@ class CartItemWidget extends StatelessWidget {
               const SizedBox(
                 height: 3,
               ),
-              GestureDetector(onTap: onDelete,
+              GestureDetector(
+                onTap: onDelete,
                 child: const Text(
                   "Remove Item",
                   style: TextStyle(fontSize: 10, color: Colors.red),
@@ -153,6 +159,7 @@ class CartItemWidget extends StatelessWidget {
           ),
           SizedBox(width: screenWidth * 0.05),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
                 decoration: BoxDecoration(

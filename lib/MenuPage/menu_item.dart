@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class MenuItem {
   final String name;
   final double price;
@@ -60,6 +62,8 @@ class MenuItem {
     }
     return 0.0;
   }
+
+  static fromDocument(DocumentSnapshot<Object?> menuItem) {}
 }
 
 

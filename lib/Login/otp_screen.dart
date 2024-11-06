@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:kealthy/Services/Loading.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:telephony/telephony.dart';
-import 'package:shared_preferences/shared_preferences.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
 import '../Riverpod/otp.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class OTPScreen extends ConsumerStatefulWidget {
   final String verificationId;
@@ -65,7 +67,8 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
         if (_otpController.text.length == 4) {
           _formKey.currentState?.validate();
           ref.read(otpProvider.notifier).verifyOtp(
-              widget.verificationId, extractedOtp, context, onSuccess: _savePhoneNumber); // Pass the save function
+              widget.verificationId, extractedOtp, context,
+              onSuccess: _savePhoneNumber); // Pass the save function
         }
       }
     }
@@ -85,9 +88,29 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
     });
   }
 
-  void _savePhoneNumber() async {
+  Future<void> _savePhoneNumber() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('phoneNumber', widget.phoneNumber);
+
+    String cleanedPhoneNumber =
+        widget.phoneNumber.replaceAll('+91', '').replaceAll(' ', '');
+
+    await prefs.setString('phoneNumber', cleanedPhoneNumber);
+
+    const String apiUrl = "https://api-jfnhkjk4nq-uc.a.run.app/login";
+
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'phoneNumber': widget.phoneNumber}),
+    );
+
+    if (response.statusCode == 200) {
+      print('Phone number saved to MongoDB: ${response.body}');
+    } else {
+      print(
+          'Failed to save phone number to MongoDB: ${response.statusCode}, ${response.body}');
+      print('Response: ${response.toString()}');
+    }
   }
 
   @override
@@ -122,7 +145,8 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                   if (_formKey.currentState?.validate() == true) {
                     final verificationId = widget.verificationId;
                     ref.read(otpProvider.notifier).verifyOtp(
-                        verificationId, otp, context, onSuccess: _savePhoneNumber);
+                        verificationId, otp, context,
+                        onSuccess: _savePhoneNumber);
                   }
                 },
                 pinTheme: PinTheme(
@@ -147,17 +171,16 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
             ],
             const SizedBox(height: 20),
             otpState.isLoading
-                ? const SpinKitCircle(
-                    color: Colors.black,
-                    size: 50.0,
-                  )
+                ? const Center(
+                    child: LoadingWidget(message: "Fueling your health..."))
                 : ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState?.validate() == true) {
                         final otp = _otpController.text.trim();
                         final verificationId = widget.verificationId;
                         ref.read(otpProvider.notifier).verifyOtp(
-                            verificationId, otp, context, onSuccess: _savePhoneNumber);
+                            verificationId, otp, context,
+                            onSuccess: _savePhoneNumber);
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -180,7 +203,9 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
             _start == 0
                 ? TextButton(
                     onPressed: () {
-                      ref.read(otpProvider.notifier).resendOtp(widget.phoneNumber);
+                      ref
+                          .read(otpProvider.notifier)
+                          .resendOtp(widget.phoneNumber);
                       setState(() {
                         _start = 30;
                       });

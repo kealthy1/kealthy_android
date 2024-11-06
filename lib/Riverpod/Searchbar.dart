@@ -8,7 +8,7 @@ class SearchHintNotifier extends StateNotifier<int> {
   void _startHintRotation() {
     Future.delayed(const Duration(seconds: 3), () {
       nextHint();
-      _startHintRotation(); // Repeat the rotation
+      _startHintRotation();
     });
   }
 

@@ -3,30 +3,39 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/Login/SplashScreen.dart';
 import 'package:kealthy/Services/Connection.dart';
+import 'Services/Location_Permission.dart';
+import 'Services/location_dialog_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-
   runApp(const ProviderScope(child: MyApp()));
 }
-
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget { 
+              
   const MyApp({super.key});
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final locationDialogManager = LocationDialogManager(ref);
+      if (navigatorKey.currentContext != null) {
+        locationDialogManager.fetchAndCheckLocation(navigatorKey.currentContext!);
+      }
+      final locationServiceChecker =
+          LocationServiceChecker(navigatorKey.currentContext!);
+      locationServiceChecker.startChecking();
+    });
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Kealthy',
       theme: ThemeData(
         primarySwatch: Colors.green,
       ),
       home: const ConnectivityWidget(
-        child: MaterialApp(
-          debugShowCheckedModeBanner: false,
-          home: SplashScreen(),
-        ),
+        child: SplashScreen(),
       ),
     );
   }

@@ -1,25 +1,26 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.Kealthy">
+    
+    <!-- Permissions for Internet and Storage -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    
+    <!-- Permissions for SMS -->
     <uses-permission android:name="android.permission.RECEIVE_SMS"/>
     <uses-permission android:name="android.permission.READ_SMS"/>
     
-
-
-
-
-
-
-
+    <!-- Permissions for Location (Required for Google Maps) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    
     <application
         android:label="Kealthy"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true"
         android:theme="@style/LaunchTheme"> 
         
-        
+        <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -38,17 +39,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- SMS Receiver -->
         <receiver android:name="com.shounakmulay.telephony.sms.IncomingSmsReceiver"
-		    android:permission="android.permission.BROADCAST_SMS" android:exported="true">
-		    <intent-filter>
-			<action android:name="android.provider.Telephony.SMS_RECEIVED"/>
-		    </intent-filter>
-		</receiver>
+            android:permission="android.permission.BROADCAST_SMS" 
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED"/>
+            </intent-filter>
+        </receiver>
         
-        <!-- Meta-data used by the Flutter tool -->
+        <!-- Meta-data for Flutter -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        
+        <!-- Meta-data for Google Maps API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyD1MUoakZ0mm8WeFv_GK9k_zAWdGk5r1hA"/>
         
     </application>
 
@@ -59,5 +68,5 @@
             <data android:mimeType="text/plain" />
         </intent>
     </queries>
-
+    
 </manifest>

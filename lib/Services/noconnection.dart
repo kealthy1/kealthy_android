@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/Services/Connection.dart';
 import 'package:kealthy/LandingPage/HomePage.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
-class NoInternetPage extends StatelessWidget {
+// Create a loading provider
+final retryLoadingProvider = StateProvider<bool>((ref) => false);
+
+class NoInternetPage extends ConsumerWidget {
   const NoInternetPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     ConnectivityService connectivityService = ConnectivityService();
+    final isLoading = ref.watch(retryLoadingProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -15,25 +22,25 @@ class NoInternetPage extends StatelessWidget {
         child: StreamBuilder<bool>(
           stream: connectivityService.connectivityStream,
           builder: (context, snapshot) {
-            // Check the connection status
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Image.asset(
-                "assets/Capture-removebg-preview (1).png",
-                height: 300,
-              ); 
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    "assets/Capture-removebg-preview (1).png",
+                    height: 300,
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              );
             }
 
             if (snapshot.data == true) {
-              // Navigate to Home page if connected
               Future.microtask(() => Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (context) => const MyHomePage()),
                     (Route<dynamic> route) => false,
                   ));
-              const SizedBox(height: 20);
-              const Text(
-                'Please check your internet connection.',
-                style: TextStyle(fontSize: 18),
-              );
+              return Container();
             }
 
             return Column(
@@ -44,9 +51,41 @@ class NoInternetPage extends StatelessWidget {
                   height: 300,
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  'Please check your internet connection.',
-                  style: TextStyle(fontSize: 18),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      shape: const BeveledRectangleBorder()),
+                  onPressed: () async {
+                    ref.read(retryLoadingProvider.notifier).state = true;
+
+                    bool isConnected = await connectivityService.isConnected();
+
+                    ref.read(retryLoadingProvider.notifier).state = false;
+
+                    if (isConnected) {
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                            builder: (context) => const MyHomePage()),
+                        (Route<dynamic> route) => false,
+                      );
+                    } else {
+                      Fluttertoast.showToast(
+                        msg: "Still no connection, please try again.",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        timeInSecForIosWeb: 1,
+                        textColor: Colors.white,
+                        fontSize: 16.0,
+                      );
+                    }
+                  },
+                  child: isLoading
+                      ? LoadingAnimationWidget.staggeredDotsWave(
+                          color: Colors.green,
+                          size: 50,
+                        )
+                      : const Text('Try Again',
+                          style: TextStyle(color: Colors.white)),
                 ),
               ],
             );
