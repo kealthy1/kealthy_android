@@ -177,8 +177,8 @@ class _CarouselSliderWidgetState extends ConsumerState<CarouselSliderWidget> {
         return const DrinksMenuPage();
       case 2:
         return const SnacksMenuPage();
-      case 3:
-        return const CalorieIntakePage();
+      // case 3:
+      //   return const CalorieIntakePage();
       // case 4:
       //   return ImageDetailPage5();
       default:

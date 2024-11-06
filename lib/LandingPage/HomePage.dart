@@ -2,10 +2,7 @@ import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.da
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kealthy/LandingPage/Allitems.dart';
 import 'package:kealthy/LandingPage/Myprofile.dart';
-import 'package:shimmer/shimmer.dart';
-import '../Analysis/Calorie.dart';
 import '../MenuPage/DietProvider.dart';
 import '../MenuPage/ProductList.dart';
 import '../Riverpod/NavBar.dart';
@@ -15,10 +12,8 @@ import 'Cart_Container.dart';
 import 'Widgets/Appbar.dart';
 import 'Widgets/Carousel.dart';
 import 'Widgets/Category.dart';
-import '../Diet/Receipe.dart';
 import 'Widgets/Serach.dart';
 import 'Widgets/floating_bottom_navigation_bar.dart';
-import 'Widgets/items.dart';
 
 class MyHomePage extends ConsumerWidget {
   const MyHomePage({super.key});
@@ -35,7 +30,6 @@ class MyHomePage extends ConsumerWidget {
     const int profilePageIndex = 2;
     final List<Widget> pages = [
       _buildHomePage(context, ref),
-      const CalorieIntakePage(),
       const ProfilePage(),
     ];
 
@@ -76,8 +70,6 @@ class MyHomePage extends ConsumerWidget {
         currentIndex: currentIndex,
         navbarItems: [
           FloatingNavbarItem(icon: Icons.home, title: 'Home'),
-          FloatingNavbarItem(
-              icon: Icons.analytics_outlined, title: 'Caloriemeter'),
           FloatingNavbarItem(icon: Icons.person_2_outlined, title: 'Profile'),
         ],
         onTap: (index) {
@@ -89,7 +81,7 @@ class MyHomePage extends ConsumerWidget {
 
   Widget _buildHomePage(BuildContext context, WidgetRef ref) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final menuItemsAsyncValue = ref.watch(menuProvider);
+    ref.watch(menuProvider);
     ref.watch(dietProvider);
 
     return SingleChildScrollView(
@@ -105,70 +97,8 @@ class MyHomePage extends ConsumerWidget {
           SizedBox(height: screenHeight * 0.03),
           _buildCenteredTitle('Category'),
           SizedBox(height: screenHeight * 0.03),
-          const CategoryGrid(),
+          // const CategoryGrid(),
           SizedBox(height: screenHeight * 0.03),
-          _buildCenteredTitle('Diets For You'),
-          SizedBox(height: screenHeight * 0.03),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            child: RecipeCardList(),
-          ),
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                CupertinoModalPopupRoute(
-                    builder: (context) => const AllItemsPage()),
-              );
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                const Text("Menu"),
-                IconButton(
-                  color: Colors.white,
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.arrow_forward_ios,
-                    color: Colors.black,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          menuItemsAsyncValue.when(
-            loading: () => Center(
-              child: Shimmer.fromColors(
-                baseColor: Colors.grey[300]!,
-                highlightColor: Colors.grey[100]!,
-                child: Container(
-                  color: Colors.grey[300],
-                ),
-              ),
-            ),
-            error: (err, stack) => Center(child: Text('Error: $err')),
-            data: (menuItems) {
-              final displayedItems = menuItems
-                  .where((item) => item.category != 'Food')
-                  .take(5)
-                  .toList();
-
-              return Column(
-                children: [
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: displayedItems.length,
-                    itemBuilder: (context, index) {
-                      return ItemCard(menuItem: displayedItems[index]);
-                    },
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 16),
-                  ),
-                ],
-              );
-            },
-          )
         ],
       ),
     );
@@ -191,7 +121,7 @@ Widget _buildCenteredTitle(String title) {
           child: Text(
             title,
             style: const TextStyle(
-              fontFamily: "poppins",
+              fontFamily: "poppins",  
               fontSize: 13,
               fontWeight: FontWeight.bold,
               color: Colors.black,
