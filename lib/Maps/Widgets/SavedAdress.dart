@@ -140,11 +140,6 @@ class _SavedAddressState extends State<SavedAddress> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      "Instructions: $directions",
-                      style: const TextStyle(color: Colors.black),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
                       "Delivery Slot: ${slot ?? 'N/A'}",
                       style: const TextStyle(color: Colors.black),
                     ),
@@ -155,6 +150,12 @@ class _SavedAddressState extends State<SavedAddress> {
                           : "",
                       style: const TextStyle(color: Colors.black),
                     ),
+                    const SizedBox(height: 8),
+                    if (directions!.isNotEmpty)
+                      Text(
+                        "Instructions: $directions",
+                        style: const TextStyle(color: Colors.black),
+                      ),
                   ],
                 ),
               ),

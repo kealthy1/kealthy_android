@@ -2,12 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:kealthy/Analysis/Calorie.dart';
-import 'package:kealthy/MenuPage/Drinks/DrinksPage.dart';
-import 'package:kealthy/MenuPage/Food/FoodPage.dart';
-import 'package:kealthy/MenuPage/Snacks/SnacksPage.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../MenuPage/MenuPage.dart';
 import '../../Riverpod/Carousel.dart';
 import '../../Services/image_links.dart';
 
@@ -56,33 +53,33 @@ class _CarouselSliderWidgetState extends ConsumerState<CarouselSliderWidget> {
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: SizedBox(
-            height: 150,
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount: ImageLinks.networkImageUrls.length,
-              onPageChanged: (index) {
-                ref.read(carouselIndexProvider.notifier).setIndex(index);
-              },
-              itemBuilder: (context, index) {
-                return Container(
-                  width: MediaQuery.of(context).size.width,
-                  padding: EdgeInsets.zero,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Stack(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          final page = _getDetailPage(index);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => page),
-                          );
-                        },
+        SizedBox(
+          height: 150,
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: ImageLinks.networkImageUrls.length,
+            onPageChanged: (index) {
+              ref.read(carouselIndexProvider.notifier).setIndex(index);
+            },
+            itemBuilder: (context, index) {
+              return Container(
+                width: MediaQuery.of(context).size.width,
+                padding: EdgeInsets.zero,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Stack(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        final page = _getDetailPage(index);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => page),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: CachedNetworkImage(
                           imageUrl: ImageLinks.networkImageUrls[index],
                           placeholder: (context, url) => Shimmer.fromColors(
@@ -108,33 +105,35 @@ class _CarouselSliderWidgetState extends ConsumerState<CarouselSliderWidget> {
                           ),
                         ),
                       ),
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: TextButton(
-                          onPressed: () {
-                            final page = _getDetailPage(index);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => page),
-                            );
-                          },
-                          child: const Row(
-                            children: [
-                              Icon(Icons.arrow_forward_ios,
-                                  color: Colors.white),
-                              SizedBox(width: 4),
-                              Text(
-                                'Explore',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ],
-                          ),
+                    ),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: TextButton(
+                        onPressed: () {
+                          final page = _getDetailPage(index);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => page),
+                          );
+                        },
+                        child: const Row(
+                          children: [
+                            Icon(Icons.arrow_forward_ios, color: Colors.white),
+                            SizedBox(width: 4),
+                            Text(
+                              'Explore',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ],
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Align(
-                          alignment: Alignment.topLeft,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
                           child: Text(
                             ImageLinks.textsForImages[index],
                             style: const TextStyle(
@@ -146,11 +145,11 @@ class _CarouselSliderWidgetState extends ConsumerState<CarouselSliderWidget> {
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ),
         const SizedBox(height: 8.0),
@@ -172,17 +171,24 @@ class _CarouselSliderWidgetState extends ConsumerState<CarouselSliderWidget> {
   Widget _getDetailPage(int index) {
     switch (index) {
       case 0:
-        return const FoodMenuPage();
+        return const MenuPage(
+          categoryName: '',
+        );
       case 1:
-        return const DrinksMenuPage();
+        return const MenuPage(
+          categoryName: '',
+        );
       case 2:
-        return const SnacksMenuPage();
+        return const MenuPage(
+          categoryName: '',
+        );
       // case 3:
       //   return const CalorieIntakePage();
       // case 4:
       //   return ImageDetailPage5();
       default:
-        return const Scaffold(backgroundColor: Colors.white,
+        return const Scaffold(
+          backgroundColor: Colors.white,
           body: Center(child: Text('  ')),
         );
     }

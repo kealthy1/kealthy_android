@@ -89,29 +89,34 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
   }
 
   Future<void> _savePhoneNumber() async {
-    final prefs = await SharedPreferences.getInstance();
+  final prefs = await SharedPreferences.getInstance();
 
-    String cleanedPhoneNumber =
-        widget.phoneNumber.replaceAll('+91', '').replaceAll(' ', '');
+  // Clean the phone number
+  String cleanedPhoneNumber =
+      widget.phoneNumber.replaceAll('+91', '').replaceAll(' ', '');
 
-    await prefs.setString('phoneNumber', cleanedPhoneNumber);
+  // Save to SharedPreferences
+  await prefs.setString('phoneNumber', cleanedPhoneNumber);
 
-    const String apiUrl = "https://api-jfnhkjk4nq-uc.a.run.app/login";
+  // Debugging: Confirm that phone number is stored
+  print('Phone number saved to SharedPreferences: $cleanedPhoneNumber');
 
-    final response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'phoneNumber': widget.phoneNumber}),
-    );
+  // API call to save phone number in MongoDB
+  const String apiUrl = "https://api-jfnhkjk4nq-uc.a.run.app/login";
 
-    if (response.statusCode == 200) {
-      print('Phone number saved to MongoDB: ${response.body}');
-    } else {
-      print(
-          'Failed to save phone number to MongoDB: ${response.statusCode}, ${response.body}');
-      print('Response: ${response.toString()}');
-    }
+  final response = await http.post(
+    Uri.parse(apiUrl),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'phoneNumber': widget.phoneNumber}),
+  );
+
+  if (response.statusCode == 200) {
+    print('Phone number saved to MongoDB: ${response.body}');
+  } else {
+    print('Failed to save phone number to MongoDB: ${response.statusCode}, ${response.body}');
   }
+}
+
 
   @override
   void dispose() {

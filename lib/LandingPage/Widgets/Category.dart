@@ -1,121 +1,130 @@
-// import 'package:flutter/cupertino.dart';
-// import 'package:flutter/material.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:kealthy/MenuPage/Drinks/DrinksPage.dart';
-// import 'package:kealthy/MenuPage/Food/FoodPage.dart';
-// import 'package:kealthy/MenuPage/Snacks/SnacksPage.dart';
-// import '../../Services/ServiceableAlert.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 
-// class CategoryGrid extends StatelessWidget {
-//   const CategoryGrid({super.key});
+import '../../DetailsPage/SubCategory.dart';
 
-//   @override
-//   Widget build(BuildContext context) {
-//     final mediaQuery = MediaQuery.of(context);
-//     final screenWidth = mediaQuery.size.width;
+class Category {
+  final String name;
+  final String imageUrl;
 
-//     return SingleChildScrollView(
-//       scrollDirection: Axis.horizontal,
-//       child: Row(
-//         children: [
-//           SizedBox(width: screenWidth * 0.06),
-//           GestureDetector(
-//             onTap: () => _onCategoryTap(
-//               context,
-//               const SnacksMenuPage(),
-//               checkServiceable: false,
-//             ),
-//             child: _buildCategoryAvatar(
-//               'Kealthy Snacks',
-//               '',
-//             ),
-//           ),
-//           SizedBox(width: screenWidth * 0.06),
-//           GestureDetector(
-//             onTap: () => _onCategoryTap(
-//               context,
-//               const FoodMenuPage(),
-//               checkServiceable: true, 
-//             ),
-//             child: _buildCategoryAvatar(
-//               '  Foods',
-//               '',
-//             ),
-//           ),
-//           SizedBox(width: screenWidth * 0.06),
-//           GestureDetector(
-//             onTap: () => _onCategoryTap(
-//               context,
-//               const DrinksMenuPage(),
-//               checkServiceable: false,
-//             ),
-//             child: _buildCategoryAvatar(
-//               ' Drinks',
-//               '',
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
+  Category({required this.name, required this.imageUrl});
 
-//   Future<void> _onCategoryTap(BuildContext context, Widget destinationPage,
-//       {bool checkServiceable = false}) async {
-//     final prefs = await SharedPreferences.getInstance();
-//     final savedAddress = prefs.getString('currentaddress') ?? '';
-//     List<String> serviceablePincodes = ['682030', '682037', '683565'];
-//     bool isServiceable =
-//         serviceablePincodes.any((pincode) => savedAddress.contains(pincode));
+  factory Category.fromFirestore(Map<String, dynamic> data) {
+    return Category(
+      name: data['Categories'] as String,
+      imageUrl: data['imageurl'] as String,
+    );
+  }
+}
 
-//     if (!isServiceable && checkServiceable) {
-//       ServiceableAlert.show(
-//         context: context,
-//         onContinue: () {
-//           Navigator.push(
-//             context,
-//             CupertinoModalPopupRoute(builder: (context) => destinationPage),
-//           );
-//         },
-//       );
-//     } else {
-//       Navigator.push(
-//         context,
-//         CupertinoModalPopupRoute(builder: (context) => destinationPage),
-//       );
-//     }
-//   }
+class CategoryItem extends StatelessWidget {
+  final String categoryName;
+  final String imageUrl;
 
-//   Widget _buildCategoryAvatar(String label, String imagePath) {
-//     return Container(
-//       margin: const EdgeInsets.symmetric(vertical: 8.0),
-//       child: Column(
-//         mainAxisAlignment: MainAxisAlignment.center,
-//         children: [
-//           Container(
-//             decoration: BoxDecoration(
-//               shape: BoxShape.circle,
-//               border: Border.all(
-//                 color: Colors.green,
-//                 width: 2.0,
-//               ),
-//             ),
-//             child: CircleAvatar(
-//               backgroundColor: Colors.transparent,
-//               backgroundImage: AssetImage(imagePath),
-//               radius: 50,
-//             ),
-//           ),
-//           const SizedBox(height: 8.0),
-//           Text(
-//             label,
-//             style: const TextStyle(
-//               fontSize: 14,
-//               fontWeight: FontWeight.bold,
-//             ),
-//             textAlign: TextAlign.center,
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
+  const CategoryItem({
+    super.key,
+    required this.categoryName,
+    required this.imageUrl,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FoodCategoriesScreen(
+              category: categoryName,
+            ),
+          ),
+        );
+      },
+      child: Column(
+        children: [
+          CachedNetworkImage(
+            width: 80,
+            height: 80,
+            fit: BoxFit.cover,
+            imageUrl: imageUrl,
+            placeholder: (context, url) => Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Container(
+                color: Colors.grey[300],
+                width: screenWidth * 0.25,
+                height: screenWidth * 0.25,
+              ),
+            ),
+            errorWidget: (context, url, error) => const Icon(Icons.error),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            categoryName.replaceAll(r'\n', '\n'),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CategoryGrid extends StatelessWidget {
+  const CategoryGrid({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance.collection('categories').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Container(
+                color: Colors.grey[300],
+                width: screenWidth * 0.25,
+                height: screenWidth * 0.25,
+              ),
+            ),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text("No categories found"));
+        }
+
+        final categories = snapshot.data!.docs
+            .map((doc) => Category.fromFirestore(doc.data()))
+            .toList();
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 4,
+              mainAxisSpacing: 4,
+              childAspectRatio: 1.2),
+          itemCount: categories.length,
+          itemBuilder: (context, index) {
+            final category = categories[index];
+            return CategoryItem(
+              categoryName: category.name,
+              imageUrl: category.imageUrl,
+            );
+          },
+        );
+      },
+    );
+  }
+}

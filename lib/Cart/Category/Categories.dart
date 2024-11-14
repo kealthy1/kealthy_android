@@ -1,18 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../Services/FirestoreCart.dart';
 
 class CategoryContainer extends ConsumerWidget {
-  final String category;
-  final List<CartItem> items;
   final double screenWidth;
   final double screenHeight;
 
   const CategoryContainer({
-    required this.category,
-    required this.items,
     required this.screenWidth,
     required this.screenHeight,
     super.key,
@@ -20,35 +15,23 @@ class CategoryContainer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filteredItems =
-        items.where((item) => item.category == category).toList();
-
+    final cartItems = ref.watch(sharedPreferencesCartProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
-          child: Text(
-            category,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        filteredItems.isEmpty
-            ? Center(
+        cartItems.isEmpty
+            ? const Center(
                 child: Text(
-                  'No items in $category',
-                  style: const TextStyle(fontSize: 16, color: Colors.grey),
+                  'No items in Cart',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
               )
             : ListView.builder(
-                itemCount: filteredItems.length,
+                itemCount: cartItems.length,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemBuilder: (context, index) {
-                  final item = filteredItems[index];
+                  final item = cartItems[index];
                   final isLoading =
                       ref.watch(addCartProvider.notifier).isLoading(item.id);
                   return CartItemWidget(
@@ -56,13 +39,14 @@ class CategoryContainer extends ConsumerWidget {
                     screenWidth: screenWidth,
                     screenHeight: screenHeight,
                     onIncrement: () => ref
-                        .read(addCartProvider.notifier)
-                        .incrementItem(item.id),
+                        .read(sharedPreferencesCartProvider.notifier)
+                        .increaseItemQuantity(item.name),
                     onDecrement: () => ref
-                        .read(addCartProvider.notifier)
-                        .decrementItem(item.id),
-                    onDelete: () =>
-                        ref.read(addCartProvider.notifier).removeItem(item.id),
+                        .read(sharedPreferencesCartProvider.notifier)
+                        .decreaseItemQuantity(item.name),
+                    onDelete: () => ref
+                        .read(sharedPreferencesCartProvider.notifier)
+                        .removeItemFromCart(item.name),
                     isLoading: isLoading,
                   );
                 },
@@ -73,7 +57,7 @@ class CategoryContainer extends ConsumerWidget {
 }
 
 class CartItemWidget extends StatelessWidget {
-  final CartItem item;
+  final SharedPreferencesCartItem item;
   final double screenWidth;
   final double screenHeight;
   final VoidCallback onIncrement;

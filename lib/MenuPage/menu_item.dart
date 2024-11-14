@@ -13,6 +13,7 @@ class MenuItem {
   final double fat;
   final double rating;
   final String imageUrl;
+  final String nutrients;
 
   MenuItem({
     required this.name,
@@ -27,6 +28,7 @@ class MenuItem {
     required this.fat,
     required this.rating,
     required this.imageUrl,
+    required this.nutrients,
   });
 
   factory MenuItem.fromFirestore(Map<String, dynamic> data) {
@@ -43,70 +45,25 @@ class MenuItem {
       fat: _parseDouble(data['Fat']),
       rating: _parseDouble(data['Rating']),
       imageUrl: data['ImageUrl'] ?? '',
+      nutrients: data['nutrients'] ?? '',
     );
   }
 
- static double _parseDouble(dynamic value) {
+  static double _parseDouble(dynamic value) {
     if (value == null) return 0.0;
     if (value is double) return value;
     if (value is int) return value.toDouble();
     if (value is String) {
-      // Remove the "g" unit from the string
       String cleanedValue = value.replaceAll('g', '').trim();
 
       if (cleanedValue.startsWith('.')) {
         cleanedValue = '0$cleanedValue';
       }
 
-      return double.tryParse(cleanedValue) ?? 0.0; 
+      return double.tryParse(cleanedValue) ?? 0.0;
     }
     return 0.0;
   }
 
   static fromDocument(DocumentSnapshot<Object?> menuItem) {}
-}
-
-
-class DietItem {
-  final String name;
-  
-  final String category;
-  final String description;
-  final double rating;
-  final String imageUrl;
-
-  DietItem({
-    required this.name,
-    required this.category,
-    required this.description,
-    required this.rating,
-    required this.imageUrl,
-  });
-
-  factory DietItem.fromFirestore(Map<String, dynamic> data) {
-    return DietItem(
-      name: data['Name'] ?? '',
-      category: data['Category'] ?? '',
-      description: data['Description'] ?? '',
-      rating: _parseDouble(data['Rating']),
-      imageUrl: data['ImageUrl'] ?? '',
-    );
-  }
-
- static double _parseDouble(dynamic value) {
-    if (value == null) return 0.0;
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is String) {
-      // Remove the "g" unit from the string
-      String cleanedValue = value.replaceAll('g', '').trim();
-
-      if (cleanedValue.startsWith('.')) {
-        cleanedValue = '0$cleanedValue';
-      }
-
-      return double.tryParse(cleanedValue) ?? 0.0; 
-    }
-    return 0.0;
-  }
 }

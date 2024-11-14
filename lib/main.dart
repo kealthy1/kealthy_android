@@ -11,29 +11,32 @@ void main() async {
   await Firebase.initializeApp();
   runApp(const ProviderScope(child: MyApp()));
 }
-class MyApp extends ConsumerWidget { 
-              
+
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final locationDialogManager = LocationDialogManager(ref);
       if (navigatorKey.currentContext != null) {
-        locationDialogManager.fetchAndCheckLocation(navigatorKey.currentContext!);
+        locationDialogManager
+            .fetchAndCheckLocation(navigatorKey.currentContext!);
       }
       final locationServiceChecker =
           LocationServiceChecker(navigatorKey.currentContext!);
       locationServiceChecker.startChecking();
     });
     return MaterialApp(
+      theme: ThemeData(
+        bottomSheetTheme: const BottomSheetThemeData(
+          backgroundColor: Colors.white,
+          elevation: 0,
+        ),
+      ),
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Kealthy',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-      ),
       home: const ConnectivityWidget(
         child: SplashScreen(),
       ),

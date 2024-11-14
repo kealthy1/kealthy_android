@@ -3,10 +3,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:kealthy/Orders/Track.dart';
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../trash.dart';
 
 final showMoreProvider = StateProvider<bool>((ref) => false);
 final loadingProvider = StateProvider<bool>((ref) => false);
@@ -135,7 +137,8 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage>
                             String orderId = getLast9Digits(order['orderId']);
                             String status = order['status'];
                             String assignedto = order['assignedto'] ?? '';
-
+                            String phonenumber = order['phoneNumber'] ?? '';
+                            String orderid = order['orderId'];
                             String selectedSlot = order['selectedSlot'] ?? '';
 
                             List<dynamic> orderItems =
@@ -212,7 +215,11 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage>
                                                                   .all(Colors
                                                                           .grey[
                                                                       100])),
-                                                      onPressed: () {},
+                                                      onPressed: () {
+                                                        FlutterPhoneDirectCaller
+                                                            .callNumber(
+                                                                phonenumber);
+                                                      },
                                                       icon: const Icon(
                                                         Icons.call,
                                                         color: Colors.green,
@@ -273,6 +280,8 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage>
                                                         CupertinoModalPopupRoute(
                                                           builder: (context) =>
                                                               OrderTrackingPage(
+                                                                  orderid:
+                                                                      orderid,
                                                                   deliveryUserId:
                                                                       assignedto),
                                                         ));

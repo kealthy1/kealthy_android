@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../Riverpod/Searchbar.dart';
+import '../../Services/Navigation.dart';
 import '../Allitems.dart';
 
 class SearchInput extends ConsumerWidget {
@@ -34,15 +36,16 @@ class SearchInput extends ConsumerWidget {
             child: TextField(
               readOnly: true,
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AllItemsPage( )
+                Navigator.of(context).push(
+                  SeamlessRevealRoute(
+                    page:
+                        const AllItemsPage(), // Replace with the page you want to navigate to
                   ),
                 );
               },
               controller: searchController,
               decoration: InputDecoration(
+                prefixIcon: const Icon(CupertinoIcons.search),
                 hintText: "Search \"${hints[hintIndex]}\"",
                 hintStyle: const TextStyle(color: Colors.black),
                 contentPadding:
@@ -54,38 +57,6 @@ class SearchInput extends ConsumerWidget {
                 focusedBorder: InputBorder.none,
                 enabledBorder: InputBorder.none,
               ),
-            ),
-          ),
-        ),
-        GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AllItemsPage(),
-              ),
-            );
-          },
-          child: Container(
-            height: screenHeight * 0.06,
-            margin: const EdgeInsets.only(left: 8),
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.green[500],
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.green.withOpacity(0.3),
-                  spreadRadius: 2,
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.search,
-              color: Colors.white,
-              size: 24,
             ),
           ),
         ),

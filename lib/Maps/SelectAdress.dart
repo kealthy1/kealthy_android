@@ -3,14 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:kealthy/LandingPage/Widgets/Appbar.dart';
 import 'package:kealthy/Maps/Select%20Location.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shimmer/shimmer.dart';
 import 'dart:math';
-import '../LandingPage/Myprofile.dart';
 import '../Payment/Bill.dart';
-import 'functions/EditAdress_alert.dart';
 
 final selectedAddressProvider = StateProvider<Address?>((ref) => null);
 
@@ -122,136 +120,188 @@ class _LocationSelectionPageState extends ConsumerState<SelectAdress> {
     double? restaurantLatitude;
     double? restaurantLongitude;
     double? calculatedDistance;
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        toolbarHeight: 5,
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.grey[100],
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: addressesAsyncValue.when(
-              data: (addresses) {
-                if (addresses.isEmpty) {
-                  return const Center(child: Text('No saved addresses found.'));
-                }
-
-                return RefreshIndicator(
-                  color: Colors.green,
-                  onRefresh: () async {
-                    // ignore: unused_result
-                    ref.refresh(addressesProvider);
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: MediaQuery.of(context).size.width * 0.05,
-                      vertical: MediaQuery.of(context).size.height * 0.02,
+    // ignore: deprecated_member_use
+    return WillPopScope(
+      onWillPop: () async {
+        // Refresh the AddCart provider when navigating back
+        // ignore: unused_result
+        ref.refresh(selectedRoadProvider);
+        
+        return true; 
+        // Allow the pop to happen
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: const Text('Confirm delivery location'),
+          backgroundColor: Colors.white,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Column(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SelectLocationPage(
+                        totalPrice: 0,
+                        time: '',
+                        date: '',
+                        type: '',
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  );
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8.0,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: const Padding(
+                    padding: EdgeInsets.only(left: 10, right: 10),
+                    child: Row(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'SAVED ADDRESSES',
-                              style: TextStyle(
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            IconButton(
-                                onPressed: () {
-                                  // ignore: unused_result
-                                  ref.refresh(addressesProvider);
-                                },
-                                icon: const Icon(Icons.rotate_left_sharp))
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Expanded(
-                          child: ListView.builder(
-                            itemCount: addresses.length,
-                            itemBuilder: (context, index) {
-                              final address = addresses[index];
-
-                              restaurantLatitude = 10.010279427438405;
-                              restaurantLongitude = 76.38426666931349;
-                              calculatedDistance = calculateDistance(
-                                address.latitude,
-                                address.longitude,
-                                restaurantLatitude!,
-                                restaurantLongitude!,
-                              );
-                              return AddressCard(
-                                address: address,
-                                isSelected: selectedAddress == address,
-                                restaurantLatitude: restaurantLatitude,
-                                restaurantLongitude: restaurantLongitude,
-                                distance: calculatedDistance,
-                                onSelected: () {
-                                  ref
-                                      .read(selectedAddressProvider.notifier)
-                                      .state = address;
-                                  saveSelectedAddress(
-                                      address, calculatedDistance!);
-                                },
-                                onDelete: () async {
-                                  final prefs =
-                                      await SharedPreferences.getInstance();
-                                  final phoneNumber =
-                                      prefs.getString('phoneNumber');
-                                  if (phoneNumber != null) {
-                                    await deleteAddress(
-                                        phoneNumber, address.type, ref);
-                                  }
-                                },
-                              );
-                            },
+                        Icon(Icons.add, color: Colors.green),
+                        SizedBox(width: 12.0),
+                        Text(
+                          'Add address',
+                          style: TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
                   ),
-                );
-              },
-              loading: () => Center(
-                  child: Shimmer.fromColors(
-                baseColor: Colors.grey[300]!,
-                highlightColor: Colors.grey[100]!,
-                child: Container(
-                  color: Colors.grey[300],
                 ),
-              )),
-              error: (error, stack) => Center(child: Text('Error: $error')),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              _buildCenteredTitle('SAVED ADDRESSES'),
+              const SizedBox(
+                height: 10,
+              ),
+              Expanded(
+                child: addressesAsyncValue.when(
+                  data: (addresses) {
+                    if (addresses.isEmpty) {
+                      return const Center(
+                          child: Text('No saved addresses found.'));
+                    }
+
+                    return RefreshIndicator(
+                      color: Colors.green,
+                      onRefresh: () async {
+                        // ignore: unused_result
+                        ref.refresh(addressesProvider);
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [],
+                          ),
+                          const SizedBox(height: 16),
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: addresses.length,
+                              itemBuilder: (context, index) {
+                                final address = addresses[index];
+
+                                restaurantLatitude = 10.010279427438405;
+                                restaurantLongitude = 76.38426666931349;
+                                calculatedDistance = calculateDistance(
+                                  address.latitude,
+                                  address.longitude,
+                                  restaurantLatitude!,
+                                  restaurantLongitude!,
+                                );
+                                return AddressCard(
+                                  address: address,
+                                  isSelected: selectedAddress == address,
+                                  restaurantLatitude: restaurantLatitude,
+                                  restaurantLongitude: restaurantLongitude,
+                                  distance: calculatedDistance,
+                                  onSelected: () {
+                                    ref
+                                        .read(selectedAddressProvider.notifier)
+                                        .state = address;
+                                    saveSelectedAddress(
+                                        address, calculatedDistance!);
+                                  },
+                                  onDelete: () async {
+                                    final prefs =
+                                        await SharedPreferences.getInstance();
+                                    final phoneNumber =
+                                        prefs.getString('phoneNumber');
+                                    if (phoneNumber != null) {
+                                      await deleteAddress(
+                                          phoneNumber, address.type, ref);
+                                    }
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  loading: () => Center(
+                      child: LoadingAnimationWidget.inkDrop(
+                          color: Colors.green, size: 50)),
+                  error: (error, stack) => Center(child: Text('Error: $error')),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCenteredTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 10, right: 10),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 1,
+              color: Colors.grey.shade300,
             ),
           ),
-          Center(
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SelectLocationPage(
-                      totalPrice: 0,
-                      time: '',
-                      date: '',
-                      type: '',
-                    ),
-                  ),
-                );
-              },
-              child: const Text(
-                'Add Address',
-                style: TextStyle(color: Colors.white),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontFamily: "Poppins",
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Colors.black38,
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          Expanded(
+            child: Container(
+              height: 1,
+              color: Colors.grey.shade300,
+            ),
+          ),
         ],
       ),
     );
@@ -350,7 +400,6 @@ class AddressCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final screenWidth = MediaQuery.of(context).size.width;
     final isDeliverable = distance != null && distance! <= 30;
 
     if (!isDeliverable && isSelected) {
@@ -358,171 +407,187 @@ class AddressCard extends ConsumerWidget {
       ref.read(selectedAddressProvider.notifier).state = null;
     }
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: isDeliverable
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        address.type,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+    IconData getIconBasedOnType(String type) {
+      switch (type.toLowerCase()) {
+        case 'home':
+          return CupertinoIcons.home;
+        case 'work':
+          return Icons.work_outline;
+        default:
+          return Icons.location_on_outlined;
+      }
+    }
+
+    return GestureDetector(
+      onTap: () async {
+        if (!isSelected) {
+          ref.read(selectedAddressProvider.notifier).state = address;
+
+          if (distance != null) {
+            await saveSelectedAddress(address, distance!);
+          }
+        }
+        Navigator.pop(context);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: isDeliverable
+            ? Row(
+                children: [
+                  Column(
+                    children: [
+                      Icon(
+                        getIconBasedOnType(address.type),
+                        color: Colors.green,
+                      ),
+                      const SizedBox(height: 8),
+                      if (distance != null)
+                        Text(
+                          '${distance!.toStringAsFixed(2)} km',
+                          style: const TextStyle(
+                              color: Colors.black54, fontSize: 10),
                         ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.black),
-                      onPressed: () {
-                        // ignore: unused_result
-                        ref.refresh(userProfileProvider);
-                        AddressUtils.editAddress(context, address);
-                      },
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              '${address.Name}, ${address.road}',
-                              style: TextStyle(
-                                fontSize: screenWidth > 600 ? 18 : 16,
-                                color: isSelected ? Colors.black : Colors.black,
+                    ],
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          address.type,
+                          style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black54),
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${address.Name}, ${address.road}',
+                                style: const TextStyle(
+                                    fontSize: 15, color: Colors.black54),
+                                overflow: TextOverflow.visible,
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
+                          ],
+                        ),
+                        if (address.Landmark.isNotEmpty)
+                          Text(
+                            'Landmark: ${address.Landmark}',
+                            style: const TextStyle(color: Colors.black54),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ],
-                      ),
+                        if (address.directions != null)
+                          Text(
+                            'Instructions: ${address.directions}',
+                            style: const TextStyle(color: Colors.black54),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        const Text(
+                          "Delivery available",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontFamily: "poppins",
+                            color: Colors.green,
+                          ),
+                        ),
+                      ],
                     ),
-                    IconButton(
+                  ),
+                  PopupMenuButton<String>(
+                    color: Colors.white,
+                    icon: const Icon(Icons.more_vert),
+                    onSelected: (String choice) {
+                      if (choice == 'Edit') {
+                        Navigator.pushReplacement(
+                            context,
+                            CupertinoPageRoute(
+                                builder: (context) => const SelectLocationPage(
+                                      totalPrice: 0,
+                                      time: '',
+                                      date: '',
+                                      type: '',
+                                    )));
+                      } else if (choice == 'Delete') {
+                        onDelete();
+                      }
+                    },
+                    itemBuilder: (BuildContext context) {
+                      return <PopupMenuEntry<String>>[
+                        const PopupMenuItem<String>(
+                          value: 'Edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit, color: Colors.black54),
+                              SizedBox(width: 8),
+                              Text('Edit'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'Delete',
+                          child: Row(
+                            children: [
+                              Icon(CupertinoIcons.delete,
+                                  color: Colors.black54),
+                              SizedBox(width: 8),
+                              Text('Delete'),
+                            ],
+                          ),
+                        ),
+                      ];
+                    },
+                  ),
+                ],
+              )
+            : Stack(
+                children: [
+                  Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          "assets/location_icon.png",
+                          height: 50,
+                        ),
+                        const Text(
+                          "Location is not serviceable",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: IconButton(
                       icon: const Icon(CupertinoIcons.multiply_circle,
                           color: Colors.black),
                       onPressed: () {
                         onDelete();
-                        // ignore: unused_result
-                        ref.refresh(selectedAddressProvider);
                       },
                     ),
-                  ],
-                ),
-                if (distance != null)
-                  Text(
-                    '${distance!.toStringAsFixed(2)} km',
-                    style: const TextStyle(color: Colors.grey),
-                    overflow: TextOverflow.ellipsis,
                   ),
-                const SizedBox(height: 3),
-                if (address.directions != null)
-                  Text(
-                    'Instructions: ${address.directions}',
-                    style: const TextStyle(color: Colors.grey),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                const SizedBox(height: 8),
-                if (address.Landmark.isNotEmpty)
-                  Text(
-                    'LandMark: ${address.Landmark}',
-                    style: const TextStyle(color: Colors.grey),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Reachable",
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontFamily: "poppins",
-                        color: Colors.green,
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              isSelected ? Colors.green : Colors.grey,
-                        ),
-                        onPressed: () async {
-                          if (!isSelected) {
-                            ref.read(selectedAddressProvider.notifier).state =
-                                address;
-
-                            if (distance != null) {
-                              await saveSelectedAddress(address, distance!);
-                            }
-                          }
-                        },
-                        child: Text(
-                          isSelected ? 'Selected' : 'Click Here To Select',
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            )
-          : Stack(
-              children: [
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset(
-                        "assets/location_icon.png",
-                        height: 50,
-                      ),
-                      const Text(
-                        "Location is not serviceable",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.topRight,
-                  child: IconButton(
-                    icon: const Icon(CupertinoIcons.multiply_circle,
-                        color: Colors.black),
-                    onPressed: () {
-                      onDelete();
-                      // ignore: unused_result
-                      ref.refresh(selectedAddressProvider);
-                    },
-                  ),
-                ),
-              ],
-            ),
+                ],
+              ),
+      ),
     );
   }
 

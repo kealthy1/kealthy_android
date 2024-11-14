@@ -18,7 +18,7 @@ class ShowCart extends ConsumerWidget {
     ref.watch(selectedSlotProvider);
     ref.read(addCartProvider.notifier).fetchCartItems();
 
-    final cartItems = ref.watch(addCartProvider);
+    final cartItems = ref.watch(sharedPreferencesCartProvider);
 
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
@@ -50,40 +50,23 @@ class ShowCart extends ConsumerWidget {
                         EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
                     child: Column(
                       children: [
-                        if (cartItems.any((item) => item.category == 'Snacks'))
-                          CategoryContainer(
-                            category: 'Snacks',
-                            items: cartItems
-                                .where((item) => item.category == 'Snacks')
-                                .toList(),
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                          ),
-                        if (cartItems.any((item) => item.category == 'Drinks'))
-                          CategoryContainer(
-                            category: 'Drinks',
-                            items: cartItems
-                                .where((item) => item.category == 'Drinks')
-                                .toList(),
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                          ),
-                        if (cartItems.any((item) => item.category == 'Food'))
-                          CategoryContainer(
-                            category: 'Food',
-                            items: cartItems
-                                .where((item) => item.category == 'Food')
-                                .toList(),
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                          ),
+                        CategoryContainer(
+                          screenWidth: screenWidth,
+                          screenHeight: screenHeight,
+                        ),
                         const SlotSelectionContainer()
                       ],
                     ),
                   ),
                 ),
-                _buildCheckoutSection(screenWidth, screenHeight, totalPrice,
-                    cartItems, context, ref)
+                _buildCheckoutSection(
+                  screenWidth,
+                  screenHeight,
+                  totalPrice,
+                  cartItems,
+                  context,
+                  ref,
+                )
               ],
             ),
     );
@@ -93,7 +76,7 @@ class ShowCart extends ConsumerWidget {
       double screenWidth,
       double screenHeight,
       double totalPrice,
-      List<CartItem> cartItems,
+      List<SharedPreferencesCartItem> cartItems,
       BuildContext context,
       WidgetRef ref) {
     final addressesAsyncValue = ref.watch(addressesProvider);
@@ -142,19 +125,7 @@ class ShowCart extends ConsumerWidget {
                 Divider(height: screenHeight * 0.02),
                 Column(
                   children: [
-                    if (cartItems.any((item) => item.category == 'Snacks')) ...[
-                      _buildCategoryTotal(
-                          'Snacks', cartItems, screenWidth, screenHeight),
-                      SizedBox(height: screenHeight * 0.01),
-                    ],
-                    if (cartItems.any((item) => item.category == 'Drinks')) ...[
-                      _buildCategoryTotal(
-                          'Drinks', cartItems, screenWidth, screenHeight),
-                      SizedBox(height: screenHeight * 0.01),
-                    ],
-                    if (cartItems.any((item) => item.category == 'Food'))
-                      _buildCategoryTotal(
-                          'Food', cartItems, screenWidth, screenHeight),
+                    _buildTotal(cartItems, screenWidth, screenHeight),
                   ],
                 )
               ],
@@ -208,7 +179,7 @@ class ShowCart extends ConsumerWidget {
                   }
 
                   for (int i = 0; i < cartItems.length; i++) {
-                    CartItem item = cartItems[i];
+                    SharedPreferencesCartItem item = cartItems[i];
                     await prefs.setString('item_name_$i', item.name);
                     await prefs.setInt('item_quantity_$i', item.quantity);
                     await prefs.setDouble('item_price_$i', item.price);
@@ -286,13 +257,25 @@ class ShowCart extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: const Text(
-                  'Proceed to Checkout',
-                  style: TextStyle(
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                child: FutureBuilder<String?>(
+                  future: SharedPreferences.getInstance()
+                      .then((prefs) => prefs.getString('selectedAddressId')),
+                  builder: (context, snapshot) {
+                    final savedAddressId = snapshot.data;
+                    final buttonText =
+                        (savedAddressId == null || savedAddressId.isEmpty)
+                            ? 'Select Address'
+                            : 'Proceed to Checkout';
+
+                    return Text(
+                      buttonText,
+                      style: const TextStyle(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
@@ -302,22 +285,22 @@ class ShowCart extends ConsumerWidget {
     );
   }
 
-  Widget _buildCategoryTotal(String category, List<CartItem> cartItems,
-      double screenWidth, double screenHeight) {
-    final categoryItems =
-        cartItems.where((item) => item.category == category).toList();
-    final categoryTotal =
-        categoryItems.fold(0.0, (sum, item) => sum + item.totalPrice);
+  Widget _buildTotal(
+    List<SharedPreferencesCartItem> cartItems,
+    double screenWidth,
+    double screenHeight,
+  ) {
+    final total = cartItems.fold(0.0, (sum, item) => sum + item.totalPrice);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          '$category Total',
-          style: const TextStyle(fontSize: 16.0, color: Colors.grey),
+        const Text(
+          'Total',
+          style: TextStyle(fontSize: 16.0, color: Colors.grey),
         ),
         Text(
-          '₹${categoryTotal.toStringAsFixed(2)}',
+          '₹${total.toStringAsFixed(2)}',
           style: const TextStyle(fontSize: 16.0, color: Colors.black),
         ),
       ],

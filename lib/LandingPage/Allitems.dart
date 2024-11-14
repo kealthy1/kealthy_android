@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/LandingPage/Widgets/Search%20All.dart';
 import 'package:shimmer/shimmer.dart';
-import '../MenuPage/ProductList.dart';
+import '../MenuPage/Search_provider.dart';
 import 'Widgets/Recent_Search.dart';
 import 'Widgets/items.dart';
 import 'Widgets/searchprovider.dart';
@@ -50,8 +50,7 @@ class AllItemsPage extends ConsumerWidget {
           ),
           if (recentSearches.isNotEmpty)
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.all(10.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -135,7 +134,7 @@ class AllItemsPage extends ConsumerWidget {
                               fontWeight: FontWeight.bold),
                         ),
                       ),
-                       Expanded(child: FoodMenuPages())
+                      Expanded(child: FoodMenuPages())
                     ],
                   );
                 }
@@ -151,7 +150,7 @@ class AllItemsPage extends ConsumerWidget {
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(4),
                   itemCount: filteredItems.length,
                   itemBuilder: (context, index) {
                     return Padding(

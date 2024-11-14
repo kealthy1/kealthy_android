@@ -11,6 +11,7 @@ class OrderData {
   final String distance;
   final String orderId;
   final String phoneNumber;
+  final String Date;
   final double totalAmountToPay;
   final List<OrderItem> orderItems;
 
@@ -22,6 +23,7 @@ class OrderData {
     required this.phoneNumber,
     required this.totalAmountToPay,
     required this.orderItems,
+    required this.Date,
   });
 }
 
@@ -77,6 +79,7 @@ class OrderDataNotifier extends StateNotifier<AsyncValue<List<OrderData>?>> {
           assignedTo: data['assignedTo'],
           distance: data['distance'],
           orderId: data['orderId'],
+          Date: data['timestamp'],
           phoneNumber: data['phoneNumber'],
           totalAmountToPay: data['totalAmountToPay'].toDouble(),
           orderItems: items,
@@ -148,9 +151,10 @@ class OrderCard extends ConsumerWidget {
                                 color: Colors.black, fontSize: 20),
                           ),
                           Text(
-                            DateFormat('dd-MM-yyyy').format(DateTime.now()),
+                            DateFormat('dd-MM-yyyy')
+                                .format(DateTime.parse(orderData.Date)),
                             style: const TextStyle(color: Colors.black),
-                          ),
+                          )
                         ],
                       ),
                       const SizedBox(height: 16),

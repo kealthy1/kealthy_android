@@ -1,17 +1,15 @@
 import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/LandingPage/Myprofile.dart';
-import '../MenuPage/DietProvider.dart';
-import '../MenuPage/ProductList.dart';
+import 'package:kealthy/LandingPage/Widgets/Category.dart';
+import '../MenuPage/Search_provider.dart';
 import '../Riverpod/NavBar.dart';
 import '../Services/DeliveryIn_Kakkanad.dart';
 import '../Services/FirestoreCart.dart';
 import 'Cart_Container.dart';
 import 'Widgets/Appbar.dart';
 import 'Widgets/Carousel.dart';
-import 'Widgets/Category.dart';
 import 'Widgets/Serach.dart';
 import 'Widgets/floating_bottom_navigation_bar.dart';
 
@@ -22,12 +20,14 @@ class MyHomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(deliveryLimitProvider);
     final currentIndex = ref.watch(bottomNavIndexProvider);
-    final cartItems = ref.watch(addCartProvider);
+    final cartItems = ref.watch(sharedPreferencesCartProvider);
     final isVisible = ref.watch(cartVisibilityProvider);
+
     if (cartItems.isEmpty) {
       ref.read(addCartProvider.notifier).fetchCartItems();
     }
-    const int profilePageIndex = 2;
+
+    const int profilePageIndex = 1;
     final List<Widget> pages = [
       _buildHomePage(context, ref),
       const ProfilePage(),
@@ -49,40 +49,32 @@ class MyHomePage extends ConsumerWidget {
           }
           return true;
         },
-        child: Stack(
-          children: [
-            pages[currentIndex],
-            if (cartItems.isNotEmpty && currentIndex != profilePageIndex)
-              Positioned(
-                left: 1.0,
-                right: 1.0,
-                bottom: 1.0,
-                child: AnimatedOpacity(
-                  opacity: isVisible ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 10),
-                  child: const CartContainer(),
-                ),
-              ),
-          ],
-        ),
+        child: pages[currentIndex],
       ),
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: currentIndex,
         navbarItems: [
-          FloatingNavbarItem(icon: Icons.home, title: 'Home'),
+          FloatingNavbarItem(icon: Icons.home_outlined, title: 'Home'),
           FloatingNavbarItem(icon: Icons.person_2_outlined, title: 'Profile'),
         ],
         onTap: (index) {
           ref.read(bottomNavIndexProvider.notifier).updateIndex(index);
         },
       ),
+      bottomSheet:
+          cartItems.isNotEmpty && currentIndex != profilePageIndex && isVisible
+              ? AnimatedOpacity(
+                  opacity: isVisible ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: const CartContainer(),
+                )
+              : null,
     );
   }
 
   Widget _buildHomePage(BuildContext context, WidgetRef ref) {
     final screenHeight = MediaQuery.of(context).size.height;
     ref.watch(menuProvider);
-    ref.watch(dietProvider);
 
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
@@ -95,9 +87,9 @@ class MyHomePage extends ConsumerWidget {
           ),
           const CarouselSliderWidget(),
           SizedBox(height: screenHeight * 0.03),
-          _buildCenteredTitle('Category'),
+          _buildCenteredTitle('Categories'),
           SizedBox(height: screenHeight * 0.03),
-          // const CategoryGrid(),
+          const CategoryGrid(),
           SizedBox(height: screenHeight * 0.03),
         ],
       ),
@@ -121,7 +113,7 @@ Widget _buildCenteredTitle(String title) {
           child: Text(
             title,
             style: const TextStyle(
-              fontFamily: "poppins",  
+              fontFamily: "poppins",
               fontSize: 13,
               fontWeight: FontWeight.bold,
               color: Colors.black,

@@ -5,16 +5,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/Orders/ordersTab.dart';
 
 class CountdownNotifier extends StateNotifier<int> {
-  CountdownNotifier() : super(5);
+  CountdownNotifier(this.ref) : super(5) {
+    ref.onDispose(cancelTimer);
+  }
 
+  final Ref ref;
   Timer? _timer;
 
   void startCountdown(Function onComplete) {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (state > 1) {
-        state--; 
+        state--;
       } else {
-        _timer?.cancel(); 
+        _timer?.cancel();
         onComplete();
       }
     });
@@ -25,8 +28,9 @@ class CountdownNotifier extends StateNotifier<int> {
   }
 }
 
-final countdownProvider =
-    StateNotifierProvider<CountdownNotifier, int>((ref) => CountdownNotifier());
+final countdownProvider = StateNotifierProvider<CountdownNotifier, int>((ref) {
+  return CountdownNotifier(ref);
+});
 
 class Ordersucces extends ConsumerStatefulWidget {
   const Ordersucces({super.key});
@@ -51,14 +55,8 @@ class _OrdersuccesState extends ConsumerState<Ordersucces> {
   }
 
   @override
-  void dispose() {
-    ref.read(countdownProvider.notifier).cancelTimer();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final countdown = ref.watch(countdownProvider); 
+    final countdown = ref.watch(countdownProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,

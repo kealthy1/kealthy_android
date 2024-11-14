@@ -1,12 +1,12 @@
-import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:kealthy/Cart/Cart_Items.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:kealthy/DetailsPage/HomePage.dart';
 import 'package:shimmer/shimmer.dart';
+
+import '../../MenuPage/menu_item.dart';
 
 class FoodMenuNotifier extends StateNotifier<List<DocumentSnapshot>> {
   FoodMenuNotifier() : super([]);
@@ -52,8 +52,6 @@ class FoodMenuPages extends ConsumerStatefulWidget {
 }
 
 class _FoodMenuPagesState extends ConsumerState<FoodMenuPages> {
-  final Map<String, bool> _addedToCartMap = {};
-
   @override
   Widget build(BuildContext context) {
     final menuItems = ref.watch(foodMenuProvider);
@@ -86,22 +84,23 @@ class _FoodMenuPagesState extends ConsumerState<FoodMenuPages> {
     return ListView.builder(
       itemCount: menuItems.length,
       itemBuilder: (context, index) {
-        final menuItem = menuItems[index];
+        final menuItemDoc = menuItems[index];
 
-        String name = menuItem['Name'] ?? 'Unknown Item';
-        String imageUrl = menuItem['ImageUrl'] ?? '';
-
-        double price = (menuItem['Price'] is int)
-            ? (menuItem['Price'] as int).toDouble()
-            : (menuItem['Price'] as double? ?? 0.0);
-
-        // Check if the item is added to the cart
-        bool isAddedToCart =
-            _addedToCartMap[menuItem.id] ?? false; // Use menu item ID
+        final menuItem =
+            MenuItem.fromFirestore(menuItemDoc.data() as Map<String, dynamic>);
 
         double screenWidth = MediaQuery.of(context).size.width;
 
         return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              CupertinoModalPopupRoute(
+                builder: (context) => HomePage(
+                    menuItem: menuItem),
+              ),
+            );
+          },
           child: Card(
             elevation: 10,
             color: Colors.white,
@@ -113,7 +112,7 @@ class _FoodMenuPagesState extends ConsumerState<FoodMenuPages> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   CachedNetworkImage(
-                    imageUrl: imageUrl,
+                    imageUrl: menuItem.imageUrl,
                     width: screenWidth * 0.25,
                     height: screenWidth * 0.25,
                     fit: BoxFit.cover,
@@ -132,52 +131,20 @@ class _FoodMenuPagesState extends ConsumerState<FoodMenuPages> {
                   const SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: [       
                       Text(
-                        name,
+                        menuItem.name,
                         style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      const SizedBox(
-                        height: 10,
-                      ),
+                      const SizedBox(height: 10),
                       Text(
-                        '₹${price.toStringAsFixed(2)}',
+                        '₹${menuItem.price.toStringAsFixed(2)}',
                         style: const TextStyle(fontSize: 14),
                       ),
                     ],
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (isAddedToCart) {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const ShowCart()));
-                      } else {
-                        postMenuItemToApi({
-                          'Name': name,
-                          'Price': price,
-                          'Quantity': 1,
-                          'Category': menuItem['Category'],
-                          'ImageUrl': imageUrl,
-                        });
-
-                        setState(() {
-                          _addedToCartMap[menuItem.id] = true;
-                        });
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      textStyle: const TextStyle(fontSize: 14),
-                    ),
-                    child: Text(
-                      isAddedToCart ? 'Go to Cart' : 'Add to Cart',
-                      style: const TextStyle(color: Colors.white),
-                    ),
                   ),
                 ],
               ),
@@ -186,47 +153,5 @@ class _FoodMenuPagesState extends ConsumerState<FoodMenuPages> {
         );
       },
     );
-  }
-}
-
-const String apiUrl = "https://api-jfnhkjk4nq-uc.a.run.app";
-
-Future<void> postMenuItemToApi(Map<String, dynamic> menuItem) async {
-  final prefs = await SharedPreferences.getInstance();
-  final phoneNumber = prefs.getString('phoneNumber');
-
-  if (phoneNumber == null) {
-    return; // Return early if the phone number is not available.
-  }
-
-  try {
-    // Construct the data to be posted
-    final Map<String, dynamic> data = {
-      'phoneNumber': phoneNumber, // Use phone number from SharedPreferences
-      'productData': {
-        'Name': menuItem['Name'] ?? 'Unknown',
-        'Price': menuItem['Price'] ?? 0.0,
-        'Quantity':
-            menuItem['Quantity'] ?? 1, // Default quantity if not provided
-        'Category': menuItem['Category'] ?? 'Uncategorized',
-        'ImageUrl': menuItem['ImageUrl'] ?? '',
-      },
-    };
-
-    final response = await http.post(
-      Uri.parse('https://api-jfnhkjk4nq-uc.a.run.app/addcart'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: json.encode(data),
-    );
-
-    if (response.statusCode == 200) {
-      print('Menu item successfully posted to cart!');
-    } else {
-      print('Failed to post menu item: ${response.statusCode}');
-    }
-  } catch (e) {
-    print('Error posting menu item: $e');
   }
 }

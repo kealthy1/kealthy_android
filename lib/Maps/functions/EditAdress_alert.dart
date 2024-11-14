@@ -15,7 +15,6 @@ class AddressUtils {
     String newRoad = address.road;
     String? newLandmark;
     String? newPhoneNumber = address.phoneNumber;
-
     final prefs = await SharedPreferences.getInstance();
     String? phoneNumberFromPrefs = prefs.getString('phoneNumber') ?? '';
 

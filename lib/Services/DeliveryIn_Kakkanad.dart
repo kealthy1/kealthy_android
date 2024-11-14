@@ -27,6 +27,7 @@ class DeliveryLimitNotifier extends StateNotifier<String> {
     if (permission == LocationPermission.whileInUse ||
         permission == LocationPermission.always) {
       Position position = await Geolocator.getCurrentPosition(
+          // ignore: deprecated_member_use
           desiredAccuracy: LocationAccuracy.best);
       List<Placemark> placemarks =
           await placemarkFromCoordinates(position.latitude, position.longitude);

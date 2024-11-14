@@ -97,9 +97,9 @@ class PaymentHandler {
   }
 
   Future<void> clearCart(WidgetRef ref) async {
-    final cartItems = ref.read(addCartProvider);
+    final cartItems = ref.read(sharedPreferencesCartProvider);
     if (cartItems.isNotEmpty) {
-      ref.read(addCartProvider.notifier).deleteAllItemsFromCart();
+      ref.read(sharedPreferencesCartProvider.notifier).clearCart();
       print("All items have been removed from the cart.");
     } else {
       print("The cart is already empty.");

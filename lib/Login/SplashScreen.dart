@@ -16,20 +16,22 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    navigateAfterDelay();
+  }
 
-    Timer(const Duration(seconds: 2), () async {
-      final hasPhoneNumber = await _checkPhoneNumber();
-
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          CupertinoModalPopupRoute(
-            builder: (context) =>
-                hasPhoneNumber ? const MyHomePage() : const IntroScreen(),
-          ),
-        );
-      }
-    });
+  Future<void> navigateAfterDelay() async {
+    await Future.delayed(const Duration(seconds: 2));
+    
+    final hasPhoneNumber = await _checkPhoneNumber();
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        CupertinoPageRoute(
+          builder: (context) =>
+              hasPhoneNumber ? const MyHomePage() : const IntroScreen(),
+        ),
+      );
+    }
   }
 
   @override
@@ -55,6 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<bool> _checkPhoneNumber() async {
     final prefs = await SharedPreferences.getInstance();
     final phoneNumber = prefs.getString('phoneNumber');
+    print("Phone number in prefs: $phoneNumber"); // Debugging line
     return phoneNumber != null;
   }
 }

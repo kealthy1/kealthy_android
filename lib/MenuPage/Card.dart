@@ -13,115 +13,84 @@ class MenuItemCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    double discountedPrice = menuItem.price * 0.8;
     double screenWidth = MediaQuery.of(context).size.width;
 
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          CupertinoModalPopupRoute(
-            builder: (context) => HomePage(menuItem: menuItem),
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[300]!),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.grey.withOpacity(0.3),
-                blurRadius: 10,
-                spreadRadius: 1),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CachedNetworkImage(
-              height: 200,
-              imageUrl: menuItem.imageUrl,
-              width: double.infinity,
-              placeholder: (context, url) => Center(
-                child: Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                  child: Container(
-                    color: Colors.grey[300],
-                  ),
-                ),
-              ),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
+        onTap: () {
+          Navigator.push(
+            context,
+            CupertinoModalPopupRoute(
+              builder: (context) => HomePage(menuItem: menuItem),
             ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          menuItem.name,
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.060,
-                            fontWeight: FontWeight.bold,
-                          ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(15),
+                    topRight: Radius.circular(15),
+                  ),
+                  child: CachedNetworkImage(
+                    height: 200,
+                    imageUrl: menuItem.imageUrl,
+                    width: double.infinity,
+                    placeholder: (context, url) => Center(
+                      child: Shimmer.fromColors(
+                        baseColor: Colors.grey[300]!,
+                        highlightColor: Colors.grey[100]!,
+                        child: Container(
+                          color: Colors.grey[300],
                         ),
                       ),
+                    ),
+                    errorWidget: (context, url, error) =>
+                        const Icon(Icons.error),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        "⭐ ${menuItem.rating.toStringAsFixed(1)}",
-                        style: TextStyle(fontSize: screenWidth * 0.045),
+                        menuItem.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontFamily: "Poppins",
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
+                      const SizedBox(height: 4),
+                      Text('₹ ${menuItem.price.toStringAsFixed(0)}/-',
+                          style: const TextStyle(
+                              fontSize: 18, fontFamily: "Poppins")),
+                      Row(
+                        children: [
+                          const Icon(Icons.energy_savings_leaf_rounded,
+                              size: 18, color: Colors.green),
+                          const SizedBox(width: 4),
+                          Text(menuItem.nutrients,
+                              style: const TextStyle(
+                                  fontSize: 13, fontFamily: "Poppins")),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.local_fire_department_outlined,
-                          color: Colors.orange[600], size: 16),
-                      const SizedBox(width: 4),
-                      Text('${menuItem.kcal.toStringAsFixed(0)} cal',
-                          style: TextStyle(
-                              color: Colors.grey[500],
-                              fontSize: screenWidth * 0.035)),
-                      const SizedBox(width: 10),
-                      Icon(Icons.fitness_center,
-                          color: Colors.green[800], size: 16),
-                      const SizedBox(width: 4),
-                      Text('${menuItem.protein.toStringAsFixed(0)}g protein',
-                          style: TextStyle(
-                              color: Colors.grey[500],
-                              fontSize: screenWidth * 0.035)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text('₹${discountedPrice.toStringAsFixed(0)}/-',
-                          style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: screenWidth * 0.04)),
-                      const SizedBox(width: 10),
-                      Text('₹${menuItem.price.toStringAsFixed(0)}',
-                          style: TextStyle(
-                              color: Colors.red[500],
-                              decoration: TextDecoration.lineThrough,
-                              fontSize: screenWidth * 0.035)),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
+          ),
+        ));
   }
 }

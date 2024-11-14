@@ -20,15 +20,6 @@ class DescriptionSection extends StatelessWidget {
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 18.0),
-          Text(
-            'Price: ₹${menuItem.price.toStringAsFixed(0)}/-',
-            style: const TextStyle(
-              fontSize: 18.0,
-              fontWeight: FontWeight.bold,
-              color: Colors.green,
-            ),
-          ),
         ],
       ),
     );

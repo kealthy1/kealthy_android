@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../Cart/Cart_Items.dart';
+
 import '../MenuPage/menu_item.dart';
-import '../Riverpod/AddCart.dart';
-import '../Riverpod/Increment.dart';
 import '../Services/FirestoreCart.dart';
 
 class AddToCart extends ConsumerWidget {
@@ -13,128 +11,97 @@ class AddToCart extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final cartAnimation = ref.watch(cartAnimationProvider.notifier);
-    final cartItems = ref.watch(addCartProvider);
-    final quantity = ref.watch(quantityProvider);
+    final cartItems = ref.watch(sharedPreferencesCartProvider);
+    final cartNotifier = ref.read(sharedPreferencesCartProvider.notifier);
 
-    final totalPrice = menuItem.price * quantity;
-    final isItemAddedToCart =
-        cartItems.any((cartItem) => cartItem.name == menuItem.name);
-    final buttonText = isItemAddedToCart ? 'Go To Cart' : 'Add to Cart';
+    final isItemInCart = cartItems.any((item) => item.name == menuItem.name);
+    final cartItem = isItemInCart
+        ? cartItems.firstWhere((item) => item.name == menuItem.name)
+        : null;
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height: screenHeight * 0.02),
-        SizedBox(
-          width: screenWidth * 0.9,
-          child: ElevatedButton(
-            onPressed: () async {
-              if (buttonText == 'Go To Cart') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ShowCart(),
-                  ),
-                );
-              } else {
-                final cartItem = CartItem(
-                  id: menuItem.name,
-                  name: menuItem.name,
-                  price: menuItem.price,
-                  imageUrl: menuItem.imageUrl,
-                  quantity: quantity,
-                  category: menuItem.category,
-                );
-
-                ref.read(addCartProvider.notifier).addItem(cartItem);
-                cartAnimation.state = true;
-
-                Future.delayed(const Duration(milliseconds: 300), () {
-                  cartAnimation.state = false;
-                });
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              padding: EdgeInsets.symmetric(
-                vertical: screenHeight * 0.02,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                "₹ ${menuItem.price.toStringAsFixed(0)}",
+                style: const TextStyle(fontSize: 24, fontFamily: "Poppins"),
               ),
             ),
-            child: isItemAddedToCart
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Text(
-                        buttonText,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18.0,
+            Container(
+              height: 40,
+              width: MediaQuery.of(context).size.width * 0.30,
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 223, 240, 224),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.green),
+              ),
+              child: isItemInCart
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.remove, color: Colors.green),
+                          onPressed: () {
+                            cartNotifier.decreaseItemQuantity(cartItem!.id);
+                          },
+                        ),
+                        Text(
+                          cartItem!.quantity.toString(),
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.add, color: Colors.green),
+                          onPressed: () {
+                            cartNotifier.increaseItemQuantity(cartItem.id);
+                          },
+                        ),
+                      ],
+                    )
+                  : ElevatedButton(
+                      onPressed: () {
+                        final newCartItem = SharedPreferencesCartItem(
+                          name: menuItem.name,
+                          price: menuItem.price,
+                          quantity: 1,
+                          id: menuItem.name,
+                          imageUrl: menuItem.imageUrl,
+                          category: menuItem.category,
+                        );
+                        cartNotifier.addItemToCart(newCartItem);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      const SizedBox(width: 8.0),
-                      Text(
-                        '₹${totalPrice.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18.0,
+                      child: const Center(
+                        child: Text(
+                          "ADD",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ],
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          ref.read(quantityProvider.notifier).decrement();
-                        },
-                        child: const Icon(
-                          Icons.remove,
-                          size: 20.0,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        '$quantity',
-                        style: const TextStyle(
-                          fontSize: 20.0,
-                          color: Colors.white,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          ref.read(quantityProvider.notifier).increment();
-                        },
-                        child: const Icon(
-                          Icons.add,
-                          size: 20.0,
-                          color: Colors.white,
-                        ),
-                      ),
-                      SizedBox(width: screenWidth * 0.03),
-                      Text(
-                        buttonText,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18.0,
-                        ),
-                      ),
-                      Text(
-                        '₹${totalPrice.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18.0,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Text(
+            menuItem.name,
+            style: const TextStyle(fontSize: 25, fontFamily: "Poppins"),
           ),
         ),
       ],

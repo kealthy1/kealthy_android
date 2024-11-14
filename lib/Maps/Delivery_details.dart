@@ -7,7 +7,6 @@ import 'package:intl/intl.dart';
 import 'package:kealthy/Maps/SelectAdress.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Select Location.dart';
-import 'functions/Delivery_detailslocationprovider.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 final selectedSlotProvider = StateProvider<String?>((ref) => null);
@@ -32,6 +31,7 @@ class _AddressFormState extends ConsumerState<AddressForm> {
   final TextEditingController LandMarkController = TextEditingController();
   final TextEditingController directionsController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -47,7 +47,6 @@ class _AddressFormState extends ConsumerState<AddressForm> {
           addressController.text = address;
         }
       }
-      directionsController.text = "Don't send cutlery, tissues, and straws";
     });
   }
 
@@ -60,122 +59,43 @@ class _AddressFormState extends ConsumerState<AddressForm> {
 
   @override
   Widget build(BuildContext context) {
-    final currentLocation = ref.watch(locationProvider);
-    ref.watch(addressProvider);
+    final address = ref.read(addressProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: SingleChildScrollView(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 50),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                const Icon(Icons.location_on, color: Colors.green),
-                const SizedBox(width: 1),
-                Text(
-                  currentLocation.split('\n').first,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 24),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                currentLocation,
-                style: const TextStyle(color: Colors.grey),
+            const Text(
+              'Complete Address Details',
+              style: TextStyle(
+                fontSize: 18,
+                fontFamily: 'Poppins',
               ),
             ),
-            const SizedBox(height: 22),
-            Expanded(
-              child: SingleChildScrollView(
+            const SizedBox(
+              height: 20,
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 3.0,
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextFormField(
-                      controller: houseController,
-                      decoration: const InputDecoration(
-                        floatingLabelBehavior: FloatingLabelBehavior.never,
-                        labelText: 'Name',
-                        labelStyle: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.grey),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                      ),
-                      cursorColor: Colors.black,
-                      keyboardType: TextInputType.text,
-                    ),
-                    const SizedBox(height: 22),
-                    TextFormField(
-                      controller: apartmentController,
-                      decoration: const InputDecoration(
-                        floatingLabelBehavior: FloatingLabelBehavior.never,
-                        labelText: 'APARTMENT / ROAD / AREA',
-                        labelStyle: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.grey),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey),
-                        ),
-                      ),
-                      keyboardType: TextInputType.text,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: LandMarkController,
-                      decoration: const InputDecoration(
-                        floatingLabelBehavior: FloatingLabelBehavior.never,
-                        labelText: 'LandMark (OPTIONAL)',
-                        labelStyle: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.grey),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey),
-                        ),
-                      ),
-                      keyboardType: TextInputType.text,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(enabled: false,
-                      controller: addressController,
-                      readOnly: true,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(
-                                CupertinoScrollbar.defaultRadius)),
-                        floatingLabelBehavior: FloatingLabelBehavior.never,
-                        labelStyle: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.grey),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey),
-                        ),
-                      ),
-                      keyboardType: TextInputType.text,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: directionsController,
-                      maxLength: 200,
-                      decoration: const InputDecoration(
-                        floatingLabelBehavior: FloatingLabelBehavior.never,
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                        labelText:
-                            ' Instructions to kitchen and Delivery Partner',
-                        labelStyle: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.grey),
-                        border: OutlineInputBorder(),
-                      ),
-                      maxLines: 4,
-                      keyboardType: TextInputType.multiline,
-                      textAlign: TextAlign.start,
-                    ),
-                    const SizedBox(height: 12),
                     const Text(
-                      'SAVE THIS ADDRESS AS',
+                      'Save the adress as',
                       style: TextStyle(
                           fontWeight: FontWeight.bold, color: Colors.grey),
                     ),
@@ -191,45 +111,175 @@ class _AddressFormState extends ConsumerState<AddressForm> {
                             child: _buildSaveButton(Icons.more_horiz, 'Other')),
                       ],
                     ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    Container(
+                      width: MediaQuery.of(context).size.width,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(10.0),
+                        border: Border.all(color: Colors.black26),
+                      ),
+                      child: address != null
+                          ? Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 5),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      address,
+                                      style: const TextStyle(
+                                          fontSize: 13, color: Colors.black45),
+                                      overflow: TextOverflow
+                                          .clip,
+                                    ),
+                                  ),
+                                  Flexible(
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              side: const BorderSide(
+                                                  color: Colors.black45))),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text(
+                                        'Change',
+                                        style: TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.black45),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : const Text('Loading Address...'),
+                    ),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    const Text(
+                      'Updated based on your map pin',
+                      style: TextStyle(fontSize: 11, color: Colors.black45),
+                    ),
                     const SizedBox(height: 12),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    bool isSaved = await _saveAddress(ref);
-                    ref.read(savedValueProvider);
-                    if (isSaved) {
-                      Navigator.pushReplacement(
-                        context,
-                        CupertinoModalPopupRoute(
-                          builder: (context) => const SelectAdress(
-                            totalPrice: 0,
+                    TextFormField(
+                      controller: houseController,
+                      decoration: const InputDecoration(
+                        hintText: 'Name',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                          borderSide: BorderSide(color: Colors.black),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                      ),
+                      cursorColor: Colors.black,
+                      keyboardType: TextInputType.text,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: apartmentController,
+                      decoration: const InputDecoration(
+                        hintText: 'Flat / Room / area',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                          borderSide: BorderSide(color: Colors.black),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                      ),
+                      keyboardType: TextInputType.text,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: LandMarkController,
+                      decoration: const InputDecoration(
+                        hintText: 'Landmark (optional)',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                          borderSide: BorderSide(color: Colors.black),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                      ),
+                      keyboardType: TextInputType.text,
+                    ),
+                    const SizedBox(height: 12),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: directionsController,
+                      maxLength: 200,
+                      decoration: const InputDecoration(
+                        hintText: 'Directions',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                          borderSide: BorderSide(color: Colors.black),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                      ),
+                      maxLines: 4,
+                      keyboardType: TextInputType.multiline,
+                      textAlign: TextAlign.start,
+                    ),
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            bool isSaved = await _saveAddress(ref);
+                            ref.read(savedValueProvider);
+                            if (isSaved) {
+                              Navigator.pushReplacement(
+                                context,
+                                CupertinoModalPopupRoute(
+                                  builder: (context) => const SelectAdress(
+                                    totalPrice: 0,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            padding: const EdgeInsets.symmetric(vertical: 20.0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'SAVE AND PROCEED',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(vertical: 20.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    'SAVE AND PROCEED',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                    const SizedBox(
+                      height: 20,
+                    )
+                  ],
                 ),
               ),
             ),
@@ -283,7 +333,7 @@ class _AddressFormState extends ConsumerState<AddressForm> {
     final savedValue = ref.read(savedValueProvider);
     final Landmark = LandMarkController.text.trim();
     final address = addressController.text.trim();
-    final combinedRoad = '$road, $address';
+    final combinedRoad = '$road $address';
 
     if (Name.isEmpty ||
         road.isEmpty ||

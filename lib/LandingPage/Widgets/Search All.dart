@@ -56,10 +56,17 @@ class _SearchBarallState extends ConsumerState<SearchBarall> {
                         .fetchProductSuggestions(value);
                   },
                   decoration: InputDecoration(
+                    suffixIcon: IconButton(
+                        color: Colors.green,
+                        iconSize: 30,
+                        onPressed: () {
+                          widget.onSearch(_controller.text);
+                        },
+                        icon: const Icon(Icons.search)),
                     focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(10),
                         borderSide: const BorderSide(
-                          color: Colors.green,
+                          color: Colors.grey,
                         )),
                     enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
@@ -129,22 +136,6 @@ class _SearchBarallState extends ConsumerState<SearchBarall> {
                     ),
                   ),
               ],
-            ),
-            Positioned(
-              right: 5,
-              child: ElevatedButton(
-                onPressed: () {
-                  widget.onSearch(_controller.text);
-                },
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.green,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-                child: const Text('Search'),
-              ),
             ),
           ],
         ),

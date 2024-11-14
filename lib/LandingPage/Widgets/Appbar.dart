@@ -94,7 +94,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
                                       if (snapshot.connectionState ==
                                           ConnectionState.waiting) {
                                         return LoadingAnimationWidget
-                                            .prograssiveDots(
+                                            .progressiveDots(
                                                 color: Colors.green, size: 20);
                                       } else if (snapshot.hasError) {
                                         return Text(
@@ -132,7 +132,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
                                 );
                               },
                               loading: () =>
-                                  LoadingAnimationWidget.prograssiveDots(
+                                  LoadingAnimationWidget.progressiveDots(
                                       color: Colors.green, size: 20),
                               error: (error, stack) => Text(
                                 "Error: $error",
