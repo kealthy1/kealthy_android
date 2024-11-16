@@ -61,47 +61,60 @@ class DeliveryInstructionsSection extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 10),
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.15,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  _buildInstructionTile(
-                    context: context,
-                    ref: ref,
-                    icon: Icons.notifications_active,
-                    label: 'Avoid ringing bell',
-                    selected: selectedInstructions,
-                  ),
-                  const SizedBox(width: 10),
-                  _buildInstructionTile(
-                    context: context,
-                    ref: ref,
-                    icon: Icons.door_front_door_outlined,
-                    label: 'Leave at the door',
-                    selected: selectedInstructions,
-                  ),
-                  const SizedBox(width: 10),
-                  _buildInstructionTile(
-                    context: context,
-                    ref: ref,
-                    icon: Icons.person_outlined,
-                    label: 'Leave With Guard',
-                    selected: selectedInstructions,
-                  ),
-                  const SizedBox(width: 10),
-                  _buildInstructionTile(
-                    context: context,
-                    ref: ref,
-                    icon: Icons.phone_disabled,
-                    label: 'Avoid calling',
-                    selected: selectedInstructions,
-                  ),
-                ],
-              ),
-            ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final tileWidth =
+                  constraints.maxWidth / 4.5; // Adjust the divisor for spacing
+              final tileHeight = tileWidth * 1.2; // Maintain aspect ratio
+
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    _buildInstructionTile(
+                      context: context,
+                      ref: ref,
+                      icon: Icons.notifications_active,
+                      label: 'Avoid ringing bell',
+                      selected: selectedInstructions,
+                      width: tileWidth,
+                      height: tileHeight,
+                    ),
+                    const SizedBox(width: 10),
+                    _buildInstructionTile(
+                      context: context,
+                      ref: ref,
+                      icon: Icons.door_front_door_outlined,
+                      label: 'Leave at the door',
+                      selected: selectedInstructions,
+                      width: tileWidth,
+                      height: tileHeight,
+                    ),
+                    const SizedBox(width: 10),
+                    _buildInstructionTile(
+                      context: context,
+                      ref: ref,
+                      icon: Icons.person_outlined,
+                      label: 'Leave With Guard',
+                      selected: selectedInstructions,
+                      width: tileWidth,
+                      height: tileHeight,
+                    ),
+                    const SizedBox(width: 10),
+                    _buildInstructionTile(
+                      context: context,
+                      ref: ref,
+                      icon: Icons.phone_disabled,
+                      label: 'Avoid calling',
+                      selected: selectedInstructions,
+                      width: tileWidth,
+                      height: tileHeight,
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -114,6 +127,8 @@ class DeliveryInstructionsSection extends ConsumerWidget {
     required IconData icon,
     required String label,
     required Set<String> selected,
+    required double width,
+    required double height,
   }) {
     final isSelected = selected.contains(label);
 
@@ -122,8 +137,8 @@ class DeliveryInstructionsSection extends ConsumerWidget {
         ref.read(deliveryInstructionProvider.notifier).toggleInstruction(label);
       },
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.22,
-        height: MediaQuery.of(context).size.height * 0.14,
+        width: width,
+        height: height,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           color: isSelected ? Colors.green : Colors.grey[100],

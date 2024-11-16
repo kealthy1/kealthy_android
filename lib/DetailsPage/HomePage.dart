@@ -14,16 +14,10 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen(addCartProvider,
-        (_, __) => ref.read(addCartProvider.notifier).fetchCartItems());
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final cartItems = ref.watch(sharedPreferencesCartProvider);
     final isVisible = ref.watch(cartVisibilityProvider);
-
-    if (cartItems.isEmpty) {
-      ref.read(addCartProvider.notifier).fetchCartItems();
-    }
 
     return Scaffold(
       backgroundColor: Colors.white,

@@ -1,11 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:kealthy/Maps/SelectAdress.dart';
 import 'package:kealthy/Payment/RazorPay.dart';
 import 'package:kealthy/Services/Order_Completed.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../Cart/AvailableslotGenerator.dart';
+import '../Orders/ordersTab.dart';
 import '../Services/FirestoreCart.dart';
 import '../Services/PaymentHandler.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -13,7 +15,7 @@ import 'payment_service.dart';
 
 final paymentMethodProvider = StateProvider<String?>((ref) => null);
 
-final loadingProvider = StateProvider<bool>((ref) => false);
+final CODloadingProvider = StateProvider<bool>((ref) => false);
 final savedAddressProvider =
     StateNotifierProvider<AddressNotifier, Map<String, dynamic>>(
         (ref) => AddressNotifier());
@@ -50,7 +52,7 @@ class AddressNotifier extends StateNotifier<Map<String, dynamic>> {
 }
 
 class OrderConfirmation extends ConsumerWidget {
-  final List<CartItem> cartItems;
+  final List<SharedPreferencesCartItem> cartItems;
 
   const OrderConfirmation({
     super.key,
@@ -60,208 +62,335 @@ class OrderConfirmation extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedPaymentMethod = ref.watch(paymentMethodProvider);
-    final isLoading = ref.watch(loadingProvider);
+    final isLoading = ref.watch(CODloadingProvider);
     final savedAddressData = ref.watch(savedAddressProvider);
     double totalAmountToPay = PaymentService().totalToPay;
 
     ref.read(savedAddressProvider.notifier).loadSavedAddress();
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        toolbarHeight: 1,
+    // ignore: deprecated_member_use
+    return WillPopScope(
+      onWillPop: () async {
+        // ignore: unused_result
+        ref.refresh(CODloadingProvider);
+        ref.read(CODloadingProvider.notifier).state = false;
+        return true;
+      },
+      child: Scaffold(
         backgroundColor: Colors.white,
-        automaticallyImplyLeading: false,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Payment Method',
-                style: TextStyle(
-                  fontSize: 25,
+        appBar: AppBar(
+          title: const Text(
+            'Select Payment Method',
+            style: TextStyle(
+              fontFamily: "poppins",
+              fontSize: 18,
+            ),
+          ),
+          centerTitle: true,
+          backgroundColor: Colors.white,
+          automaticallyImplyLeading: false,
+        ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildPaymentOption(context, ref, Icons.currency_rupee_sharp,
+                    'Cash on Delivery', selectedPaymentMethod),
+                const SizedBox(height: 10),
+                _buildPaymentOption(context, ref, Icons.payment,
+                    'Online Payment', selectedPaymentMethod),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Delivery address',
+                      style: TextStyle(
+                        fontSize: 25,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          CupertinoModalPopupRoute(
+                            builder: (context) =>
+                                const SelectAdress(totalPrice: 0),
+                          ),
+                        ).then((_) => ref
+                            .read(savedAddressProvider.notifier)
+                            .loadSavedAddress());
+                      },
+                      icon: const Icon(
+                        Icons.mode_edit_outlined,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              _buildPaymentOption(context, ref, Icons.currency_rupee_sharp,
-                  'COD', 'Cash on Delivery (COD)', selectedPaymentMethod),
-              _buildPaymentOption(context, ref, Icons.payment, 'UPI',
-                  'UPI or CARD', selectedPaymentMethod),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Delivery address',
-                    style: TextStyle(
-                      fontSize: 25,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        CupertinoModalPopupRoute(
-                          builder: (context) =>
-                              const SelectAdress(totalPrice: 0),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: ResponsiveContainer(
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const SizedBox(width: 8),
+                            const Icon(Icons.location_on,
+                                size: 30, color: Colors.black),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    '${savedAddressData['Name'] ?? 'N/A'}',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${savedAddressData['road'] ?? 'N/A'}',
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                      'Delivery Slot: ${savedAddressData['selectedSlot'] ?? 'N/A'}',
+                                      overflow: TextOverflow.ellipsis),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${(savedAddressData['selectedDistance'] != null ? savedAddressData['selectedDistance'].toStringAsFixed(2) : 'N/A')} km',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 10),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ).then((_) => ref
-                          .read(savedAddressProvider.notifier)
-                          .loadSavedAddress());
-                    },
-                    icon: const Icon(
-                      Icons.mode_edit_outlined,
-                      color: Colors.black,
+                      ],
                     ),
                   ),
-                ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+        bottomNavigationBar: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(10),
+                topRight: Radius.circular(10),
+                bottomLeft: Radius.zero,
+                bottomRight: Radius.zero,
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: ResponsiveContainer(
-                  child: Column(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.2),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 5),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const SizedBox(width: 8),
-                          const Icon(Icons.location_on,
-                              size: 30, color: Colors.black),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 10),
-                                Text(
-                                  '${savedAddressData['Name'] ?? 'N/A'}',
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Text('${savedAddressData['road'] ?? 'N/A'}',
-                                    overflow: TextOverflow.ellipsis),
-                                const SizedBox(height: 4),
-                                Text(
-                                    'Delivery Slot: ${savedAddressData['selectedSlot'] ?? 'N/A'}',
-                                    overflow: TextOverflow.ellipsis),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${(savedAddressData['selectedDistance'] != null ? savedAddressData['selectedDistance'].toStringAsFixed(2) : 'N/A')} km',
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 10),
-                              ],
+                          const Text(
+                            'Total Bill',
+                            style: TextStyle(
+                              fontFamily: "poppins",
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Icon(Icons.description_outlined,
+                              size: 24.0, color: Colors.green)
                         ],
+                      ),
+                      Text(
+                        '₹${totalAmountToPay.toStringAsFixed(0)}/-',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              if (isLoading)
-                Center(
-                  child: LoadingAnimationWidget.discreteCircle(
-                    color: Colors.white,
-                    size: 100,
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Flexible(
-              child: Text(
-                'Total ₹${totalAmountToPay.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.4,
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  if (totalAmountToPay == 0) {
-                    Fluttertoast.showToast(
-                      msg: "Total amount cannot be zero!",
-                      toastLength: Toast.LENGTH_SHORT,
-                      gravity: ToastGravity.BOTTOM,
-                      backgroundColor: Colors.red,
-                      textColor: Colors.white,
-                      fontSize: 16.0,
-                    );
-                    return;
-                  }
-
-                  ref.read(loadingProvider.notifier).state = true;
-                  PaymentHandler paymentHandler = PaymentHandler();
-
-                  try {
-                    if (selectedPaymentMethod == 'UPI') {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => RazorPay(
-                            totalAmountToPay: totalAmountToPay,
-                            cartItems: cartItems,
+                const SizedBox(height: 5),
+                isLoading
+                    ? const Center(
+                        child: SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.green,
+                            strokeWidth: 4.0,
                           ),
                         ),
-                      );
-                    } else if (selectedPaymentMethod == 'COD') {
-                      await paymentHandler.saveOrderDetails();
-                      await paymentHandler.clearCart(ref);
-                      ref.read(loadingProvider.notifier).state = false;
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ElevatedButton(
+                          onPressed: isLoading
+                              ? null
+                              : () async {
+                                  if (selectedPaymentMethod == null) {
+                                    Fluttertoast.showToast(
+                                      msg: "Please select a payment method.",
+                                      toastLength: Toast.LENGTH_SHORT,
+                                      gravity: ToastGravity.BOTTOM,
+                                      backgroundColor: Colors.red,
+                                      textColor: Colors.white,
+                                      fontSize: 16.0,
+                                    );
+                                    return;
+                                  }
+                                  ref.read(CODloadingProvider.notifier).state =
+                                      true;
 
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        CupertinoModalPopupRoute(
-                          builder: (context) => const Ordersucces(),
+                                  final prefs =
+                                      await SharedPreferences.getInstance();
+                                  final String selectedSlot =
+                                      prefs.getString('selectedSlot') ?? '';
+
+                                  final currentTime = DateTime.now();
+                                  final generator = AvailableSlotsGenerator(
+                                    slotDurationMinutes: 30,
+                                    minGapMinutes: 30,
+                                    startTime: DateTime(
+                                      currentTime.year,
+                                      currentTime.month,
+                                      currentTime.day,
+                                      7,
+                                      0,
+                                    ),
+                                    endTime: DateTime(
+                                      currentTime.year,
+                                      currentTime.month,
+                                      currentTime.day + 1,
+                                      0,
+                                      0,
+                                    ),
+                                  );
+                                  final availableSlots =
+                                      generator.getAvailableSlots(currentTime);
+                                  if (!availableSlots.any((slot) =>
+                                      DateFormat('h:mm a').format(slot) ==
+                                      selectedSlot)) {
+                                    ref
+                                        .read(CODloadingProvider.notifier)
+                                        .state = false;
+
+                                    ref
+                                        .read(CODloadingProvider.notifier)
+                                        .state = false;
+
+                                    Fluttertoast.showToast(
+                                      msg:
+                                          "The chosen time slot is already Closed",
+                                      toastLength: Toast.LENGTH_SHORT,
+                                      gravity: ToastGravity.BOTTOM,
+                                      backgroundColor: Colors.red,
+                                      textColor: Colors.white,
+                                    );
+                                    return;
+                                  }
+
+                                  ref.read(CODloadingProvider.notifier).state =
+                                      true;
+                                  PaymentHandler paymentHandler =
+                                      PaymentHandler();
+
+                                  try {
+                                    if (selectedPaymentMethod ==
+                                        'Online Payment') {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => RazorPay(
+                                            totalAmountToPay: totalAmountToPay,
+                                            cartItems: cartItems,
+                                          ),
+                                        ),
+                                      );
+                                    } else if (selectedPaymentMethod ==
+                                        'Cash on Delivery') {
+                                      await paymentHandler.saveOrderDetails();
+                                      await paymentHandler.clearCart(ref);
+                                      ref
+                                          .read(CODloadingProvider.notifier)
+                                          .state = false;
+                                      ReusableCountdownDialog(
+                                        context: context,
+                                        ref: ref,
+                                        message:
+                                            "Payment Successful! Redirecting to My Orders",
+                                        imagePath:
+                                            "assets/Animation - 1731992471934.json",
+                                        countdownDuration: 10,
+                                        onRedirect: () {
+                                          Navigator.pushReplacement(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const OrdersTabScreen(),
+                                            ),
+                                          );
+                                        },
+                                      ).show();
+                                    }
+                                  } catch (e) {
+                                    ref
+                                        .read(CODloadingProvider.notifier)
+                                        .state = false;
+                                    Fluttertoast.showToast(
+                                      msg: "Error occurred: ${e.toString()}",
+                                      toastLength: Toast.LENGTH_SHORT,
+                                      gravity: ToastGravity.BOTTOM,
+                                      backgroundColor: Colors.red,
+                                      textColor: Colors.white,
+                                      fontSize: 16.0,
+                                    );
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            minimumSize: const Size(50, 50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Text(
+                            'Place Order',
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
-                        (Route<dynamic> route) => route.isFirst,
-                      );
-                    }
-                  } catch (e) {
-                    ref.read(loadingProvider.notifier).state = false;
-                    Fluttertoast.showToast(
-                      msg: "Error occurred: ${e.toString()}",
-                      toastLength: Toast.LENGTH_SHORT,
-                      gravity: ToastGravity.BOTTOM,
-                      backgroundColor: Colors.red,
-                      textColor: Colors.white,
-                      fontSize: 16.0,
-                    );
-                  }
-                },
-                icon: const Icon(
-                  Icons.shopping_cart,
-                  color: Colors.white,
-                ),
-                label: const Text(
-                  'Place Order',
-                  style: TextStyle(color: Colors.white),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  minimumSize: const Size(50, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              ),
+                      ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -272,7 +401,6 @@ class OrderConfirmation extends ConsumerWidget {
     WidgetRef ref,
     IconData icon,
     String value,
-    String subtitle,
     String? selectedPaymentMethod,
   ) {
     bool isSelected = selectedPaymentMethod == value;
@@ -286,8 +414,12 @@ class OrderConfirmation extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         margin: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.black : Colors.white,
-          border: Border.all(color: Colors.black, width: 1.5),
+          color: isSelected
+              ? const Color.fromARGB(255, 169, 211, 171)
+              : Colors.white,
+          border: Border.all(
+              color: isSelected ? Colors.green : Colors.grey.shade400,
+              width: 1.5),
           borderRadius: BorderRadius.circular(18),
         ),
         child: Row(
@@ -300,9 +432,9 @@ class OrderConfirmation extends ConsumerWidget {
                 ref.read(paymentMethodProvider.notifier).state = newValue;
                 _savePaymentMethod(newValue!);
               },
-              activeColor: Colors.white,
+              activeColor: Colors.green,
             ),
-            Icon(icon, color: isSelected ? Colors.white : Colors.black),
+            Icon(icon, color: isSelected ? Colors.green : Colors.grey.shade500),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -312,13 +444,9 @@ class OrderConfirmation extends ConsumerWidget {
                     value,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white70 : Colors.grey,
+                      fontFamily: "poppins",
+                      fontSize: 15,
+                      color: isSelected ? Colors.black : Colors.black,
                     ),
                   ),
                 ],

@@ -17,10 +17,12 @@ class OrdersTabScreen extends StatelessWidget {
           bottom: const TabBar(
             indicatorColor: Colors.white,
             labelColor: Colors.white,
-            unselectedLabelColor: Colors.green,
+            unselectedLabelColor: Colors.grey,
             tabs: [
               Tab(
-                icon: Icon(Icons.delivery_dining_outlined, color: Colors.white),
+                icon: Icon(
+                  Icons.delivery_dining_outlined,
+                ),
                 child: Text(
                   'Live Orders',
                   style: TextStyle(
@@ -31,7 +33,9 @@ class OrdersTabScreen extends StatelessWidget {
                 ),
               ),
               Tab(
-                icon: Icon(Icons.check_circle_sharp, color: Colors.white),
+                icon: Icon(
+                  Icons.check_circle_sharp,
+                ),
                 child: Text(
                   'Past Orders',
                   style: TextStyle(

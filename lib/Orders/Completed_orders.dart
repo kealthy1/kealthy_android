@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -145,36 +146,62 @@ class OrderCard extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            "Order ${orderData.orderId.length > 10 ? orderData.orderId.substring(orderData.orderId.length - 10) : orderData.orderId}",
-                            style: const TextStyle(
-                                color: Colors.black, fontSize: 20),
+                          Row(
+                            children: [
+                              Text(
+                                "Order ${orderData.orderId.length > 10 ? orderData.orderId.substring(orderData.orderId.length - 10) : orderData.orderId}",
+                                style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 20,
+                                    fontFamily: "poppins",
+                                    overflow: TextOverflow.ellipsis),
+                              ),
+                              SizedBox(
+                                width: 5,
+                              ),
+                              Icon(
+                                CupertinoIcons.doc,
+                                size: 16,
+                                color: Colors.grey,
+                              ),
+                            ],
                           ),
                           Text(
                             DateFormat('dd-MM-yyyy')
                                 .format(DateTime.parse(orderData.Date)),
-                            style: const TextStyle(color: Colors.black),
+                            style: const TextStyle(
+                                color: Colors.black,
+                                fontFamily: "poppins",
+                                overflow: TextOverflow.ellipsis),
                           )
                         ],
                       ),
                       const SizedBox(height: 16),
                       Text(
                         "Total Amount  ₹${orderData.totalAmountToPay.toStringAsFixed(0)}/-",
+                        style: TextStyle(
+                            fontFamily: "poppins",
+                            overflow: TextOverflow.ellipsis),
                       ),
-                      const Divider(),
+                      const Divider(
+                        thickness: 1.5,
+                      ),
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             "Items:",
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontFamily: "poppins",
+                                overflow: TextOverflow.ellipsis),
                           ),
                           Text(
                             "Delivered",
                             style: TextStyle(
-                              fontFamily: "poppins",
-                              color: Colors.green,
-                            ),
+                                fontFamily: "poppins",
+                                color: Colors.green,
+                                overflow: TextOverflow.ellipsis),
                           ),
                         ],
                       ),
@@ -186,9 +213,17 @@ class OrderCard extends ConsumerWidget {
                           itemBuilder: (context, itemIndex) {
                             final item = orderData.orderItems[itemIndex];
                             return ListTile(
-                              title: Text(item.itemName),
+                              title: Text(
+                                item.itemName,
+                                style: TextStyle(
+                                    fontFamily: "poppins",
+                                    overflow: TextOverflow.ellipsis),
+                              ),
                               subtitle: Text(
                                 "Quantity: ${item.itemQuantity} | Price: ₹${item.itemPrice.toStringAsFixed(0)}/-",
+                                style: TextStyle(
+                                    fontFamily: "poppins",
+                                    overflow: TextOverflow.ellipsis),
                               ),
                             );
                           },

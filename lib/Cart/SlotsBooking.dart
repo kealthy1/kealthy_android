@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:ntp/ntp.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'AvailableslotGenerator.dart';
 
 final selectedSlotProvider = StateProvider<DateTime?>((ref) => null);
 final isExpandedProvider = StateProvider<bool>((ref) => false);
@@ -79,7 +80,26 @@ class SlotSelectionContainer extends ConsumerWidget {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     final currentTime = snapshot.data!;
-                    final availableSlots = getAvailableSlots(currentTime);
+                    final generator = AvailableSlotsGenerator(
+                      slotDurationMinutes: 30,
+                      minGapMinutes: 30,
+                      startTime: DateTime(
+                        currentTime.year,
+                        currentTime.month,
+                        currentTime.day,
+                        7,
+                        0,
+                      ),
+                      endTime: DateTime(
+                        currentTime.year,
+                        currentTime.month,
+                        currentTime.day + 1,
+                        0,
+                        0,
+                      ),
+                    );
+                    final availableSlots =
+                        generator.getAvailableSlots(currentTime);
                     return Wrap(
                       spacing: 3,
                       runSpacing: 10,
@@ -94,8 +114,6 @@ class SlotSelectionContainer extends ConsumerWidget {
                                 await SharedPreferences.getInstance();
                             prefs.setString('selectedSlot',
                                 DateFormat('h:mm a').format(slot));
-                            print(
-                                'Selected Slot: ${DateFormat('h:mm a').format(slot)}');
                           },
                           child: Container(
                             width: MediaQuery.of(context).size.width * 0.26,
@@ -137,40 +155,5 @@ class SlotSelectionContainer extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  List<DateTime> getAvailableSlots(DateTime currentTime) {
-    List<DateTime> slots = [];
-    DateTime startTime =
-        DateTime(currentTime.year, currentTime.month, currentTime.day, 9, 0, 0);
-    DateTime endTime = DateTime(currentTime.year, currentTime.month,
-        currentTime.day + 1, 0, 0, 0); // 12 AM (midnight) - next day
-
-    int minutesToNextSlot =
-        (startTime.difference(currentTime).inMinutes / 15).ceil() * 15;
-
-    // Special case: If current time is 3:30, skip to 4:15
-    if (currentTime.hour == 3 && currentTime.minute == 30) {
-      startTime =
-          startTime.add(const Duration(minutes: 45)); // Directly jump to 4:15
-      minutesToNextSlot = 45; // Update minutesToNextSlot for the next iteration
-    }
-
-    // If the next slot is less than 45 minutes away, skip it
-    if (minutesToNextSlot < 45) {
-      startTime = startTime.add(Duration(minutes: minutesToNextSlot));
-    }
-
-    // Add slots with 45-minute intervals, maintaining 45-minute difference
-    while (startTime.isBefore(endTime)) {
-      // Check the gap before adding the slot
-      if (startTime.isAfter(currentTime) &&
-          startTime.difference(currentTime).inMinutes >= 45) {
-        slots.add(startTime);
-      }
-
-      startTime = startTime.add(const Duration(minutes: 15));
-    }
-    return slots;
   }
 }

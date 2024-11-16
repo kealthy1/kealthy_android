@@ -1,135 +1,267 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:rounded_background_text/rounded_background_text.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../DetailsPage/HomePage.dart';
+import '../../MenuPage/Search_provider.dart';
 import '../../MenuPage/menu_item.dart';
+import '../../Services/FirestoreCart.dart';
+import '../../Services/Navigation.dart';
+import '../Allitems.dart';
+import '../Cart_Container.dart';
+import 'searchprovider.dart';
 
-class ItemCard extends ConsumerWidget {
+class ItemCard extends ConsumerStatefulWidget {
   final MenuItem menuItem;
+  final String Search;
 
-  const ItemCard({super.key, required this.menuItem});
+  const ItemCard({super.key, required this.menuItem, required this.Search});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final cardWidth = constraints.maxWidth * 0.9;
-        final imageSize = cardWidth * 0.3;
+  _ItemCardState createState() => _ItemCardState();
+}
 
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HomePage(menuItem: menuItem),
-              ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              width: cardWidth,
-              padding: const EdgeInsets.all(12.0),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.green),
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 8),
-                        RoundedBackgroundText(
-                          menuItem.name,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          backgroundColor:
-                              const Color.fromARGB(255, 89, 161, 91),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          menuItem.description,
-                          style: const TextStyle(
-                            color: Colors.black87,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Price:₹${menuItem.price.toStringAsFixed(0)}/-',
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: CachedNetworkImage(
-                          imageUrl: menuItem.imageUrl,
-                          height: imageSize,
-                          width: imageSize,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Center(
-                            child: Shimmer.fromColors(
-                              baseColor: Colors.grey[300]!,
-                              highlightColor: Colors.grey[100]!,
-                              child: Container(
-                                color: Colors.grey[300],
-                              ),
-                            ),
-                          ),
-                          errorWidget: (context, url, error) => Icon(
-                            Icons.error,
-                            size: imageSize,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(Icons.star, color: Colors.amber, size: 16),
-                          Text(
-                            menuItem.rating.toStringAsFixed(1),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+class _ItemCardState extends ConsumerState<ItemCard> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = TextEditingController(text: widget.Search);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final allItems = ref.watch(productProvider);
+    final cartItems = ref.watch(sharedPreferencesCartProvider);
+    final isVisible = ref.watch(cartVisibilityProvider);
+    final relatedItems = allItems
+        .where((item) =>
+            item.category == widget.menuItem.category &&
+            item.id != widget.menuItem.name)
+        .map((item) => item.toMenuItem())
+        .toSet()
+        .toList();
+
+    final allItemsToShow = [widget.menuItem, ...relatedItems];
+
+    return WillPopScope(
+      onWillPop: () async {
+        // ignore: unused_result
+        ref.refresh(productProvider);
+        // ignore: unused_result
+        ref.refresh(searchQueryProvider);
+
+        return true;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+            centerTitle: true,
+            title: Text(
+              widget.menuItem.category,
+              style: const TextStyle(fontFamily: "Poppins"),
             ),
+            automaticallyImplyLeading: false,
+            backgroundColor: Colors.white),
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              _buildSearchBar(context),
+              Expanded(
+                child: allItems.isEmpty
+                    ? _buildShimmerGrid()
+                    : GridView.builder(
+                        padding: const EdgeInsets.all(8),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 0.78,
+                        ),
+                        itemCount: allItemsToShow.length,
+                        itemBuilder: (context, index) {
+                          final item = allItemsToShow[index];
+                          return _buildGridItemCard(context, item);
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
+        bottomSheet: cartItems.isNotEmpty && isVisible
+            ? AnimatedOpacity(
+                opacity: isVisible ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 200),
+                child: const CartContainer(),
+              )
+            : null,
+      ),
+    );
+  }
+
+  Widget _buildSearchBar(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: _controller,
+        readOnly: true,
+        onTap: () {
+          // ignore: unused_result
+          ref.refresh(searchQueryProvider);
+          Navigator.of(context).pushReplacement(
+            SeamlessRevealRoute(
+              page: const AllItemsPage(),
+            ),
+          );
+        },
+        decoration: InputDecoration(
+          prefixIcon: const Icon(CupertinoIcons.search),
+          hintText: "Search ",
+          hintStyle: const TextStyle(color: Colors.black),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey[300]!),
+          ),
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGridItemCard(BuildContext context, MenuItem item) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(menuItem: item),
           ),
         );
       },
+      child: AspectRatio(
+        aspectRatio: 3 / 4,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.3),
+                spreadRadius: 2,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                flex: 3,
+                child: CachedNetworkImage(
+                  imageUrl: item.imageUrl,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => _buildShimmerItem(),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.name,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontFamily: "Poppins",
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '🔥 ${item.kcal.toStringAsFixed(0)} Calories',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontFamily: "Poppins",
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      ' ₹ ${item.price.toStringAsFixed(0)} /-',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontFamily: "Poppins",
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(8),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.78,
+      ),
+      itemCount: 6,
+      itemBuilder: (context, index) => _buildShimmerItem(),
+    );
+  }
+
+  Widget _buildShimmerItem() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: AspectRatio(
+        aspectRatio: 3 / 4,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[300],
+            borderRadius: BorderRadius.circular(15),
+          ),
+        ),
+      ),
     );
   }
 }

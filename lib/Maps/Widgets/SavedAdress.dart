@@ -144,18 +144,18 @@ class _SavedAddressState extends State<SavedAddress> {
                       style: const TextStyle(color: Colors.black),
                     ),
                     const SizedBox(height: 8),
+                    if (directions!.isNotEmpty)
+                      Text(
+                        "Instructions: $directions",
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                    const SizedBox(height: 8),
                     Text(
                       landmark != null && landmark.isNotEmpty
                           ? "Landmark: $landmark"
                           : "",
                       style: const TextStyle(color: Colors.black),
                     ),
-                    const SizedBox(height: 8),
-                    if (directions!.isNotEmpty)
-                      Text(
-                        "Instructions: $directions",
-                        style: const TextStyle(color: Colors.black),
-                      ),
                   ],
                 ),
               ),

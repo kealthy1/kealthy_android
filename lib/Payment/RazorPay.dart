@@ -1,6 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kealthy/Orders/ordersTab.dart';
 import 'package:kealthy/Services/Order_Completed.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
@@ -9,7 +9,7 @@ import '../Services/PaymentHandler.dart';
 
 class RazorPay extends ConsumerStatefulWidget {
   final double totalAmountToPay;
-  final List<CartItem> cartItems;
+  final List<SharedPreferencesCartItem> cartItems;
 
   const RazorPay({
     super.key,
@@ -35,25 +35,29 @@ class _RazorPayState extends ConsumerState<RazorPay> {
   }
 
   Future<void> _handlePaymentSuccess(PaymentSuccessResponse response) async {
-    setState(() {});
-
     try {
       PaymentHandler paymentHandler = PaymentHandler();
       await paymentHandler.saveOrderDetails();
       await paymentHandler.clearCart(ref);
-      Navigator.pushAndRemoveUntil(
-        context,
-        CupertinoModalPopupRoute(
-          builder: (context) => const Ordersucces(),
-        ),
-        (Route<dynamic> route) => route.isFirst,
-      );
+      ReusableCountdownDialog(
+        context: context,
+        ref: ref,
+        message: "Payment Successful! Redirecting to My Orders",
+        imagePath: "assets/Animation - 1731992471934.json",
+        countdownDuration: 5,
+        onRedirect: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const OrdersTabScreen(),
+            ),
+          );
+        },
+      ).show();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error saving order: $e")),
       );
-    } finally {
-      setState(() {});
     }
   }
 
@@ -64,9 +68,16 @@ class _RazorPayState extends ConsumerState<RazorPay> {
   }
 
   void _handlePaymentFailure(PaymentFailureResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Payment Failed: ${response.message}")),
-    );
+    ReusableCountdownDialog(
+      context: context,
+      ref: ref,
+      message: "Payment Failed! Returning to the cart",
+      imagePath: "assets/Animation - 1731995566846.json",
+      countdownDuration: 10,
+      onRedirect: () {
+        Navigator.pop(context);
+      },
+    ).show();
   }
 
   void openCheckout() {

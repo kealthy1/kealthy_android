@@ -60,9 +60,7 @@ class _MenuPageState extends ConsumerState<MenuPage> {
     final cartItems = ref.watch(sharedPreferencesCartProvider);
     final isVisible = ref.watch(cartVisibilityProvider);
 
-    if (cartItems.isEmpty) {
-      ref.read(addCartProvider.notifier).fetchCartItems();
-    }
+
 
     return Scaffold(
       backgroundColor: Colors.white,

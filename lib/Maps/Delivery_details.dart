@@ -10,6 +10,7 @@ import 'Select Location.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 final selectedSlotProvider = StateProvider<String?>((ref) => null);
+final issavedProvider = StateProvider<bool>((ref) => false);
 
 class AddressForm extends ConsumerStatefulWidget {
   final double totalPrice;
@@ -59,6 +60,8 @@ class _AddressFormState extends ConsumerState<AddressForm> {
 
   @override
   Widget build(BuildContext context) {
+    final issaved = ref.watch(issavedProvider);
+
     final address = ref.read(addressProvider);
 
     return Container(
@@ -134,8 +137,7 @@ class _AddressFormState extends ConsumerState<AddressForm> {
                                       address,
                                       style: const TextStyle(
                                           fontSize: 13, color: Colors.black45),
-                                      overflow: TextOverflow
-                                          .clip,
+                                      overflow: TextOverflow.clip,
                                     ),
                                   ),
                                   Flexible(
@@ -242,43 +244,56 @@ class _AddressFormState extends ConsumerState<AddressForm> {
                     const SizedBox(height: 12),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            bool isSaved = await _saveAddress(ref);
-                            ref.read(savedValueProvider);
-                            if (isSaved) {
-                              Navigator.pushReplacement(
-                                context,
-                                CupertinoModalPopupRoute(
-                                  builder: (context) => const SelectAdress(
-                                    totalPrice: 0,
+                      child: issaved
+                          ? const Center(
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.green,
+                                  strokeWidth: 5,
+                                ),
+                              ),
+                            )
+                          : SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  ref.read(issavedProvider.notifier);
+                                  bool isSaved = await _saveAddress(ref);
+                                  ref.read(savedValueProvider);
+                                  if (isSaved) {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      CupertinoModalPopupRoute(
+                                        builder: (context) =>
+                                            const SelectAdress(
+                                          totalPrice: 0,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  ref.read(issavedProvider.notifier).state =
+                                      false;
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 20.0),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                              );
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            padding: const EdgeInsets.symmetric(vertical: 20.0),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                                child: const Text(
+                                  'SAVE AND PROCEED',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                          child: const Text(
-                            'SAVE AND PROCEED',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
                     ),
-                    const SizedBox(
-                      height: 20,
-                    )
                   ],
                 ),
               ),
@@ -327,6 +342,7 @@ class _AddressFormState extends ConsumerState<AddressForm> {
   final savedValueProvider = StateProvider<String>((ref) => '');
 
   Future<bool> _saveAddress(WidgetRef ref) async {
+    ref.read(issavedProvider.notifier).state = true;
     final Name = houseController.text.trim();
     final road = apartmentController.text.trim();
     final directions = directionsController.text.trim();
@@ -347,6 +363,7 @@ class _AddressFormState extends ConsumerState<AddressForm> {
         textColor: Colors.white,
         fontSize: 12.0,
       );
+      ref.read(issavedProvider.notifier).state = false;
       return false;
     }
 
@@ -363,6 +380,7 @@ class _AddressFormState extends ConsumerState<AddressForm> {
           textColor: Colors.white,
           fontSize: 12.0,
         );
+        ref.read(issavedProvider.notifier).state = false;
         return false;
       }
 
@@ -404,14 +422,17 @@ class _AddressFormState extends ConsumerState<AddressForm> {
 
       if (response.statusCode == 200) {
         print('Address saved successfully!');
+        ref.read(issavedProvider.notifier).state = false;
         return true;
       } else {
         print('Failed to save address: ${response.statusCode}');
         print('Response body: ${response.body}');
+        ref.read(issavedProvider.notifier).state = false;
         return false;
       }
     } catch (e) {
       print('Error: $e');
+      ref.read(issavedProvider.notifier).state = false;
       return false;
     }
   }

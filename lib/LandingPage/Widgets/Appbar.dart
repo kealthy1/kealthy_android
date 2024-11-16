@@ -2,11 +2,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kealthy/LandingPage/OrderContainer.dart';
+import 'package:kealthy/Orders/ordersTab.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Maps/functions/Delivery_detailslocationprovider.dart';
 import '../../Maps/SelectAdress.dart';
+import '../../Services/Navigation.dart';
 
 final selectedRoadProvider = FutureProvider<String?>((ref) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -228,14 +229,13 @@ class MovableButton extends ConsumerWidget {
 
     return GestureDetector(
       onTap: () {
-        showModalBottomSheet(
-          backgroundColor: Colors.transparent,
-          context: context,
-          builder: (BuildContext context) {
-            return const OrdersContainer();
-          },
-          isScrollControlled: true,
+        Navigator.push(
+          context,
+          SeamlessRevealRoute(
+            page: const OrdersTabScreen(),
+          ),
         );
+        
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),

@@ -32,8 +32,6 @@ class CategoryContainer extends ConsumerWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 itemBuilder: (context, index) {
                   final item = cartItems[index];
-                  final isLoading =
-                      ref.watch(addCartProvider.notifier).isLoading(item.id);
                   return CartItemWidget(
                     item: item,
                     screenWidth: screenWidth,
@@ -47,7 +45,6 @@ class CategoryContainer extends ConsumerWidget {
                     onDelete: () => ref
                         .read(sharedPreferencesCartProvider.notifier)
                         .removeItemFromCart(item.name),
-                    isLoading: isLoading,
                   );
                 },
               ),
@@ -63,7 +60,6 @@ class CartItemWidget extends StatelessWidget {
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
   final VoidCallback onDelete;
-  final bool isLoading;
 
   const CartItemWidget({
     required this.item,
@@ -72,7 +68,6 @@ class CartItemWidget extends StatelessWidget {
     required this.onIncrement,
     required this.onDecrement,
     required this.onDelete,
-    required this.isLoading,
     super.key,
   });
 

@@ -1,18 +1,14 @@
 import 'dart:async';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kealthy/Orders/ordersTab.dart';
+import 'package:lottie/lottie.dart';
 
 class CountdownNotifier extends StateNotifier<int> {
-  CountdownNotifier(this.ref) : super(5) {
-    ref.onDispose(cancelTimer);
-  }
+  CountdownNotifier(super.initialCountdown);
 
-  final Ref ref;
   Timer? _timer;
 
-  void startCountdown(Function onComplete) {
+  void startCountdown(VoidCallback onComplete) {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (state > 1) {
         state--;
@@ -23,75 +19,85 @@ class CountdownNotifier extends StateNotifier<int> {
     });
   }
 
-  void cancelTimer() {
+  void cancelCountdown() {
     _timer?.cancel();
   }
 }
 
-final countdownProvider = StateNotifierProvider<CountdownNotifier, int>((ref) {
-  return CountdownNotifier(ref);
-});
+final countdownProvider =
+    StateNotifierProvider.family<CountdownNotifier, int, int>(
+  (ref, initialCountdown) => CountdownNotifier(initialCountdown),
+);
 
-class Ordersucces extends ConsumerStatefulWidget {
-  const Ordersucces({super.key});
+class ReusableCountdownDialog {
+  final BuildContext context;
+  final WidgetRef ref;
+  final String message;
+  final String imagePath;
+  final int countdownDuration;
+  final VoidCallback onRedirect;
 
-  @override
-  ConsumerState<Ordersucces> createState() => _OrdersuccesState();
-}
+  ReusableCountdownDialog({
+    required this.context,
+    required this.ref,
+    required this.message,
+    required this.imagePath,
+    required this.countdownDuration,
+    required this.onRedirect,
+  });
 
-class _OrdersuccesState extends ConsumerState<Ordersucces> {
-  @override
-  void initState() {
-    super.initState();
-
-    ref.read(countdownProvider.notifier).startCountdown(() {
-      Navigator.push(
-        context,
-        CupertinoModalPopupRoute(
-          builder: (context) => const OrdersTabScreen(),
-        ),
-      );
+  void show() {
+    ref.read(countdownProvider(countdownDuration).notifier).startCountdown(() {
+      Navigator.pop(context);
+      onRedirect();
     });
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    final countdown = ref.watch(countdownProvider);
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              "assets/order_placed-removebg-preview.png",
-              height: 200,
-            ),
-            const SizedBox(height: 20),
-            Text(
-              "Redirecting to My Orders in $countdown seconds",
-              style: const TextStyle(fontSize: 16, color: Colors.black),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  CupertinoModalPopupRoute(
-                    builder: (context) => const OrdersTabScreen(),
-                  ),
-                );
-              },
-              child: const Text(
-                "My Orders",
-                style: TextStyle(color: Colors.white),
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return Consumer(
+          builder: (context, ref, child) {
+            final countdown = ref.watch(countdownProvider(countdownDuration));
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
               ),
-            ),
-          ],
-        ),
-      ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Lottie.asset(
+                    imagePath,
+                    height: 200,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    "$message in $countdown seconds",
+                    style: const TextStyle(fontSize: 16, color: Colors.black),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    onPressed: () {
+                      ref
+                          .read(countdownProvider(countdownDuration).notifier)
+                          .cancelCountdown();
+                      Navigator.pop(context);
+                      onRedirect();
+                    },
+                    child: const Text(
+                      "My Orders",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

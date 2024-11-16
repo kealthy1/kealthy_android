@@ -31,6 +31,14 @@ final userProfileProvider =
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
+  Future<void> _clearPreferencesAndNavigate(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginFields()),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -92,7 +100,7 @@ class ProfilePage extends ConsumerWidget {
                     context,
                     Icons.exit_to_app,
                     'Logout',
-                    () => const LoginFields(),
+                    () => _clearPreferencesAndNavigate(context),
                   ),
                 ],
               ),
@@ -104,7 +112,7 @@ class ProfilePage extends ConsumerWidget {
   }
 
   Widget _buildMenuItem(BuildContext context, IconData icon, String title,
-      Widget Function() navigateTo) {
+      void Function() onTap) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -115,12 +123,7 @@ class ProfilePage extends ConsumerWidget {
         leading: Icon(icon, color: Colors.white),
         title: Text(title, style: const TextStyle(color: Colors.white)),
         trailing: const Icon(Icons.chevron_right, color: Colors.white),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => navigateTo()),
-          );
-        },
+        onTap: onTap,
       ),
     );
   }

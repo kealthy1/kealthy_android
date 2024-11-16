@@ -47,7 +47,7 @@ class OtpNotifier extends StateNotifier<OtpState> {
           MaterialPageRoute(builder: (context) =>  const MyHomePage()),
         );
       } else {
-        state = OtpState(error: 'OTP verification failed');
+        state = OtpState(error: '');
       }
     } catch (e) {
       state = OtpState(error: 'An error occurred');

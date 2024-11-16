@@ -9,6 +9,66 @@ import '../Riverpod/otp.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+class OtpScreenNotifier extends StateNotifier<OtpScreenState> {
+  OtpScreenNotifier() : super(OtpScreenState());
+
+  void setReceivedText(String text) {
+    state = state.copyWith(textReceived: text);
+  }
+
+  void startTimer() {
+    state = state.copyWith(
+        timer: Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (state.start == 0) {
+        timer.cancel();
+      } else {
+        state = state.copyWith(start: state.start - 1);
+      }
+    }));
+  }
+
+  void resetTimer() {
+    state.timer?.cancel();
+    state = state.copyWith(start: 30);
+    startTimer();
+  }
+
+  void cancelTimer() {
+    state.timer?.cancel();
+  }
+}
+
+// State class for OTP screen
+class OtpScreenState {
+  final String textReceived;
+  final Timer? timer;
+  final int start;
+
+  OtpScreenState({
+    this.textReceived = '',
+    this.timer,
+    this.start = 30,
+  });
+
+  OtpScreenState copyWith({
+    String? textReceived,
+    Timer? timer,
+    int? start,
+  }) {
+    return OtpScreenState(
+      textReceived: textReceived ?? this.textReceived,
+      timer: timer ?? this.timer,
+      start: start ?? this.start,
+    );
+  }
+}
+
+// Provider for OTP screen state
+final otpScreenProvider =
+    StateNotifierProvider<OtpScreenNotifier, OtpScreenState>(
+  (ref) => OtpScreenNotifier(),
+);
+
 class OTPScreen extends ConsumerStatefulWidget {
   final String verificationId;
   final String phoneNumber;
@@ -25,18 +85,18 @@ class OTPScreen extends ConsumerStatefulWidget {
 
 class _OTPScreenState extends ConsumerState<OTPScreen> {
   final Telephony telephony = Telephony.instance;
-  String textReceived = "";
   final _otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  late Timer _timer;
-  int _start = 30;
 
-  @override
-  void initState() {
-    super.initState();
-    startListening();
-    _startTimer();
-  }
+ @override
+void initState() {
+  super.initState();
+  startListening();
+  Future(() {
+    ref.read(otpScreenProvider.notifier).startTimer();
+  });
+}
+
 
   void startListening() {
     telephony.listenIncomingSms(
@@ -44,13 +104,13 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
         if (message.body != null &&
             message.body!.contains("Your OTP code is:")) {
           _extractAndFillOtp(message.body!);
-          setState(() {
-            textReceived = message.body ?? "";
-          });
+          ref
+              .read(otpScreenProvider.notifier)
+              .setReceivedText(message.body ?? "");
         } else {
-          setState(() {
-            textReceived = "Ignored message: ${message.body ?? ""}";
-          });
+          ref
+              .read(otpScreenProvider.notifier)
+              .setReceivedText("Ignored message: ${message.body ?? ""}");
         }
       },
       listenInBackground: false,
@@ -74,59 +134,43 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
     }
   }
 
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_start == 0) {
-        setState(() {
-          timer.cancel();
-        });
-      } else {
-        setState(() {
-          _start--;
-        });
-      }
-    });
-  }
-
   Future<void> _savePhoneNumber() async {
-  final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
 
-  // Clean the phone number
-  String cleanedPhoneNumber =
-      widget.phoneNumber.replaceAll('+91', '').replaceAll(' ', '');
+    // Clean the phone number
+    String cleanedPhoneNumber =
+        widget.phoneNumber.replaceAll('+91', '').replaceAll(' ', '');
 
-  // Save to SharedPreferences
-  await prefs.setString('phoneNumber', cleanedPhoneNumber);
+    await prefs.setString('phoneNumber', cleanedPhoneNumber);
 
-  // Debugging: Confirm that phone number is stored
-  print('Phone number saved to SharedPreferences: $cleanedPhoneNumber');
+    print('Phone number saved to SharedPreferences: $cleanedPhoneNumber');
 
-  // API call to save phone number in MongoDB
-  const String apiUrl = "https://api-jfnhkjk4nq-uc.a.run.app/login";
+    const String apiUrl = "https://api-jfnhkjk4nq-uc.a.run.app/login";
 
-  final response = await http.post(
-    Uri.parse(apiUrl),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'phoneNumber': widget.phoneNumber}),
-  );
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'phoneNumber': widget.phoneNumber}),
+    );
 
-  if (response.statusCode == 200) {
-    print('Phone number saved to MongoDB: ${response.body}');
-  } else {
-    print('Failed to save phone number to MongoDB: ${response.statusCode}, ${response.body}');
+    if (response.statusCode == 200) {
+      print('Phone number saved to MongoDB: ${response.body}');
+    } else {
+      print(
+          'Failed to save phone number to MongoDB: ${response.statusCode}, ${response.body}');
+    }
   }
-}
-
 
   @override
   void dispose() {
-    _timer.cancel();
+    ref.read(otpScreenProvider.notifier).cancelTimer();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final otpState = ref.watch(otpProvider);
+    final otpScreenState = ref.watch(otpScreenProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -205,16 +249,13 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                     ),
                   ),
             const SizedBox(height: 20),
-            _start == 0
+            otpScreenState.start == 0
                 ? TextButton(
                     onPressed: () {
                       ref
                           .read(otpProvider.notifier)
                           .resendOtp(widget.phoneNumber);
-                      setState(() {
-                        _start = 30;
-                      });
-                      _startTimer();
+                      ref.read(otpScreenProvider.notifier).resetTimer();
                     },
                     child: const Text(
                       'Resend',
@@ -225,11 +266,11 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                     ),
                   )
                 : Text(
-                    'Resend OTP in $_start seconds',
+                    'Resend OTP in ${otpScreenState.start} seconds',
                     style: const TextStyle(fontSize: 16, color: Colors.grey),
                   ),
             const SizedBox(height: 20),
-            Text(textReceived)
+            Text(otpScreenState.textReceived)
           ],
         ),
       ),

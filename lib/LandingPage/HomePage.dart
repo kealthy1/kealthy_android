@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/LandingPage/Myprofile.dart';
 import 'package:kealthy/LandingPage/Widgets/Category.dart';
 import '../MenuPage/Search_provider.dart';
+import '../Riverpod/BackButton.dart';
 import '../Riverpod/NavBar.dart';
 import '../Services/DeliveryIn_Kakkanad.dart';
 import '../Services/FirestoreCart.dart';
@@ -12,6 +13,7 @@ import 'Widgets/Appbar.dart';
 import 'Widgets/Carousel.dart';
 import 'Widgets/Serach.dart';
 import 'Widgets/floating_bottom_navigation_bar.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class MyHomePage extends ConsumerWidget {
   const MyHomePage({super.key});
@@ -23,52 +25,69 @@ class MyHomePage extends ConsumerWidget {
     final cartItems = ref.watch(sharedPreferencesCartProvider);
     final isVisible = ref.watch(cartVisibilityProvider);
 
-    if (cartItems.isEmpty) {
-      ref.read(addCartProvider.notifier).fetchCartItems();
-    }
-
     const int profilePageIndex = 1;
     final List<Widget> pages = [
       _buildHomePage(context, ref),
       const ProfilePage(),
     ];
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: const CustomAppBar(),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (ScrollNotification scrollInfo) {
-          if (scrollInfo is ScrollEndNotification) {
-            ref.read(cartVisibilityProvider.notifier).setVisible(true);
-          } else if (scrollInfo.metrics.axis == Axis.vertical) {
-            final isScrollingDown =
-                scrollInfo.metrics.pixels > scrollInfo.metrics.minScrollExtent;
-            ref
-                .read(cartVisibilityProvider.notifier)
-                .setVisible(!isScrollingDown);
-          }
-          return true;
-        },
-        child: pages[currentIndex],
+    return WillPopScope(
+      onWillPop: () async {
+        final notifier = ref.read(backPressProvider.notifier);
+        notifier.onBackPressed();
+
+        if (notifier.shouldExitApp()) {
+          return Future.value(true); 
+        } else {
+          Fluttertoast.showToast(
+            msg: "Press back again to exit",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.black,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+          return Future.value(false);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: const CustomAppBar(),
+        body: NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            if (scrollInfo is ScrollEndNotification) {
+              ref.read(cartVisibilityProvider.notifier).setVisible(true);
+            } else if (scrollInfo.metrics.axis == Axis.vertical) {
+              final isScrollingDown = scrollInfo.metrics.pixels >
+                  scrollInfo.metrics.minScrollExtent;
+              ref
+                  .read(cartVisibilityProvider.notifier)
+                  .setVisible(!isScrollingDown);
+            }
+            return true;
+          },
+          child: pages[currentIndex],
+        ),
+        bottomNavigationBar: CustomBottomNavigationBar(
+          currentIndex: currentIndex,
+          navbarItems: [
+            FloatingNavbarItem(icon: Icons.home_outlined, title: 'Home'),
+            FloatingNavbarItem(icon: Icons.person_2_outlined, title: 'Profile'),
+          ],
+          onTap: (index) {
+            ref.read(bottomNavIndexProvider.notifier).updateIndex(index);
+          },
+        ),
+        bottomSheet: cartItems.isNotEmpty &&
+                currentIndex != profilePageIndex &&
+                isVisible
+            ? AnimatedOpacity(
+                opacity: isVisible ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 200),
+                child: const CartContainer(),
+              )
+            : null,
       ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: currentIndex,
-        navbarItems: [
-          FloatingNavbarItem(icon: Icons.home_outlined, title: 'Home'),
-          FloatingNavbarItem(icon: Icons.person_2_outlined, title: 'Profile'),
-        ],
-        onTap: (index) {
-          ref.read(bottomNavIndexProvider.notifier).updateIndex(index);
-        },
-      ),
-      bottomSheet:
-          cartItems.isNotEmpty && currentIndex != profilePageIndex && isVisible
-              ? AnimatedOpacity(
-                  opacity: isVisible ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: const CartContainer(),
-                )
-              : null,
     );
   }
 

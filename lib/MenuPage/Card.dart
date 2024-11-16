@@ -13,7 +13,6 @@ class MenuItemCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    double screenWidth = MediaQuery.of(context).size.width;
 
     return GestureDetector(
         onTap: () {

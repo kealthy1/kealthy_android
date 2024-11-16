@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,38 +37,13 @@ class LocationNotifier extends StateNotifier<Position?> {
   final Ref ref;
 
   LocationNotifier(this.ref) : super(null) {
-    _getCurrentLocation();
+    Future.microtask(() => _getCurrentLocation());
   }
 
   LatLng? get selectedPosition => _selectedPosition;
 
   set selectedPosition(LatLng? position) {
     _selectedPosition = position;
-  }
-
-  Future<void> suggestLocations(String query, WidgetRef ref) async {
-    try {
-      final List<Location> locations = await locationFromAddress(query);
-      if (locations.isNotEmpty) {
-        final suggestions = await Future.wait(locations.map((location) async {
-          final placemarks = await placemarkFromCoordinates(
-            location.latitude,
-            location.longitude,
-          );
-          if (placemarks.isNotEmpty) {
-            final placemark = placemarks.first;
-            return "${placemark.street ?? ''}${placemark.administrativeArea ?? ''}${placemark.country ?? ''}";
-          }
-          return '';
-        }).toList());
-
-        ref.read(suggestionsProvider.notifier).state = suggestions;
-      } else {
-        ref.read(suggestionsProvider.notifier).state = [];
-      }
-    } catch (e) {
-      print('Error in getting suggestions: $e');
-    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -84,19 +58,74 @@ class LocationNotifier extends StateNotifier<Position?> {
       }
 
       if (permission == LocationPermission.deniedForever) return;
-
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best,
         forceAndroidLocationManager: true,
         timeLimit: const Duration(seconds: 30),
       );
       state = position;
+      final LatLng latLngPosition =
+          LatLng(position.latitude, position.longitude);
+      ref.read(selectedPositionProvider.notifier).state = latLngPosition;
+      await _updateAddress(latLngPosition);
     } catch (e) {
       print('Error getting location: $e');
     }
   }
 
-  Future<void> searchLocation(String placeId, WidgetRef ref) async {
+  Future<void> _updateAddress(LatLng position) async {
+    try {
+      final List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+
+      if (placemarks.isNotEmpty) {
+        final Placemark placemark = placemarks.first;
+
+        final List<String?> addressComponents = [
+          placemark.subLocality,
+          placemark.street,
+          placemark.postalCode,
+          placemark.locality,
+          placemark.administrativeArea,
+          placemark.country,
+        ];
+        final address = addressComponents
+            .where((component) => component != null && component.isNotEmpty)
+            .toSet()
+            .join(", ");
+        ref.read(addressProvider.notifier).state = address;
+      }
+    } catch (e) {
+      print('Error in reverse geocoding: $e');
+    }
+  }
+
+  Future<void> suggestLocations(String query) async {
+    try {
+      final List<Location> locations = await locationFromAddress(query);
+      if (locations.isNotEmpty) {
+        final suggestions = await Future.wait(locations.map((location) async {
+          final placemarks = await placemarkFromCoordinates(
+            location.latitude,
+            location.longitude,
+          );
+          if (placemarks.isNotEmpty) {
+            final placemark = placemarks.first;
+            return "${placemark.street ?? ''} ${placemark.administrativeArea ?? ''} ${placemark.country ?? ''}";
+          }
+          return '';
+        }).toList());
+
+        ref.read(suggestionsProvider.notifier).state = suggestions;
+      } else {
+        ref.read(suggestionsProvider.notifier).state = [];
+      }
+    } catch (e) {
+      print('Error in getting suggestions: $e');
+    }
+  }
+
+  Future<void> searchLocation(String placeId) async {
     try {
       ref.read(isSearchingProvider.notifier).state = true;
       final response = await http.get(Uri.parse(
@@ -118,7 +147,7 @@ class LocationNotifier extends StateNotifier<Position?> {
                 zoom: 18.0,
               ),
             ));
-            _updateAddress(ref, position);
+            await _updateAddress(position);
           }
         } else {
           print(
@@ -134,40 +163,19 @@ class LocationNotifier extends StateNotifier<Position?> {
     }
   }
 
-  Future<void> _updateAddress(WidgetRef ref, LatLng position) async {
-    try {
-      final List<Placemark> placemarks =
-          await placemarkFromCoordinates(position.latitude, position.longitude);
-      if (placemarks.isNotEmpty) {
-        final Placemark placemark = placemarks.first;
-        final address =
-            "${placemark.street}, ${placemark.locality}, ${placemark.administrativeArea}, ${placemark.country}";
-        ref.read(addressProvider.notifier).state = address;
-      }
-    } on PlatformException catch (e) {
-      if (e.code == 'IO_ERROR') {
-      } else {
-        print('Error in reverse geocoding: $e');
-      }
-    }
-  }
-
   Future<String?> formatAddress(Position? position) async {
     if (position == null) return null;
     try {
-      List<Placemark> placemarks =
+      final placemarks =
           await placemarkFromCoordinates(position.latitude, position.longitude);
       if (placemarks.isNotEmpty) {
-        Placemark place = placemarks[0];
-        return "${place.street}";
+        final place = placemarks[0];
+        return "${place.street ?? ''} ${place.administrativeArea ?? ''} ${place.country ?? ''}";
       } else {
         return "Address not found";
       }
-    } on PlatformException catch (e) {
-      print('Error in reverse geocoding: $e');
-      return "Error getting address";
     } catch (e) {
-      print('Error in formatAddress: $e');
+      print('Error in reverse geocoding: $e');
       return "Error getting address";
     }
   }
@@ -306,7 +314,7 @@ class _LocationPageState extends ConsumerState<SelectLocationPage> {
                       if (targetPosition != null) {
                         ref
                             .read(currentlocationProviders.notifier)
-                            ._updateAddress(ref, targetPosition);
+                            ._updateAddress(targetPosition);
                       }
                     },
                     myLocationButtonEnabled: false,
@@ -554,16 +562,18 @@ class _LocationPageState extends ConsumerState<SelectLocationPage> {
                                         ref
                                             .read(currentlocationProviders
                                                 .notifier)
-                                            .searchLocation(value, ref);
+                                            .searchLocation(
+                                              value,
+                                            );
                                         ref
                                             .read(placeSuggestionsProvider
                                                 .notifier)
                                             .fetchPlaceSuggestions(value);
                                       } else {
-                                        // Clear suggestions when the input is empty
                                         ref
                                             .read(placeSuggestionsProvider
                                                 .notifier)
+                                            // ignore: invalid_use_of_protected_member
                                             .state = [];
                                       }
                                     },
@@ -572,14 +582,13 @@ class _LocationPageState extends ConsumerState<SelectLocationPage> {
                                       hintStyle: TextStyle(
                                         fontSize: 15,
                                         color: Colors
-                                            .black38, // Set the hint text color if needed
+                                            .black38, 
                                       ),
                                       border: InputBorder.none,
                                       contentPadding: EdgeInsets.only(
                                           left:
-                                              16), // Center vertically if needed
+                                              16), 
                                     ),
-                                    // Align text including hint to center
                                     style: const TextStyle(
                                       fontSize: 16.0,
                                     ),
@@ -600,12 +609,11 @@ class _LocationPageState extends ConsumerState<SelectLocationPage> {
                           ),
 
                           const SizedBox(height: 8.0),
-                          // Show suggestions only if there are any and the text field is not empty
                           if (placeSuggestions.isNotEmpty &&
                               _searchController.text.isNotEmpty)
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  vertical: 10), // Add some padding if needed
+                                  vertical: 10),
                               child: Column(
                                 children: placeSuggestions.map((suggestion) {
                                   final suggestionName =
@@ -620,12 +628,15 @@ class _LocationPageState extends ConsumerState<SelectLocationPage> {
                                       ref
                                           .read(
                                               placeSuggestionsProvider.notifier)
+                                          // ignore: invalid_use_of_protected_member
                                           .state = [];
                                       final placeId = suggestion['placeId'];
                                       await ref
                                           .read(
                                               currentlocationProviders.notifier)
-                                          .searchLocation(placeId, ref);
+                                          .searchLocation(
+                                            placeId,
+                                          );
                                     },
                                   );
                                 }).toList(),
@@ -661,7 +672,7 @@ class _LocationPageState extends ConsumerState<SelectLocationPage> {
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
         child: const AddressForm(
-          totalPrice: 0, // Pass any necessary arguments here
+          totalPrice: 0,
         ),
       ),
     );

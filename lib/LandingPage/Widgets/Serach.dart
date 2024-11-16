@@ -13,7 +13,6 @@ class SearchInput extends ConsumerWidget {
     final hintIndex = ref.watch(searchHintProvider);
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
     final searchController = TextEditingController();
 
     return Row(
@@ -39,7 +38,7 @@ class SearchInput extends ConsumerWidget {
                 Navigator.of(context).push(
                   SeamlessRevealRoute(
                     page:
-                        const AllItemsPage(), // Replace with the page you want to navigate to
+                        const AllItemsPage(),
                   ),
                 );
               },

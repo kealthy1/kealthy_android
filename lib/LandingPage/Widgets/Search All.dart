@@ -1,7 +1,9 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'searchprovider.dart';
+
+final searchTextProvider = StateProvider<String>((ref) => '');
 
 class SearchBarall extends ConsumerStatefulWidget {
   final Function(String) onSearch;
@@ -21,6 +23,16 @@ class _SearchBarallState extends ConsumerState<SearchBarall> {
     super.initState();
     _controller = TextEditingController();
 
+    _controller.addListener(() {
+      final currentText = _controller.text;
+      ref.read(searchTextProvider.notifier).state = currentText;
+
+      if (currentText.isEmpty) {
+        // ignore: invalid_use_of_protected_member
+        ref.read(productProvider.notifier).state = [];
+      }
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
@@ -34,110 +46,71 @@ class _SearchBarallState extends ConsumerState<SearchBarall> {
 
   @override
   Widget build(BuildContext context) {
-    final productSuggestions = ref.watch(productProvider);
+    ref.watch(productProvider);
+    ref.watch(searchTextProvider);
 
-    return Center(
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.9,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          color: Colors.white,
-        ),
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                TextField(
-                  controller: _controller,
-                  focusNode: _focusNode,
-                  onChanged: (value) {
+    return WillPopScope(
+      onWillPop: () async {
+        // ignore: invalid_use_of_protected_member
+        ref.read(productProvider.notifier).state = [];
+        return true;
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.3),
+                spreadRadius: 2,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              TextField(
+                controller: _controller,
+                focusNode: _focusNode,
+                onChanged: (value) {
+                  ref.read(searchTextProvider.notifier).state = value;
+                  widget.onSearch(_controller.text);
+                  if (value.isNotEmpty) {
                     ref
                         .read(productProvider.notifier)
                         .fetchProductSuggestions(value);
-                  },
-                  decoration: InputDecoration(
-                    suffixIcon: IconButton(
-                        color: Colors.green,
-                        iconSize: 30,
-                        onPressed: () {
-                          widget.onSearch(_controller.text);
-                        },
-                        icon: const Icon(Icons.search)),
-                    focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(
-                          color: Colors.grey,
-                        )),
-                    enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: const BorderSide(color: Colors.green)),
-                    hintText: "Search for a product",
-                    fillColor: Colors.white,
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: const BorderSide(
-                        color: Colors.white,
-                      ),
-                    ),
+                  } else {
+                    // ignore: invalid_use_of_protected_member
+                    ref.read(productProvider.notifier).state = [];
+                  }
+                },
+                decoration: InputDecoration(
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      if (_controller.text.isNotEmpty) {
+                        widget.onSearch(_controller.text);
+                      }
+                    },
+                    icon: const Icon(CupertinoIcons.search),
                   ),
-                  style: const TextStyle(fontSize: 16, color: Colors.black),
+                  hintText: "Search",
+                  hintStyle: const TextStyle(color: Colors.black),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: InputBorder.none,
+                  enabledBorder: InputBorder.none,
                 ),
-                if (productSuggestions.isNotEmpty)
-                  Container(
-                    color: Colors.transparent,
-                    height: 200,
-                    child: ListView.builder(
-                      itemCount: productSuggestions.length,
-                      itemBuilder: (context, index) {
-                        final suggestion = productSuggestions[index];
-                        return GestureDetector(
-                          onTap: () {
-                            _controller.text = suggestion.name;
-                            widget.onSearch(suggestion.name);
-                            // ignore: invalid_use_of_protected_member
-                            ref.read(productProvider.notifier).state = [];
-                          },
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(
-                                vertical: 5, horizontal: 10),
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: CachedNetworkImage(
-                                    width: 50,
-                                    height: 50,
-                                    fit: BoxFit.cover,
-                                    imageUrl: suggestion.imageUrl,
-                                  ),
-                                ),
-                                const SizedBox(width: 15),
-                                Expanded(
-                                  child: Text(
-                                    suggestion.name,
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-              ],
-            ),
-          ],
+                style: const TextStyle(fontSize: 16, color: Colors.black),
+              ),
+            ],
+          ),
         ),
       ),
     );

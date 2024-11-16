@@ -89,68 +89,85 @@ class _FoodMenuPagesState extends ConsumerState<FoodMenuPages> {
         final menuItem =
             MenuItem.fromFirestore(menuItemDoc.data() as Map<String, dynamic>);
 
-        double screenWidth = MediaQuery.of(context).size.width;
 
         return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              CupertinoModalPopupRoute(
-                builder: (context) => HomePage(
-                    menuItem: menuItem),
-              ),
-            );
-          },
-          child: Card(
-            elevation: 10,
-            color: Colors.white,
-            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              width: screenWidth,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  CachedNetworkImage(
-                    imageUrl: menuItem.imageUrl,
-                    width: screenWidth * 0.25,
-                    height: screenWidth * 0.25,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Shimmer.fromColors(
-                      baseColor: Colors.grey[300]!,
-                      highlightColor: Colors.grey[100]!,
-                      child: Container(
-                        color: Colors.grey[300],
-                        width: screenWidth * 0.25,
-                        height: screenWidth * 0.25,
+            onTap: () {
+              Navigator.push(
+                context,
+                CupertinoModalPopupRoute(
+                  builder: (context) => HomePage(menuItem: menuItem),
+                ),
+              );
+            },
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(15),
+                        topRight: Radius.circular(15),
+                      ),
+                      child: CachedNetworkImage(
+                        height: 100,
+                        imageUrl: menuItem.imageUrl,
+                        width: double.infinity,
+                        placeholder: (context, url) => Center(
+                          child: Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.grey[100]!,
+                            child: Container(
+                              color: Colors.grey[300],
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
                       ),
                     ),
-                    errorWidget: (context, url, error) =>
-                        const Icon(Icons.error),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [       
-                      Text(
-                        menuItem.name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            menuItem.name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontFamily: "Poppins",
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text('₹ ${menuItem.price.toStringAsFixed(0)}/-',
+                              style: const TextStyle(
+                                  fontSize: 18, fontFamily: "Poppins")),
+                          Row(
+                            children: [
+                              const Icon(Icons.energy_savings_leaf_rounded,
+                                  size: 18, color: Colors.green),
+                              const SizedBox(width: 4),
+                              Text(menuItem.nutrients,
+                                  style: const TextStyle(
+                                      fontSize: 13, fontFamily: "Poppins")),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                        ],
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        '₹${menuItem.price.toStringAsFixed(2)}',
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ),
-        );
+            ));
       },
     );
   }

@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/Login/SplashScreen.dart';
 import 'package:kealthy/Services/Connection.dart';
+import 'Services/Fcm.dart';
 import 'Services/Location_Permission.dart';
 import 'Services/location_dialog_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await NotificationService.instance.initialize();
+  DatabaseListener().listenForOrderStatusChanges();
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -34,7 +37,7 @@ class MyApp extends ConsumerWidget {
           elevation: 0,
         ),
       ),
-      navigatorKey: navigatorKey,
+      // navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Kealthy',
       home: const ConnectivityWidget(

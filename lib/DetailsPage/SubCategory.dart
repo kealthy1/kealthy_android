@@ -7,7 +7,7 @@ import 'package:kealthy/Services/Loading.dart';
 
 class FoodCategoriesScreen extends StatelessWidget {
   final List<Color> colors = [
-    Colors.blue,
+    const Color.fromARGB(255, 112, 176, 228),
     Colors.blueGrey,
     Colors.green.shade300,
     Colors.lightGreen,
@@ -115,8 +115,8 @@ class CategoryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: screenWidth * 0.30,
-              height: screenWidth * 0.30,
+              width: screenWidth * 0.20,
+              height: screenWidth * 0.20,
               decoration: BoxDecoration(
                 color: Colors.grey[300],
                 borderRadius: BorderRadius.circular(8),
