@@ -61,7 +61,7 @@ class _LoginFieldsState extends ConsumerState<LoginFields> {
         final verificationId = data['verificationId'];
         print('OTP sent successfully! Response: ${response.body}');
 
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           CupertinoPageRoute(
             builder: (context) => OTPScreen(

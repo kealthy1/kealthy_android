@@ -181,45 +181,15 @@ class LocationNotifier extends StateNotifier<Position?> {
   }
 }
 
-// Future<void> updateAddressFromCamera(LatLng position,) async {
-//   await _updateAddress(position,ref);
-// }
 
-// Future<void> updateAddressOnButtonPress(LatLng position) async {
-//   await _updateAddress(position);
-// }
-
-// Future<void> checkLocationServices() async {
-//   try {
-//     bool locationServiceEnabled = await Geolocator.isLocationServiceEnabled();
-//     if (!locationServiceEnabled) return;
-
-//     LocationPermission permission = await Geolocator.checkPermission();
-//     if (permission == LocationPermission.denied) {
-//       permission = await Geolocator.requestPermission();
-//       if (permission != LocationPermission.whileInUse &&
-//           permission != LocationPermission.always) {
-//         return;
-//       }
-//     }
-
-//     await _getCurrentLocation();
-//   } catch (e) {
-//     print('Error checking location services: $e');
-//   }
-// }
 
 class SelectLocationPage extends ConsumerStatefulWidget {
   final double totalPrice;
-  final String type;
-  final String? date;
-  final String time;
+  
   const SelectLocationPage({
     super.key,
     required this.totalPrice,
-    required this.date,
-    required this.time,
-    required this.type,
+    
   });
 
   @override

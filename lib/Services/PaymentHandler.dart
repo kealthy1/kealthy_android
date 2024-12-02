@@ -38,6 +38,8 @@ class PaymentHandler {
       String selectedSlot = prefs.getString('selectedSlot') ?? '';
       double totalAmountToPay = prefs.getDouble('totalToPay') ?? 0;
       String paymentmethod = prefs.getString('selectedPaymentMethod') ?? '';
+            String fcmToken = prefs.getString('fcm_token') ?? '';
+
 
       if (selectedType.isEmpty || Name.isEmpty || selectedRoad.isEmpty) {
         print("Missing required fields!");
@@ -88,6 +90,7 @@ class PaymentHandler {
         'landmark': Landmark,
         'distance': selectedDistance.toStringAsFixed(2),
         'paymentmethod': paymentmethod,
+        'fcm_token': fcmToken,
       });
 
       print("Order details saved successfully with orderId: $orderId");

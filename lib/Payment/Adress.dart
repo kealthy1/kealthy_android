@@ -1,35 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/Maps/Widgets/SavedAdress.dart';
 import 'package:kealthy/Payment/payment.dart';
 import 'Bill.dart';
 import '../Maps/Widgets/Deliveryinst.dart';
 
-class AdressPage extends StatefulWidget {
+class AdressPage extends ConsumerWidget {
   final double totalPrice;
   final double? totalDistance;
-  final double? totalAmountToPay;
-  final String? time;
+ 
 
   const AdressPage(
       {super.key,
       required this.totalPrice,
       this.totalDistance,
-      required this.totalAmountToPay,
-      required this.time});
+    });
 
   @override
-  _AdressPageState createState() => _AdressPageState();
-}
-
-class _AdressPageState extends State<AdressPage> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 218, 214, 214),
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 218, 214, 214),
         automaticallyImplyLeading: false,
-        title: const Text('Address'),
+        centerTitle: false,
+        title: const Text(
+          'Confirm Address',
+          style: TextStyle(fontFamily: "poppins"),
+        ),
       ),
       body: Column(
         children: [
@@ -41,8 +39,7 @@ class _AdressPageState extends State<AdressPage> {
                   const SavedAddress(),
                   const DeliveryInstructionsSection(),
                   BillDetails(
-                    totalPrice: widget.totalPrice,
-                    time: widget.time ?? 'No Slot selected',
+                    totalPrice: totalPrice, time: '',
                   ),
                 ],
               ),
@@ -51,7 +48,7 @@ class _AdressPageState extends State<AdressPage> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: PaymentSection(
-              totalAmountToPay: widget.totalPrice,
+              totalAmountToPay: totalPrice,
             ),
           )
         ],

@@ -77,8 +77,16 @@ class CartItemWidget extends StatelessWidget {
       margin: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
       padding: EdgeInsets.all(screenWidth * 0.02),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey),
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
+        borderRadius: BorderRadius.circular(8.0),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,

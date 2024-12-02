@@ -346,10 +346,9 @@ class OrderConfirmation extends ConsumerWidget {
                                         context: context,
                                         ref: ref,
                                         message:
-                                            "Payment Successful! Redirecting to My Orders",
+                                            "Order Placed Successfully",
                                         imagePath:
                                             "assets/Animation - 1731992471934.json",
-                                        countdownDuration: 10,
                                         onRedirect: () {
                                           Navigator.pushReplacement(
                                             context,

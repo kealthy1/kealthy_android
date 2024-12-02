@@ -57,7 +57,6 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<bool> _checkPhoneNumber() async {
     final prefs = await SharedPreferences.getInstance();
     final phoneNumber = prefs.getString('phoneNumber');
-    print("Phone number in prefs: $phoneNumber"); // Debugging line
     return phoneNumber != null;
   }
 }

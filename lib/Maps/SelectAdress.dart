@@ -126,8 +126,8 @@ class _LocationSelectionPageState extends ConsumerState<SelectAdress> {
         // Refresh the AddCart provider when navigating back
         // ignore: unused_result
         ref.refresh(selectedRoadProvider);
-        
-        return true; 
+
+        return true;
         // Allow the pop to happen
       },
       child: Scaffold(
@@ -143,14 +143,11 @@ class _LocationSelectionPageState extends ConsumerState<SelectAdress> {
             children: [
               GestureDetector(
                 onTap: () {
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
+                    CupertinoModalPopupRoute(
                       builder: (context) => const SelectLocationPage(
                         totalPrice: 0,
-                        time: '',
-                        date: '',
-                        type: '',
                       ),
                     ),
                   );
@@ -422,12 +419,15 @@ class AddressCard extends ConsumerWidget {
       onTap: () async {
         if (!isSelected) {
           ref.read(selectedAddressProvider.notifier).state = address;
+          Navigator.pop(context);
 
           if (distance != null) {
-            await saveSelectedAddress(address, distance!);
+            await saveSelectedAddress(
+              address,
+              distance!,
+            );
           }
         }
-        Navigator.pop(context);
       },
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -518,9 +518,6 @@ class AddressCard extends ConsumerWidget {
                             CupertinoPageRoute(
                                 builder: (context) => const SelectLocationPage(
                                       totalPrice: 0,
-                                      time: '',
-                                      date: '',
-                                      type: '',
                                     )));
                       } else if (choice == 'Delete') {
                         onDelete();
@@ -593,6 +590,6 @@ class AddressCard extends ConsumerWidget {
 
   Future<void> _removeAddressFromSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('selectedRoad'); // Adjust the key as needed
+    await prefs.remove('selectedRoad');
   }
 }

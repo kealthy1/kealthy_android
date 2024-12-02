@@ -64,8 +64,8 @@ class DeliveryInstructionsSection extends ConsumerWidget {
           LayoutBuilder(
             builder: (context, constraints) {
               final tileWidth =
-                  constraints.maxWidth / 4.5; // Adjust the divisor for spacing
-              final tileHeight = tileWidth * 1.2; // Maintain aspect ratio
+                  constraints.maxWidth / 4.5; 
+              final tileHeight = tileWidth * 1.2; 
 
               return SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -152,6 +152,7 @@ class DeliveryInstructionsSection extends ConsumerWidget {
               label,
               textAlign: TextAlign.center,
               style: TextStyle(
+                fontFamily: "poppins",
                 color: isSelected ? Colors.white : Colors.black,
                 fontSize: 14,
               ),

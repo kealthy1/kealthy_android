@@ -1,23 +1,36 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:typed_data';
 
 @pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await NotificationService.instance.setupFlutterNotifications();
+
+  final imageUrl = message.notification?.android?.imageUrl ??
+      message.notification?.apple?.imageUrl;
+
+  print('Background Image URL: $imageUrl');
+
   await NotificationService.instance.showNotification(
     title: message.notification?.title ?? "",
     body: message.notification?.body ?? "",
+    imageUrl: imageUrl,
   );
 }
 
 class NotificationService {
   NotificationService._();
   static final NotificationService instance = NotificationService._();
-  final _firebaseMessaging = FirebaseMessaging.instance;
-  final _localNotifications = FlutterLocalNotificationsPlugin();
+
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
+
   bool _isInitialized = false;
 
   Future<void> initialize() async {
@@ -26,42 +39,76 @@ class NotificationService {
       badge: true,
       sound: true,
     );
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    FirebaseMessaging.onMessage.listen((message) {
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print("Foreground notification received: ${message.notification?.title}");
+      final imageUrl = message.notification?.android?.imageUrl ??
+          message.notification?.apple?.imageUrl;
+
       showNotification(
-        title: message.notification?.title ?? "Foreground Notification",
-        body: message.notification?.body ?? "No details available",
+        title: message.notification?.title ?? "No Title",
+        body: message.notification?.body ?? "No Body",
+        imageUrl: imageUrl,
       );
     });
+
     final token = await _firebaseMessaging.getToken();
     print('FCM Token: $token');
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('fcm_token', token!);
+
     await setupFlutterNotifications();
   }
 
   Future<void> setupFlutterNotifications() async {
     if (_isInitialized) return;
 
-    const channel = AndroidNotificationChannel(
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'high_importance_channel',
       'High Importance Notifications',
       description: 'This channel is used for important notifications.',
       importance: Importance.high,
+      playSound: true,
+      showBadge: true,
     );
-
-    await _localNotifications
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+        FlutterLocalNotificationsPlugin();
+    await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
 
-    const settings = InitializationSettings(
+    const InitializationSettings settings = InitializationSettings(
       android: AndroidInitializationSettings('mipmap/ic_launcher'),
     );
-    await _localNotifications.initialize(settings);
+
+    await flutterLocalNotificationsPlugin.initialize(settings);
     _isInitialized = true;
   }
 
-  Future<void> showNotification(
-      {required String title, required String body}) async {
+  Future<void> showNotification({
+    required String title,
+    required String body,
+    String? imageUrl,
+  }) async {
+    BigPictureStyleInformation? bigPictureStyle;
+
+    if (imageUrl != null) {
+      try {
+        final imageBytes = await _downloadImage(imageUrl);
+        bigPictureStyle = BigPictureStyleInformation(
+          ByteArrayAndroidBitmap(imageBytes),
+          contentTitle: title,
+          summaryText: body,
+        );
+      } catch (e) {
+        print('Error loading notification image: $e');
+      }
+    }
+
+    Int64List vibrationPattern = Int64List.fromList([0, 500, 1000, 500]);
+
     await _localNotifications.show(
       title.hashCode,
       title,
@@ -74,21 +121,35 @@ class NotificationService {
               'This channel is used for important notifications.',
           importance: Importance.high,
           priority: Priority.high,
+          vibrationPattern: vibrationPattern,
+          styleInformation: bigPictureStyle,
+          enableVibration: true,
           icon: 'drawable/ic_notification',
+          ledColor: const Color.fromARGB(255, 246, 248, 246),
+          ledOnMs: 1000,
+          ledOffMs: 500,
         ),
       ),
     );
   }
+
+  Future<Uint8List> _downloadImage(String url) async {
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    } else {
+      throw Exception('Failed to download image from $url');
+    }
+  }
 }
 
 class DatabaseListener {
-  final _database = FirebaseDatabase.instanceFor(
+  final FirebaseDatabase _database = FirebaseDatabase.instanceFor(
     app: Firebase.app(),
     databaseURL: 'https://kealthy-90c55-dd236.firebaseio.com/',
   );
 
   void listenForOrderStatusChanges() async {
-    // Fetch the phone number from SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     final phoneNumber = prefs.getString('phoneNumber');
 
@@ -99,48 +160,50 @@ class DatabaseListener {
 
     final ordersRef = _database.ref('orders');
 
-    // Listen for changes in the orders node
     ordersRef.onChildChanged.listen((event) {
       final data = event.snapshot.value as Map<dynamic, dynamic>?;
+
       if (data != null &&
-          data.containsKey('status') &&
-          data.containsKey('phoneNumber')) {
-        // Filter by phoneNumber
-        if (data['phoneNumber'] == phoneNumber) {
-          final orderId = event.snapshot.key;
-          final status = data['status'] ?? "Unknown";
+          data['phoneNumber'] == phoneNumber &&
+          data.containsKey('status')) {
+        final orderId = event.snapshot.key;
+        final status = data['status'] ?? "Unknown";
 
-          print(
-              'Order $orderId for phoneNumber $phoneNumber status changed to: $status');
+        print(
+            'Order $orderId for phoneNumber $phoneNumber status changed to: $status');
 
-          String notificationTitle = "Order Update";
-          String notificationBody;
+        final notificationDetails = _getNotificationDetails(status);
 
-          switch (status) {
-            case "Order Packed":
-              notificationTitle = "Out for Delivery";
-              notificationBody = "Your order is on the way.";
-              break;
-            case "Order Reached":
-              notificationTitle = "Delivery Partner Arrived";
-              notificationBody =
-                  "The delivery partner has reached your location.";
-              break;
-            case "Delivered":
-              notificationTitle = "Order Delivered";
-              notificationBody = "Your order was delivered successfully.";
-              break;
-            default:
-              notificationBody = "Order #$orderId status updated to: $status.";
-          }
-
-          // Trigger a notification
-          NotificationService.instance.showNotification(
-            title: notificationTitle,
-            body: notificationBody,
-          );
-        }
+        NotificationService.instance.showNotification(
+          title: notificationDetails['title']!,
+          body: notificationDetails['body']!,
+        );
       }
     });
+  }
+
+  Map<String, String> _getNotificationDetails(String status) {
+    switch (status) {
+      case "Order Packed":
+        return {
+          'title': "Out for Delivery",
+          'body': "Your order is on the way.",
+        };
+      case "Order Reached":
+        return {
+          'title': "Delivery Partner Arrived",
+          'body': "The delivery partner has reached your location.",
+        };
+      case "Order Delivered":
+        return {
+          'title': "Order Delivered",
+          'body': "Your order has been successfully delivered.",
+        };
+      default:
+        return {
+          'title': "Order Update",
+          'body': "Delivery Partner Assigned Your Order Will Be Picked Shortly",
+        };
+    }
   }
 }

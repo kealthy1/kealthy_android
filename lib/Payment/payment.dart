@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/Payment/COD_Page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 final isLoadingProvider = StateProvider<bool>((ref) => false);
 
 class PaymentSection extends ConsumerWidget {
@@ -23,10 +24,13 @@ class PaymentSection extends ConsumerWidget {
             )
           : ElevatedButton(
               onPressed: () async {
+                // ignore: unused_result
+                ref.refresh(paymentMethodProvider);
                 ref.read(isLoadingProvider.notifier).state = true;
 
                 try {
-                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
                   await prefs.remove('selectedPaymentMethod');
                   Navigator.pushReplacement(
                     context,
@@ -52,7 +56,7 @@ class PaymentSection extends ConsumerWidget {
               ),
               child: const Text(
                 'Checkout',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Colors.white, fontFamily: "poppins"),
               ),
             ),
     );

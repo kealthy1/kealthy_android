@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/Cart/SlotsBooking.dart';
 import 'package:kealthy/Payment/Adress.dart';
-import 'package:kealthy/Payment/COD_Page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Maps/SelectAdress.dart';
 import '../Services/FirestoreCart.dart';
@@ -28,7 +27,6 @@ class ShowCart extends ConsumerWidget {
     final totalPrice =
         cartItems.fold(0.0, (sum, item) => sum + item.totalPrice);
 
-    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         // ignore: unused_result
@@ -40,16 +38,21 @@ class ShowCart extends ConsumerWidget {
         appBar: AppBar(
           automaticallyImplyLeading: false,
           backgroundColor: Colors.white,
-          title: const Text('Cart'),
+          title: const Text(
+            'Cart',
+            style: TextStyle(color: Colors.black),
+          ),
+          elevation: 0.5,
         ),
         body: cartItems.isEmpty
             ? const Center(
                 child: CircleAvatar(
-                radius: 180,
-                backgroundColor: Colors.white,
-                backgroundImage:
-                    AssetImage("assets/kealthycart-removebg-preview.png"),
-              ))
+                  radius: 180,
+                  backgroundColor: Colors.white,
+                  backgroundImage:
+                      AssetImage("assets/kealthycart-removebg-preview.png"),
+                ),
+              )
             : Column(
                 children: [
                   Expanded(
@@ -61,6 +64,9 @@ class ShowCart extends ConsumerWidget {
                           CategoryContainer(
                             screenWidth: screenWidth,
                             screenHeight: screenHeight,
+                          ),
+                          SizedBox(
+                            height: 10,
                           ),
                           const SlotSelectionContainer()
                         ],
@@ -74,7 +80,7 @@ class ShowCart extends ConsumerWidget {
                     cartItems,
                     context,
                     ref,
-                  )
+                  ),
                 ],
               ),
       ),
@@ -82,25 +88,22 @@ class ShowCart extends ConsumerWidget {
   }
 
   Widget _buildCheckoutSection(
-      double screenWidth,
-      double screenHeight,
-      double totalPrice,
-      List<SharedPreferencesCartItem> cartItems,
-      BuildContext context,
-      WidgetRef ref) {
-    final addressesAsyncValue = ref.watch(addressesProvider);
-
+    double screenWidth,
+    double screenHeight,
+    double totalPrice,
+    List<SharedPreferencesCartItem> cartItems,
+    BuildContext context,
+    WidgetRef ref,
+  ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Container(
         padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.only(
+          borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(10),
             topRight: Radius.circular(10),
-            bottomLeft: Radius.zero,
-            bottomRight: Radius.zero,
           ),
           boxShadow: [
             BoxShadow(
@@ -114,17 +117,11 @@ class ShowCart extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: _buildTotal(cartItems, screenWidth, screenHeight),
-                ),
-                SizedBox(
-                  height: 10,
-                )
-              ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: _buildTotal(cartItems, screenWidth, screenHeight),
             ),
+            const SizedBox(height: 10),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
               child: SizedBox(
@@ -135,53 +132,46 @@ class ShowCart extends ConsumerWidget {
 
                     return isLoading
                         ? const Center(
-                            child: SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.green,
-                                strokeWidth: 4.0,
-                              ),
+                            child: CircularProgressIndicator(
+                              color: Colors.green,
+                              strokeWidth: 4.0,
                             ),
                           )
                         : ElevatedButton(
                             onPressed: isLoading
                                 ? null
                                 : () async {
-                                    // ignore: unused_result
-                                    ref.refresh(CODloadingProvider);
                                     ref
                                         .read(checkoutLoadingProvider.notifier)
                                         .state = true;
 
                                     try {
-                                      // ignore: unused_result
-                                      ref.refresh(paymentMethodProvider);
                                       final selectedSlot =
                                           ref.watch(selectedSlotProvider);
 
                                       if (selectedSlot == null) {
                                         Fluttertoast.showToast(
-                                          msg: "Please Select Slot",
+                                          msg: "Please Select a Slot",
                                           toastLength: Toast.LENGTH_SHORT,
                                           gravity: ToastGravity.CENTER,
-                                          backgroundColor: Colors.transparent,
-                                          textColor: Colors.red,
+                                          backgroundColor: Colors.black54,
+                                          textColor: Colors.white,
                                           fontSize: 16.0,
                                         );
                                         return;
                                       }
+
                                       final currentTime = DateTime.now();
                                       if (selectedSlot
                                               .difference(currentTime)
                                               .inMinutes <
                                           30) {
                                         Fluttertoast.showToast(
-                                          msg: "Selected slot is Not available",
+                                          msg: "Selected slot is not available",
                                           toastLength: Toast.LENGTH_SHORT,
                                           gravity: ToastGravity.CENTER,
-                                          backgroundColor: Colors.transparent,
-                                          textColor: Colors.red,
+                                          backgroundColor: Colors.black54,
+                                          textColor: Colors.white,
                                           fontSize: 16.0,
                                         );
                                         return;
@@ -189,15 +179,13 @@ class ShowCart extends ConsumerWidget {
 
                                       final prefs =
                                           await SharedPreferences.getInstance();
-                                      Set<String> keys = prefs.getKeys();
-                                      for (String key in keys) {
-                                        if (key.startsWith('item_name_') ||
-                                            key.startsWith('item_quantity_') ||
-                                            key.startsWith('item_price_')) {
+
+                                      for (String key
+                                          in prefs.getKeys().toList()) {
+                                        if (key.startsWith('item_')) {
                                           await prefs.remove(key);
                                         }
                                       }
-
                                       for (int i = 0;
                                           i < cartItems.length;
                                           i++) {
@@ -224,46 +212,13 @@ class ShowCart extends ConsumerWidget {
                                           ),
                                         );
                                       } else {
-                                        addressesAsyncValue.when(
-                                          data: (addresses) {
-                                            if (addresses.isEmpty) {
-                                              Navigator.push(
-                                                context,
-                                                CupertinoPageRoute(
-                                                  builder: (context) =>
-                                                      SelectAdress(
-                                                          totalPrice:
-                                                              totalPrice),
-                                                ),
-                                              );
-                                            } else {
-                                              Navigator.pushReplacement(
-                                                context,
-                                                CupertinoPageRoute(
-                                                  builder: (context) =>
-                                                      AdressPage(
-                                                    totalPrice: totalPrice,
-                                                    totalAmountToPay: null,
-                                                    time: '',
-                                                  ),
-                                                ),
-                                              );
-                                            }
-                                          },
-                                          loading: () {
-                                            showDialog(
-                                              context: context,
-                                              builder: (context) =>
-                                                  const Center(
-                                                child:
-                                                    CircularProgressIndicator(),
-                                              ),
-                                            );
-                                          },
-                                          error: (error, stack) {
-                                            print(
-                                                'Error fetching addresses: $error');
-                                          },
+                                        Navigator.pushReplacement(
+                                          context,
+                                          CupertinoPageRoute(
+                                            builder: (context) => AdressPage(
+                                              totalPrice: totalPrice,
+                                            ),
+                                          ),
                                         );
                                       }
                                     } finally {
@@ -276,8 +231,7 @@ class ShowCart extends ConsumerWidget {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
                               padding: EdgeInsets.symmetric(
-                                vertical:
-                                    MediaQuery.of(context).size.height * 0.02,
+                                vertical: screenHeight * 0.02,
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
@@ -326,22 +280,26 @@ class ShowCart extends ConsumerWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
-          children: [
-            const Text(
+          children: const [
+            Text(
               'Total Bill',
               style: TextStyle(
-                  fontSize: 20.0, color: Colors.black, fontFamily: "poppins"),
+                fontSize: 20.0,
+                color: Colors.black,
+                fontFamily: "poppins",
+              ),
             ),
-            SizedBox(
-              width: 5,
-            ),
-            Icon(Icons.description_outlined, size: 24.0, color: Colors.green)
+            SizedBox(width: 5),
+            Icon(Icons.description_outlined, size: 24.0, color: Colors.green),
           ],
         ),
         Text(
           '₹${total.toStringAsFixed(2)}',
           style: const TextStyle(
-              fontSize: 20.0, color: Colors.black, fontFamily: "poppins"),
+            fontSize: 20.0,
+            color: Colors.black,
+            fontFamily: "poppins",
+          ),
         ),
       ],
     );

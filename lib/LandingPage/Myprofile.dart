@@ -31,12 +31,16 @@ final userProfileProvider =
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
+
   Future<void> _clearPreferencesAndNavigate(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    Navigator.pushReplacement(
+
+    await prefs.remove('phoneNumber');
+
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const LoginFields()),
+      (route) => false,
     );
   }
 
@@ -88,13 +92,23 @@ class ProfilePage extends ConsumerWidget {
                     context,
                     Icons.location_on_outlined,
                     'My Address',
-                    () => const SelectAdress(totalPrice: 0),
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SelectAdress(totalPrice: 0),
+                      ),
+                    ),
                   ),
                   _buildMenuItem(
                     context,
                     Icons.shopping_bag_outlined,
                     'Orders',
-                    () => const OrdersTabScreen(),
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const OrdersTabScreen(),
+                      ),
+                    ),
                   ),
                   _buildMenuItem(
                     context,
@@ -111,8 +125,8 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, IconData icon, String title,
-      void Function() onTap) {
+  Widget _buildMenuItem(
+      BuildContext context, IconData icon, String title, VoidCallback onTap) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(

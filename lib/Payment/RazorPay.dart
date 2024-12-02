@@ -44,7 +44,6 @@ class _RazorPayState extends ConsumerState<RazorPay> {
         ref: ref,
         message: "Payment Successful! Redirecting to My Orders",
         imagePath: "assets/Animation - 1731992471934.json",
-        countdownDuration: 5,
         onRedirect: () {
           Navigator.pushReplacement(
             context,
@@ -73,7 +72,6 @@ class _RazorPayState extends ConsumerState<RazorPay> {
       ref: ref,
       message: "Payment Failed! Returning to the cart",
       imagePath: "assets/Animation - 1731995566846.json",
-      countdownDuration: 10,
       onRedirect: () {
         Navigator.pop(context);
       },

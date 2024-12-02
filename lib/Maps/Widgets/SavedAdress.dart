@@ -63,7 +63,7 @@ class _SavedAddressState extends State<SavedAddress> {
                 distance != null ? '${distance.toStringAsFixed(1)} km' : 'N/A';
 
             return Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -104,7 +104,10 @@ class _SavedAddressState extends State<SavedAddress> {
                           },
                           child: const Text(
                             'Change',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                                fontFamily: "poppins"),
                           ),
                         ),
                       ],
@@ -114,11 +117,11 @@ class _SavedAddressState extends State<SavedAddress> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          addressType ?? 'Address Type',
+                          addressType ?? '',
                           style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: "poppins"),
                         ),
                       ],
                     ),
@@ -128,7 +131,9 @@ class _SavedAddressState extends State<SavedAddress> {
                         Expanded(
                           child: Text(
                             '$name, $road',
-                            style: const TextStyle(fontSize: 16),
+                            style: const TextStyle(fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
                         ),
                       ],
@@ -136,25 +141,26 @@ class _SavedAddressState extends State<SavedAddress> {
                     const SizedBox(height: 8),
                     Text(
                       formattedDistance,
-                      style: const TextStyle(color: Colors.black),
+                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       "Delivery Slot: ${slot ?? 'N/A'}",
-                      style: const TextStyle(color: Colors.black),
+                      style: const TextStyle(
+                          color: Colors.black, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     if (directions!.isNotEmpty)
                       Text(
                         "Instructions: $directions",
-                        style: const TextStyle(color: Colors.black),
+                        style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                       ),
                     const SizedBox(height: 8),
                     Text(
                       landmark != null && landmark.isNotEmpty
                           ? "Landmark: $landmark"
                           : "",
-                      style: const TextStyle(color: Colors.black),
+                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
