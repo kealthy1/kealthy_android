@@ -16,7 +16,8 @@ final searchAndFilterProvider =
   final firestore = FirebaseFirestore.instance;
   Query query = firestore
       .collection('Products')
-      .where('Category', isEqualTo: categoryName);
+      .where('Category', isEqualTo: categoryName) 
+      .where('SOH', isNotEqualTo: 0);
 
   final querySnapshot = await query.get();
   List<MenuItem> allMenuItems = querySnapshot.docs.map((doc) {
@@ -60,14 +61,16 @@ class _MenuPageState extends ConsumerState<MenuPage> {
     final cartItems = ref.watch(sharedPreferencesCartProvider);
     final isVisible = ref.watch(cartVisibilityProvider);
 
-
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
-        title: const Text('Menu'),
+        centerTitle: true,
+        title: const Text(
+          'Menu',
+          style: TextStyle(fontFamily: "poppins"),
+        ),
       ),
       body: Column(
         children: [

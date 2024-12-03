@@ -6,7 +6,6 @@ import 'package:kealthy/Login/SplashScreen.dart';
 import 'package:kealthy/Services/Connection.dart';
 import 'Services/Fcm.dart';
 import 'Services/Location_Permission.dart';
-import 'Services/location_dialog_manager.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
 
@@ -25,11 +24,6 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final locationDialogManager = LocationDialogManager(ref);
-      if (navigatorKey.currentContext != null) {
-        locationDialogManager
-            .fetchAndCheckLocation(navigatorKey.currentContext!);
-      }
       final locationServiceChecker =
           LocationServiceChecker(navigatorKey.currentContext!);
       locationServiceChecker.startChecking();
@@ -41,7 +35,7 @@ class MyApp extends ConsumerWidget {
           elevation: 0,
         ),
       ),
-      navigatorKey: navigatorKey,
+      // navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Kealthy',
       home: const ConnectivityWidget(

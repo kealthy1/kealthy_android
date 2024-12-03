@@ -28,7 +28,8 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
   Future<String> _getSelectedRoad() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('selectedRoad') ?? '';
+    final selectedRoad = prefs.getString('selectedRoad') ?? '';
+    return selectedRoad.split(',').first.trim();
   }
 
   @override
@@ -142,6 +143,11 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
                               ),
                             ),
                           ),
+                          Icon(
+                            Icons.keyboard_arrow_down_outlined,
+                            size: 30,
+                            color: Colors.grey,
+                          )
                         ],
                       ),
                     ],

@@ -14,6 +14,7 @@ class MenuItem {
   final double rating;
   final String imageUrl;
   final String nutrients;
+  final double SOH;
 
   MenuItem({
     required this.name,
@@ -29,6 +30,7 @@ class MenuItem {
     required this.rating,
     required this.imageUrl,
     required this.nutrients,
+    required this.SOH,
   });
 
   factory MenuItem.fromFirestore(Map<String, dynamic> data) {
@@ -46,6 +48,7 @@ class MenuItem {
       rating: _parseDouble(data['Rating']),
       imageUrl: data['ImageUrl'] ?? '',
       nutrients: data['nutrients'] ?? '',
+      SOH: _parseDouble(data['SOH']),
     );
   }
 

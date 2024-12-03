@@ -18,6 +18,7 @@ class ProductSuggestion {
   final double rating;
   final String imageUrl;
   final String nutrients;
+  final double SOH;
 
   ProductSuggestion({
     required this.name,
@@ -34,6 +35,7 @@ class ProductSuggestion {
     required this.rating,
     required this.imageUrl,
     required this.nutrients,
+    required this.SOH,
   });
 
   factory ProductSuggestion.fromFirestore(Map<String, dynamic> data) {
@@ -52,6 +54,7 @@ class ProductSuggestion {
       imageUrl: data['ImageUrl'] ?? '',
       nutrients: data['nutrients'] ?? '',
       id: data['Name'],
+      SOH: _parseDouble(data['SOH']),
     );
   }
 
@@ -71,20 +74,20 @@ class ProductSuggestion {
 
   MenuItem toMenuItem() {
     return MenuItem(
-      name: name,
-      price: price,
-      category: category,
-      time: time,
-      delivery: delivery,
-      description: description,
-      protein: protein,
-      carbs: carbs,
-      kcal: kcal,
-      fat: fat,
-      rating: rating,
-      imageUrl: imageUrl,
-      nutrients: nutrients,
-    );
+        name: name,
+        price: price,
+        category: category,
+        time: time,
+        delivery: delivery,
+        description: description,
+        protein: protein,
+        carbs: carbs,
+        kcal: kcal,
+        fat: fat,
+        rating: rating,
+        imageUrl: imageUrl,
+        nutrients: nutrients,
+        SOH: SOH);
   }
 }
 
@@ -93,6 +96,7 @@ final productProvider =
         (ref) {
   return ProductSuggestionsNotifier(ref);
 });
+
 class ProductState {
   final bool isLoading;
   final List<String> suggestions;
@@ -106,6 +110,7 @@ class ProductState {
     );
   }
 }
+
 class ProductSuggestionsNotifier
     extends StateNotifier<List<ProductSuggestion>> {
   ProductSuggestionsNotifier(this.ref) : super([]);
@@ -113,34 +118,36 @@ class ProductSuggestionsNotifier
   final Ref ref;
 
   Future<void> fetchProductSuggestions(String query) async {
-  if (query.isEmpty) {
-    state = [];
-    return;
-  }
-
-  final normalizedQuery = query.trim().toLowerCase();
-
-  try {
-    final snapshot =
-        await FirebaseFirestore.instance.collection('Products').get();
-
-    final uniqueProducts = <String, ProductSuggestion>{};
-
-    for (final doc in snapshot.docs) {
-      final product = ProductSuggestion.fromFirestore(doc.data());
-
-      if (product.name.toLowerCase().contains(normalizedQuery) ||
-          product.category.toLowerCase().contains(normalizedQuery)) {
-        uniqueProducts[product.id] = product;
-      }
+    if (query.isEmpty) {
+      state = [];
+      return;
     }
 
-    state = uniqueProducts.values.toList();
-  } catch (e) {
-    print("Error fetching product suggestions: $e");
-    state = [];
+    final normalizedQuery = query.trim().toLowerCase();
+
+    try {
+      final snapshot =
+          await FirebaseFirestore.instance.collection('Products')
+          .where("SOH",isNotEqualTo: 0)
+          .get();
+
+      final uniqueProducts = <String, ProductSuggestion>{};
+
+      for (final doc in snapshot.docs) {
+        final product = ProductSuggestion.fromFirestore(doc.data());
+
+        if (product.name.toLowerCase().contains(normalizedQuery) ||
+            product.category.toLowerCase().contains(normalizedQuery)) {
+          uniqueProducts[product.id] = product;
+        }
+      }
+
+      state = uniqueProducts.values.toList();
+    } catch (e) {
+      print("Error fetching product suggestions: $e");
+      state = [];
+    }
   }
-}
 }
 
 final recentSearchesProvider =

@@ -6,6 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:typed_data';
+ import 'dart:ui' as ui;
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -14,7 +15,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final imageUrl = message.notification?.android?.imageUrl ??
       message.notification?.apple?.imageUrl;
 
-  print('Background Image URL: $imageUrl');
 
   await NotificationService.instance.showNotification(
     title: message.notification?.title ?? "",
@@ -41,7 +41,6 @@ class NotificationService {
     );
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print("Foreground notification received: ${message.notification?.title}");
       final imageUrl = message.notification?.android?.imageUrl ??
           message.notification?.apple?.imageUrl;
 
@@ -93,10 +92,27 @@ class NotificationService {
     String? imageUrl,
   }) async {
     BigPictureStyleInformation? bigPictureStyle;
+    ByteArrayAndroidBitmap? largeIcon;
+    int calculateResponsiveDimension(int baseSize, double scaleFactor) {
+      return (baseSize * scaleFactor).toInt();
+    }
+
+    int baseWidth = 400;
+    int baseHeight = 350;
+    final double devicePixelRatio =
+        WidgetsBinding.instance.window.devicePixelRatio;
+    int responsiveWidth =
+        calculateResponsiveDimension(baseWidth, devicePixelRatio);
+    int responsiveHeight =
+        calculateResponsiveDimension(baseHeight, devicePixelRatio);
 
     if (imageUrl != null) {
       try {
-        final imageBytes = await _downloadImage(imageUrl);
+        final imageBytes = await _downloadImage(imageUrl,
+            width: responsiveWidth, height: responsiveHeight);
+
+        largeIcon = ByteArrayAndroidBitmap(imageBytes);
+
         bigPictureStyle = BigPictureStyleInformation(
           ByteArrayAndroidBitmap(imageBytes),
           contentTitle: title,
@@ -125,6 +141,7 @@ class NotificationService {
           styleInformation: bigPictureStyle,
           enableVibration: true,
           icon: 'drawable/ic_notification',
+          largeIcon: largeIcon,
           ledColor: const Color.fromARGB(255, 246, 248, 246),
           ledOnMs: 1000,
           ledOffMs: 500,
@@ -133,14 +150,27 @@ class NotificationService {
     );
   }
 
-  Future<Uint8List> _downloadImage(String url) async {
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      return response.bodyBytes;
-    } else {
-      throw Exception('Failed to download image from $url');
-    }
+
+Future<Uint8List> _downloadImage(String url,
+    {int width = 400, int height = 350}) async {
+  final response = await http.get(Uri.parse(url));
+  if (response.statusCode == 200) {
+    final codec = await ui.instantiateImageCodec(
+      response.bodyBytes,
+      targetWidth: width,
+      targetHeight: height,
+    );
+
+    final frame = await codec.getNextFrame();
+    final resizedImage = frame.image;
+
+    final byteData = await resizedImage.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
+  } else {
+    throw Exception('Failed to download image from $url');
   }
+}
+
 }
 
 class DatabaseListener {
@@ -154,7 +184,6 @@ class DatabaseListener {
     final phoneNumber = prefs.getString('phoneNumber');
 
     if (phoneNumber == null) {
-      print("No phone number found in SharedPreferences.");
       return;
     }
 

@@ -123,12 +123,10 @@ class _LocationSelectionPageState extends ConsumerState<SelectAdress> {
     // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
-        // Refresh the AddCart provider when navigating back
         // ignore: unused_result
         ref.refresh(selectedRoadProvider);
 
         return true;
-        // Allow the pop to happen
       },
       child: Scaffold(
         backgroundColor: Colors.white,

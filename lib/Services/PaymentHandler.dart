@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,7 +12,7 @@ class PaymentHandler {
     app: Firebase.app(),
     databaseURL: 'https://kealthy-90c55-dd236.firebaseio.com/',
   );
-
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
   String generateOrderId() {
     int timestamp = DateTime.now().millisecondsSinceEpoch;
     int randomNum = Random().nextInt(900000) + 100000;
@@ -38,8 +39,7 @@ class PaymentHandler {
       String selectedSlot = prefs.getString('selectedSlot') ?? '';
       double totalAmountToPay = prefs.getDouble('totalToPay') ?? 0;
       String paymentmethod = prefs.getString('selectedPaymentMethod') ?? '';
-            String fcmToken = prefs.getString('fcm_token') ?? '';
-
+      String fcmToken = prefs.getString('fcm_token') ?? '';
 
       if (selectedType.isEmpty || Name.isEmpty || selectedRoad.isEmpty) {
         print("Missing required fields!");
@@ -66,6 +66,7 @@ class PaymentHandler {
           'item_quantity': itemQuantity,
           'item_price': itemPrice,
         });
+        await reduceItemStock(itemName, itemQuantity);
 
         index++;
       }
@@ -96,6 +97,39 @@ class PaymentHandler {
       print("Order details saved successfully with orderId: $orderId");
     } catch (e) {
       print("Failed to save order details: $e");
+    }
+  }
+
+  Future<void> reduceItemStock(String itemName, int quantityOrdered) async {
+    try {
+      // Query Firestore to find the item by name
+      QuerySnapshot querySnapshot = await firestore
+          .collection('Products')
+          .where('Name', isEqualTo: itemName)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        DocumentSnapshot doc = querySnapshot.docs.first;
+
+        // Retrieve current SOH from Firestore
+        double currentSoh = (doc['SOH'] as num).toDouble();
+
+        // Calculate new SOH
+        double newSoh = currentSoh - quantityOrdered;
+
+        if (newSoh < 0) {
+          print("Stock for $itemName is insufficient. Cannot reduce below 0.");
+          return;
+        }
+
+        await doc.reference.update({'SOH': newSoh});
+        print("Stock for $itemName reduced successfully to $newSoh.");
+      } else {
+        print("Item $itemName not found in Firestore.");
+      }
+    } catch (e) {
+      print("Failed to update stock for $itemName: $e");
     }
   }
 

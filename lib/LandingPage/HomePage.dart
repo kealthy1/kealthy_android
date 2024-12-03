@@ -1,4 +1,5 @@
 import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/LandingPage/Myprofile.dart';
@@ -37,7 +38,7 @@ class MyHomePage extends ConsumerWidget {
         notifier.onBackPressed();
 
         if (notifier.shouldExitApp()) {
-          return Future.value(true); 
+          return Future.value(true);
         } else {
           Fluttertoast.showToast(
             msg: "Press back again to exit",
@@ -72,7 +73,7 @@ class MyHomePage extends ConsumerWidget {
           currentIndex: currentIndex,
           navbarItems: [
             FloatingNavbarItem(icon: Icons.home_outlined, title: 'Home'),
-            FloatingNavbarItem(icon: Icons.person_2_outlined, title: 'Profile'),
+            FloatingNavbarItem(icon: CupertinoIcons.person, title: 'Profile'),
           ],
           onTap: (index) {
             ref.read(bottomNavIndexProvider.notifier).updateIndex(index);

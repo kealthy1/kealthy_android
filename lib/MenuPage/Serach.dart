@@ -39,7 +39,7 @@ class SearchAndFilter extends ConsumerWidget {
                       },
                       child: const Icon(
                         Icons.search_sharp,
-                        color: Colors.green,
+                        color: Colors.grey,
                         size: 30,
                       ),
                     ),
@@ -48,7 +48,7 @@ class SearchAndFilter extends ConsumerWidget {
                   ),
                 ),
               ),
-            ],  
+            ],
           ),
         ),
       ],
