@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -66,7 +67,7 @@ class PaymentHandler {
           'item_quantity': itemQuantity,
           'item_price': itemPrice,
         });
-        await reduceItemStock(itemName, itemQuantity);
+         unawaited(reduceItemStock(itemName, itemQuantity));
 
         index++;
       }
@@ -102,20 +103,16 @@ class PaymentHandler {
 
   Future<void> reduceItemStock(String itemName, int quantityOrdered) async {
     try {
-      // Query Firestore to find the item by name
       QuerySnapshot querySnapshot = await firestore
           .collection('Products')
           .where('Name', isEqualTo: itemName)
-          .limit(1)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
         DocumentSnapshot doc = querySnapshot.docs.first;
 
-        // Retrieve current SOH from Firestore
         double currentSoh = (doc['SOH'] as num).toDouble();
 
-        // Calculate new SOH
         double newSoh = currentSoh - quantityOrdered;
 
         if (newSoh < 0) {

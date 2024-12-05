@@ -133,7 +133,7 @@ class ShowCart extends ConsumerWidget {
                     return isLoading
                         ? const Center(
                             child: CircularProgressIndicator(
-                              color: Colors.green,
+                              color: Color(0xFF273847),
                               strokeWidth: 4.0,
                             ),
                           )
@@ -200,7 +200,7 @@ class ShowCart extends ConsumerWidget {
                                       }
 
                                       final savedAddressId =
-                                          prefs.getString('selectedAddressId');
+                                          prefs.getString('selectedRoad');
 
                                       if (savedAddressId == null ||
                                           savedAddressId.isEmpty) {
@@ -229,7 +229,7 @@ class ShowCart extends ConsumerWidget {
                                     }
                                   },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
+                              backgroundColor: Color(0xFF273847),
                               padding: EdgeInsets.symmetric(
                                 vertical: screenHeight * 0.02,
                               ),
@@ -239,8 +239,7 @@ class ShowCart extends ConsumerWidget {
                             ),
                             child: FutureBuilder<String?>(
                               future: SharedPreferences.getInstance().then(
-                                  (prefs) =>
-                                      prefs.getString('selectedAddressId')),
+                                  (prefs) => prefs.getString('selectedRoad')),
                               builder: (context, snapshot) {
                                 final savedAddressId = snapshot.data;
                                 final buttonText = (savedAddressId == null ||
@@ -290,7 +289,11 @@ class ShowCart extends ConsumerWidget {
               ),
             ),
             SizedBox(width: 5),
-            Icon(Icons.description_outlined, size: 24.0, color: Colors.green),
+            Icon(
+              Icons.description_outlined,
+              size: 24.0,
+              color: Color(0xFF273847),
+            ),
           ],
         ),
         Text(

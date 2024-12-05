@@ -2,7 +2,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kealthy/Orders/Review&Feedback.dart';
 import 'package:kealthy/Orders/ordersTab.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -163,25 +162,6 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
           padding: EdgeInsets.all(8.0),
           child: MovableButton(),
         ),
-        GestureDetector(
-          onTap: () {},
-          child: IconButton(
-            onPressed: () {
-              FeedbackBottomSheet.show(
-                context,
-                title: 'Give Feedback',
-                message: 'What do you think about our app?',
-                onSend: () {},
-                onCancel: () {
-                  Navigator.of(context).pop();
-                },
-              );
-            },
-            icon: Icon(Icons.help_outline_sharp),
-            color: Colors.black,
-            iconSize: 30,
-          ),
-        ),
       ],
     );
   }
@@ -214,7 +194,7 @@ class MovableButtonNotifier extends StateNotifier<bool> {
           bool orderExists = orders.any((order) {
             final data = order.value as Map<dynamic, dynamic>?;
 
-            return data != null && data['status'] != 'Delivered';
+            return data != null && data['status'] != 'Order Placed';
           });
 
           state = orderExists;

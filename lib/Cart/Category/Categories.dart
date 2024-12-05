@@ -136,7 +136,7 @@ class CartItemWidget extends StatelessWidget {
                 Text(
                   '₹${item.price.toStringAsFixed(2)}',
                   style: const TextStyle(
-                    color: Colors.green,
+                    color: Color(0xFF273847),
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
@@ -151,11 +151,11 @@ class CartItemWidget extends StatelessWidget {
               Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.green.withOpacity(0.1),
+                  color: Color(0xFFF4F4F5),
                 ),
                 child: IconButton(
                   icon: const Icon(Icons.remove),
-                  color: Colors.green,
+                  color: Color(0xFF273847),
                   iconSize: 20,
                   onPressed: onDecrement,
                 ),
@@ -170,11 +170,11 @@ class CartItemWidget extends StatelessWidget {
               Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.green.withOpacity(0.1),
+                  color: Color(0xFFF4F4F5),
                 ),
                 child: IconButton(
                   icon: const Icon(Icons.add),
-                  color: Colors.green,
+                  color: Color(0xFF273847),
                   iconSize: 20,
                   onPressed: onIncrement,
                 ),

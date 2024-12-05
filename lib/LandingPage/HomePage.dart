@@ -16,11 +16,23 @@ import 'Widgets/Serach.dart';
 import 'Widgets/floating_bottom_navigation_bar.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-class MyHomePage extends ConsumerWidget {
+class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends ConsumerState<MyHomePage> {
+  @override
+  void initState() {
+    // ignore: unused_result
+    ref.refresh(selectedRoadProvider);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     ref.watch(deliveryLimitProvider);
     final currentIndex = ref.watch(bottomNavIndexProvider);
     final cartItems = ref.watch(sharedPreferencesCartProvider);
@@ -91,30 +103,30 @@ class MyHomePage extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildHomePage(BuildContext context, WidgetRef ref) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    ref.watch(menuProvider);
+Widget _buildHomePage(BuildContext context, WidgetRef ref) {
+  final screenHeight = MediaQuery.of(context).size.height;
+  ref.watch(menuProvider);
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: SearchInput(),
-          ),
-          const CarouselSliderWidget(),
-          SizedBox(height: screenHeight * 0.03),
-          _buildCenteredTitle('Categories'),
-          SizedBox(height: screenHeight * 0.03),
-          const CategoryGrid(),
-          SizedBox(height: screenHeight * 0.03),
-        ],
-      ),
-    );
-  }
+  return SingleChildScrollView(
+    scrollDirection: Axis.vertical,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.all(16.0),
+          child: SearchInput(),
+        ),
+        const CarouselSliderWidget(),
+        SizedBox(height: screenHeight * 0.03),
+        _buildCenteredTitle('Categories'),
+        SizedBox(height: screenHeight * 0.03),
+        const CategoryGrid(),
+        SizedBox(height: screenHeight * 0.03),
+      ],
+    ),
+  );
 }
 
 Widget _buildCenteredTitle(String title) {

@@ -63,9 +63,8 @@ class DeliveryInstructionsSection extends ConsumerWidget {
           const SizedBox(height: 10),
           LayoutBuilder(
             builder: (context, constraints) {
-              final tileWidth =
-                  constraints.maxWidth / 4.5; 
-              final tileHeight = tileWidth * 1.2; 
+              final tileWidth = constraints.maxWidth / 4.5;
+              final tileHeight = tileWidth * 1.2;
 
               return SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -141,7 +140,7 @@ class DeliveryInstructionsSection extends ConsumerWidget {
         height: height,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          color: isSelected ? Colors.green : Colors.grey[100],
+          color: isSelected ? Color(0xFF273847) : Colors.grey[100],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -154,7 +153,7 @@ class DeliveryInstructionsSection extends ConsumerWidget {
               style: TextStyle(
                 fontFamily: "poppins",
                 color: isSelected ? Colors.white : Colors.black,
-                fontSize: 14,
+                fontSize: 10,
               ),
             ),
           ],

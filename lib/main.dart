@@ -35,7 +35,7 @@ class MyApp extends ConsumerWidget {
           elevation: 0,
         ),
       ),
-      // navigatorKey: navigatorKey,
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Kealthy',
       home: const ConnectivityWidget(

@@ -55,7 +55,7 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
             body: NotificationListener<ScrollNotification>(
               onNotification: (ScrollNotification notification) {
                 FocusScope.of(context).unfocus();
-                return false; 
+                return false;
               },
               child: Column(
                 children: [
@@ -87,52 +87,75 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
                           ),
                           const SizedBox(height: 15),
                           SizedBox(
-                            height: 50,
+                            height: 65,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
                               itemCount: recentSearches.length,
                               itemBuilder: (context, index) {
                                 final search = recentSearches[index];
                                 return GestureDetector(
-                                  onTap: () {
-                                    ref
-                                        .read(searchQueryProvider.notifier)
-                                        .state = search;
-                                    ref
-                                        .read(productProvider.notifier)
-                                        .fetchProductSuggestions(search);
-                                  },
-                                  onLongPress: () {
-                                    _showDeleteConfirmationDialog(
-                                      context,
-                                      search,
-                                      ref,
-                                    );
-                                  },
-                                  child: Container(
-                                    margin: const EdgeInsets.only(right: 8.0),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12.0,
-                                      vertical: 8.0,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green[100],
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.history,
-                                            size: 16, color: Colors.green),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          search,
-                                          style: const TextStyle(
-                                              color: Colors.green),
+                                    onTap: () {
+                                      ref
+                                          .read(searchQueryProvider.notifier)
+                                          .state = search;
+                                      ref
+                                          .read(productProvider.notifier)
+                                          .fetchProductSuggestions(search);
+                                    },
+                                    onLongPress: () {
+                                      _showDeleteConfirmationDialog(
+                                        context,
+                                        search,
+                                        ref,
+                                      );
+                                    },
+                                    child: Container(
+                                      margin: const EdgeInsets.only(right: 8.0),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12.0,
+                                        vertical: 8.0,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        border: Border.all(
+                                          color: Colors.black26,
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                );
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          const Icon(Icons.history,
+                                              size: 16,
+                                              color: Color.fromARGB(
+                                                  255, 17, 20, 17)),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            search,
+                                            style: const TextStyle(
+                                                color: Colors.black),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          IconButton(
+                                            onPressed: () {
+                                              _showDeleteConfirmationDialog(
+                                                  context, search, ref);
+                                            },
+                                            icon: const Icon(
+                                              Icons.close,
+                                              color: Colors.red,
+                                            ),
+                                            iconSize: 16,
+                                            splashColor: Colors.transparent,
+                                            highlightColor: Colors.transparent,
+                                            padding: EdgeInsets.zero,
+                                            alignment: Alignment.topRight,
+                                          ),
+                                        ],
+                                      ),
+                                    ));
                               },
                             ),
                           ),
@@ -239,7 +262,7 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(5),
+          borderRadius: BorderRadius.circular(15),
         ),
         title: const Text("Recent Search"),
         content:

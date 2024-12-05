@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:kealthy/Services/Loading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -80,7 +79,7 @@ class OrderDataNotifier extends StateNotifier<AsyncValue<List<OrderData>?>> {
           assignedTo: data['assignedTo'],
           distance: data['distance'],
           orderId: data['orderId'],
-          Date: data['timestamp'],
+          Date: data['date'],
           phoneNumber: data['phoneNumber'],
           totalAmountToPay: data['totalAmountToPay'].toDouble(),
           orderItems: items,
@@ -167,8 +166,7 @@ class OrderCard extends ConsumerWidget {
                             ],
                           ),
                           Text(
-                            DateFormat('dd-MM-yyyy')
-                                .format(DateTime.parse(orderData.Date)),
+                            orderData.Date,
                             style: const TextStyle(
                                 color: Colors.black,
                                 fontFamily: "poppins",

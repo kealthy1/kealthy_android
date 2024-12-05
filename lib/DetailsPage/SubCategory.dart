@@ -6,15 +6,9 @@ import 'package:kealthy/MenuPage/MenuPage.dart';
 import 'package:kealthy/Services/Loading.dart';
 
 class FoodCategoriesScreen extends StatelessWidget {
-  final List<Color> colors = [
-    const Color.fromARGB(255, 112, 176, 228),
-    Colors.blueGrey,
-    Colors.green.shade300,
-    Colors.lightGreen,
-  ];
   final String category;
 
-  FoodCategoriesScreen({super.key, required this.category});
+  const FoodCategoriesScreen({super.key, required this.category});
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +55,7 @@ class FoodCategoriesScreen extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final subcategory = subcategories[index];
                       return CategoryCard(
-                        color: colors[index % colors.length],
+                        color: Colors.white,
                         imageUrl: subcategory['imageurl'],
                         title: subcategory['Category'] ?? 'No Title',
                         description: subcategory['title'] ?? 'No Description',
@@ -108,6 +102,14 @@ class CategoryCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
           color: color,
           borderRadius: BorderRadius.circular(10),
         ),
@@ -137,8 +139,9 @@ class CategoryCard extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFF273847),
                       fontWeight: FontWeight.bold,
+                      fontFamily: "poppins",
                       fontSize: 16,
                     ),
                   ),
@@ -146,7 +149,8 @@ class CategoryCard extends StatelessWidget {
                   Text(
                     description,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFF273847),
+                      fontFamily: "poppins",
                       fontSize: 12,
                     ),
                   ),

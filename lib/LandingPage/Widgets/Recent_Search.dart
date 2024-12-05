@@ -10,7 +10,7 @@ import '../../DetailsPage/HomePage.dart';
 class FoodMenuNotifier extends StateNotifier<List<DocumentSnapshot>> {
   FoodMenuNotifier() : super([]);
 
-  final int _initialLimit = 5;
+  final int _initialLimit = 15;
   bool _isFetching = false;
   bool _hasFetchedAll = false;
 

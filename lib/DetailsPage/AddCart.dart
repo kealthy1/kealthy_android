@@ -26,27 +26,29 @@ class AddToCart extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Text(
-                "₹ ${menuItem.price.toStringAsFixed(0)}",
-                style: const TextStyle(fontSize: 24, fontFamily: "Poppins"),
-              ),
+            Text(
+              menuItem.name,
+              style: const TextStyle(fontSize: 24, fontFamily: "Poppins"),
             ),
             Container(
               height: 40,
               width: MediaQuery.of(context).size.width * 0.30,
               decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 223, 240, 224),
+                color: const Color(0xFFF4F4F5),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.green),
+                border: Border.all(
+                  color: Color(0xFF273847),
+                ),
               ),
               child: isItemInCart
                   ? Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.remove, color: Colors.green),
+                          icon: const Icon(
+                            Icons.remove,
+                            color: Color(0xFF273847),
+                          ),
                           onPressed: () {
                             cartNotifier.decreaseItemQuantity(cartItem!.id);
                           },
@@ -57,7 +59,10 @@ class AddToCart extends ConsumerWidget {
                               fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.add, color: Colors.green),
+                          icon: const Icon(
+                            Icons.add,
+                            color: Color(0xFF273847),
+                          ),
                           onPressed: () {
                             cartNotifier.increaseItemQuantity(cartItem.id);
                           },
@@ -96,12 +101,24 @@ class AddToCart extends ConsumerWidget {
             ),
           ],
         ),
+        const SizedBox(height: 20),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 1),
+          child: Text(
+            menuItem.description,
+            textAlign: TextAlign.justify,
+            style: const TextStyle(
+              fontSize: 18.0,
+              color: Colors.black,
+            ),
+          ),
+        ),
         const SizedBox(height: 8),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 1),
           child: Text(
-            menuItem.name,
-            style: const TextStyle(fontSize: 25, fontFamily: "Poppins"),
+            "₹Price ${menuItem.price.toStringAsFixed(0)} /-",
+            style: const TextStyle(fontSize: 20, fontFamily: "Poppins"),
           ),
         ),
       ],

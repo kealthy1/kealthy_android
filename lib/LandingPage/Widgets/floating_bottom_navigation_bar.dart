@@ -36,13 +36,13 @@ class CustomBottomNavigationBar extends StatelessWidget {
                   Icon(
                     item.icon,
                     size: 30,
-                    color: isSelected ? Colors.green : Colors.grey,
+                    color: isSelected ? Color(0xFF273847) : Colors.grey,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     item.title ?? '',
                     style: TextStyle(
-                      color: isSelected ? Colors.green : Colors.grey,
+                      color: isSelected ? Color(0xFF273847) : Colors.grey,
                       fontSize: 12,
                     ),
                   ),

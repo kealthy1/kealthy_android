@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:kealthy/LandingPage/HomePage.dart';
 import 'package:kealthy/Maps/SelectAdress.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../Riverpod/distance.dart';
 import 'Select Location.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -61,7 +62,6 @@ class _AddressFormState extends ConsumerState<AddressForm> {
   @override
   Widget build(BuildContext context) {
     final issaved = ref.watch(issavedProvider);
-
     final address = ref.read(addressProvider);
 
     return Container(
@@ -250,7 +250,7 @@ class _AddressFormState extends ConsumerState<AddressForm> {
                                 width: 24,
                                 height: 24,
                                 child: CircularProgressIndicator(
-                                  color: Colors.green,
+                                  color: Color(0xFF273847),
                                   strokeWidth: 5,
                                 ),
                               ),
@@ -260,24 +260,25 @@ class _AddressFormState extends ConsumerState<AddressForm> {
                               child: ElevatedButton(
                                 onPressed: () async {
                                   ref.read(issavedProvider.notifier);
-                                  bool isSaved = await _saveAddress(ref);
+                                  bool isSaved = await _saveAndSelectAddress(ref,0.0);
                                   ref.read(savedValueProvider);
                                   if (isSaved) {
-                                    Navigator.pushReplacement(
+                                    Navigator.pushAndRemoveUntil(
                                       context,
                                       CupertinoModalPopupRoute(
                                         builder: (context) =>
-                                            const SelectAdress(
-                                          totalPrice: 0,
+                                            const MyHomePage(
+                                          
                                         ),
                                       ),
+                                      (route) => false,
                                     );
                                   }
                                   ref.read(issavedProvider.notifier).state =
                                       false;
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green,
+                                  backgroundColor: Color(0xFF273847),
                                   padding: const EdgeInsets.symmetric(
                                       vertical: 20.0),
                                   shape: RoundedRectangleBorder(
@@ -328,8 +329,9 @@ class _AddressFormState extends ConsumerState<AddressForm> {
           ),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 12),
-            side: BorderSide(color: isPressed ? Colors.green : Colors.grey),
-            backgroundColor: isPressed ? Colors.green : Colors.transparent,
+            side:
+                BorderSide(color: isPressed ? Color(0xFF273847) : Colors.grey),
+            backgroundColor: isPressed ? Color(0xFF273847) : Colors.transparent,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
@@ -339,24 +341,42 @@ class _AddressFormState extends ConsumerState<AddressForm> {
     );
   }
 
-  final savedValueProvider = StateProvider<String>((ref) => '');
+final savedValueProvider = StateProvider<String>((ref) => '');
 
-  Future<bool> _saveAddress(WidgetRef ref) async {
-    ref.read(issavedProvider.notifier).state = true;
-    final Name = houseController.text.trim();
-    final road = apartmentController.text.trim();
-    final directions = directionsController.text.trim();
-    final savedValue = ref.read(savedValueProvider);
-    final Landmark = LandMarkController.text.trim();
-    final address = addressController.text.trim();
-    final combinedRoad = '$road $address';
+Future<bool> _saveAndSelectAddress(WidgetRef ref, double distance) async {
+  ref.read(issavedProvider.notifier).state = true;
 
-    if (Name.isEmpty ||
-        road.isEmpty ||
-        directions.isEmpty ||
-        savedValue.isEmpty) {
+  final name = houseController.text.trim();
+  final road = apartmentController.text.trim();
+  final directions = directionsController.text.trim();
+  final savedValue = ref.read(savedValueProvider);
+  final landmark = LandMarkController.text.trim();
+  final address = addressController.text.trim();
+  final combinedRoad = '$road $address';
+
+  if (name.isEmpty || road.isEmpty || directions.isEmpty || savedValue.isEmpty) {
+    Fluttertoast.showToast(
+      msg: "Please fill all fields",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.TOP,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 12.0,
+    );
+    ref.read(issavedProvider.notifier).state = false;
+    return false;
+  }
+
+  try {
+    final prefs = await SharedPreferences.getInstance();
+
+    final phoneNumber = prefs.getString('phoneNumber');
+    final latitude = prefs.getDouble('latitude');
+    final longitude = prefs.getDouble('longitude');
+
+    if (phoneNumber == null || phoneNumber.isEmpty) {
       Fluttertoast.showToast(
-        msg: "Please fill all fields",
+        msg: "Your Cache Cleared. Relogin to Continue",
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.TOP,
         backgroundColor: Colors.red,
@@ -367,75 +387,104 @@ class _AddressFormState extends ConsumerState<AddressForm> {
       return false;
     }
 
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final phoneNumber = prefs.getString('phoneNumber');
-
-      if (phoneNumber == null || phoneNumber.isEmpty) {
-        Fluttertoast.showToast(
-          msg: "Your Cache Cleared Relogin To Continue",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.TOP,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 12.0,
-        );
-        ref.read(issavedProvider.notifier).state = false;
-        return false;
-      }
-
-      double? latitude = prefs.getDouble('latitude');
-      double? longitude = prefs.getDouble('longitude');
-
-      if (longitude == null) {
-        Fluttertoast.showToast(
-          msg: "Location data is not available.",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.TOP,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 12.0,
-        );
-        return false;
-      }
-
-      print('Phone Number: $phoneNumber');
-      print('Latitude: $latitude, Longitude: $longitude');
-
-      final response = await http.post(
-        Uri.parse('https://api-jfnhkjk4nq-uc.a.run.app/address'),
-        body: jsonEncode({
-          'Name': Name,
-          'road': combinedRoad,
-          'directions': directions,
-          'phoneNumber': phoneNumber,
-          'deliveryDate': DateTime.now().toIso8601String(),
-          'type': savedValue,
-          'latitude': latitude,
-          'longitude': longitude,
-          'Landmark': Landmark,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    if (longitude == null || latitude == null) {
+      Fluttertoast.showToast(
+        msg: "Location data is not available.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.TOP,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 12.0,
       );
-
-      if (response.statusCode == 200) {
-        print('Address saved successfully!');
-        ref.read(issavedProvider.notifier).state = false;
-        return true;
-      } else {
-        print('Failed to save address: ${response.statusCode}');
-        print('Response body: ${response.body}');
-        ref.read(issavedProvider.notifier).state = false;
-        return false;
-      }
-    } catch (e) {
-      print('Error: $e');
       ref.read(issavedProvider.notifier).state = false;
       return false;
     }
+ final double restaurantLatitude = 10.010279427438405;
+    final double restaurantLongitude = 76.38426666931349;
+    final double calculatedDistance = calculatesDistance(
+      latitude,
+      longitude,
+      restaurantLatitude,
+      restaurantLongitude,
+    );
+    final newAddressData = {
+      'name': name,
+      'road': combinedRoad,
+      'directions': directions,
+      'phoneNumber': phoneNumber,
+      'deliveryDate': DateTime.now().toIso8601String(),
+      'type': savedValue,
+      'latitude': latitude,
+      'longitude': longitude,
+      'landmark': landmark,
+      'distance': calculatedDistance,
+    };
+
+    final savedAddresses = prefs.getStringList('savedAddresses') ?? [];
+    List<Map<String, dynamic>> addressList = savedAddresses
+        .map((e) => jsonDecode(e) as Map<String, dynamic>)
+        .toList();
+
+    bool isTypeReplaced = false;
+    addressList = addressList.map((address) {
+      if (address['type'] == savedValue) {
+        isTypeReplaced = true;
+        return newAddressData;
+      }
+      return address;
+    }).toList();
+
+    if (!isTypeReplaced) {
+      addressList.add(newAddressData);
+    }
+
+    await prefs.setStringList(
+      'savedAddresses',
+      addressList.map((address) => jsonEncode(address)).toList(),
+    );
+
+    // Save the selected address as the primary
+    final selectedAddress = Address(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: name,
+      road: combinedRoad,
+      directions: directions,
+      type: savedValue,
+      latitude: latitude,
+      longitude: longitude,
+      landmark: landmark,
+    );
+
+    await prefs.setString('selectedAddressId', selectedAddress.id);
+    await prefs.setString('Name', selectedAddress.name);
+    await prefs.setString('selectedRoad', selectedAddress.road);
+    await prefs.setString('selectedType', selectedAddress.type);
+    if (selectedAddress.directions != null) {
+      await prefs.setString('selectedDirections', selectedAddress.directions!);
+    }
+    await prefs.setDouble('selectedLatitude', selectedAddress.latitude);
+    await prefs.setDouble('selectedLongitude', selectedAddress.longitude);
+    await prefs.setDouble('selectedDistance', calculatedDistance);
+    await prefs.setString('landmark', selectedAddress.landmark);
+
+    print('Address saved and selected: ${selectedAddress.name}, Distance: $calculatedDistance');
+
+    ref.read(issavedProvider.notifier).state = false;
+    return true;
+  } catch (e) {
+    print('Error: $e');
+    Fluttertoast.showToast(
+      msg: "Failed to save address. Please try again.",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.TOP,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 12.0,
+    );
+    ref.read(issavedProvider.notifier).state = false;
+    return false;
   }
+}
 
   final selectedSlotProvider = StateProvider<String>((ref) => '');
 }

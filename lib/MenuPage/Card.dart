@@ -42,14 +42,17 @@ class MenuItemCard extends ConsumerWidget {
                       topRight: Radius.circular(15),
                     ),
                     child: CachedNetworkImage(
-                      height: 200,
-                      imageUrl: menuItem.imageUrl,
+                      height: 230,
                       width: double.infinity,
+                      fit: BoxFit.cover,
+                      imageUrl: menuItem.imageUrl,
                       placeholder: (context, url) => Center(
                         child: Shimmer.fromColors(
                           baseColor: Colors.grey[300]!,
                           highlightColor: Colors.grey[100]!,
                           child: Container(
+                            height: 200,
+                            width: double.infinity,
                             color: Colors.grey[300],
                           ),
                         ),

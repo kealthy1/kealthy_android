@@ -225,7 +225,7 @@ class OrderConfirmation extends ConsumerWidget {
                             width: 5,
                           ),
                           Icon(Icons.description_outlined,
-                              size: 24.0, color: Colors.green)
+                              size: 24.0, color: Color(0xFF273847))
                         ],
                       ),
                       Text(
@@ -245,7 +245,7 @@ class OrderConfirmation extends ConsumerWidget {
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
-                            color: Colors.green,
+                            color: Color(0xFF273847),
                             strokeWidth: 4.0,
                           ),
                         ),
@@ -345,8 +345,7 @@ class OrderConfirmation extends ConsumerWidget {
                                       ReusableCountdownDialog(
                                         context: context,
                                         ref: ref,
-                                        message:
-                                            "Order Placed Successfully",
+                                        message: "Order Placed Successfully",
                                         imagePath:
                                             "assets/Animation - 1731992471934.json",
                                         onRedirect: () {
@@ -375,7 +374,7 @@ class OrderConfirmation extends ConsumerWidget {
                                   }
                                 },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
+                            backgroundColor: Color(0xFF273847),
                             minimumSize: const Size(50, 50),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
@@ -413,11 +412,9 @@ class OrderConfirmation extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         margin: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected
-              ? const Color.fromARGB(255, 169, 211, 171)
-              : Colors.white,
+          color: isSelected ? const Color(0xFFF4F4F5) : Colors.white,
           border: Border.all(
-              color: isSelected ? Colors.green : Colors.grey.shade400,
+              color: isSelected ? Color(0xFF273847) : Colors.grey.shade400,
               width: 1.5),
           borderRadius: BorderRadius.circular(18),
         ),
@@ -425,15 +422,15 @@ class OrderConfirmation extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Radio<String>(
-              value: value,
-              groupValue: selectedPaymentMethod,
-              onChanged: (String? newValue) {
-                ref.read(paymentMethodProvider.notifier).state = newValue;
-                _savePaymentMethod(newValue!);
-              },
-              activeColor: Colors.green,
-            ),
-            Icon(icon, color: isSelected ? Colors.green : Colors.grey.shade500),
+                value: value,
+                groupValue: selectedPaymentMethod,
+                onChanged: (String? newValue) {
+                  ref.read(paymentMethodProvider.notifier).state = newValue;
+                  _savePaymentMethod(newValue!);
+                },
+                activeColor: Color(0xFF273847)),
+            Icon(icon,
+                color: isSelected ? Color(0xFF273847) : Colors.grey.shade500),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -475,16 +472,16 @@ class ResponsiveContainer extends StatelessWidget {
       width: MediaQuery.of(context).size.width,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey),
+        border: Border.all(color: Colors.black26),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.grey.withOpacity(0.5),
             spreadRadius: 2,
             blurRadius: 5,
             offset: const Offset(0, 3),
           ),
         ],
+        borderRadius: BorderRadius.circular(8.0),
       ),
       child: child,
     );

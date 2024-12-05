@@ -37,10 +37,9 @@ class ProfilePage extends ConsumerWidget {
 
     await prefs.remove('phoneNumber');
 
-    Navigator.pushAndRemoveUntil(
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const LoginFields()),
-      (route) => false,
     );
   }
 
@@ -62,7 +61,7 @@ class ProfilePage extends ConsumerWidget {
               child: Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.green.shade600, width: 2),
+                  border: Border.all(color: Color(0xFF273847), width: 2),
                 ),
                 child: Center(
                   child: Text(
@@ -116,6 +115,28 @@ class ProfilePage extends ConsumerWidget {
                     'Logout',
                     () => _clearPreferencesAndNavigate(context),
                   ),
+                  _buildMenuItem(
+                    context,
+                    Icons.article,
+                    "Terms and conditions",
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const OrdersTabScreen(),
+                      ),
+                    ),
+                  ),
+                  _buildMenuItem(
+                    context,
+                    Icons.article,
+                    "Help & Support",
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const OrdersTabScreen(),
+                      ),
+                    ),
+                  )
                 ],
               ),
             ),
@@ -130,7 +151,7 @@ class ProfilePage extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.green[600],
+        color: Color(0xFF273847),
         borderRadius: BorderRadius.circular(8),
       ),
       child: ListTile(

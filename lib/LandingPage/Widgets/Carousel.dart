@@ -159,7 +159,7 @@ class _CarouselSliderWidgetState extends ConsumerState<CarouselSliderWidget> {
           effect: const ExpandingDotsEffect(
             dotHeight: 10,
             dotWidth: 10,
-            activeDotColor: Colors.green,
+            activeDotColor: Color(0xFF273847),
             dotColor: Colors.grey,
             spacing: 4.0,
           ),

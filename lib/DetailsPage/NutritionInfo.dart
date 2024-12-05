@@ -11,78 +11,81 @@ class RedNutritionSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _buildNutritionCard(
+          icon: Icons.energy_savings_leaf,
+          value:
+              '${menuItem.protein.toStringAsFixed(menuItem.protein.truncateToDouble() == menuItem.protein ? 0 : 1)} g',
+          label: 'Protein',
+        ),
+        _buildNutritionCard(
+          icon: Icons.cookie,
+          value:
+              '${menuItem.carbs.toStringAsFixed(menuItem.carbs.truncateToDouble() == menuItem.carbs ? 0 : 1)} g',
+          label: 'Carbs',
+        ),
+        _buildNutritionCard(
+          icon: Icons.local_fire_department,
+          value: '${menuItem.kcal.toInt()}',
+          label: 'Kcal',
+        ),
+        _buildNutritionCard(
+          icon: Icons.opacity,
+          value:
+              '${menuItem.fat.toStringAsFixed(menuItem.fat.truncateToDouble() == menuItem.fat ? 0 : 1)} g',
+          label: 'Fat',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNutritionCard({
+    required IconData icon,
+    required String value,
+    required String label,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      width: 80,
+      padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
-        color: Colors.black,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12.0),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 4.0,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Column(
-            children: [
-              Text(
-                '${menuItem.protein.toStringAsFixed(menuItem.protein.truncateToDouble() == menuItem.protein ? 0 : 1)} g', 
-                style: const TextStyle(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
-              ),
-              const SizedBox(height: 4.0),
-              const Text(
-                'Protein',
-                style: TextStyle(fontSize: 14.0, color: Colors.white70),
-              ),
-            ],
+          Icon(
+            icon,
+            color: Colors.black,
+            size: 28.0,
           ),
-          Column(
-            children: [
-              Text(
-                '${menuItem.carbs.toStringAsFixed(menuItem.carbs.truncateToDouble() == menuItem.carbs ? 0 : 1)} g', 
-                style: const TextStyle(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
-              ),
-              const SizedBox(height: 4.0),
-              const Text(
-                'Carbs',
-                style: TextStyle(fontSize: 14.0, color: Colors.white70),
-              ),
-            ],
+          const SizedBox(height: 8.0),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
           ),
-          Column(
-            children: [
-              Text(
-                '${menuItem.kcal.toInt()}', 
-                style: const TextStyle(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
-              ),
-              const SizedBox(height: 4.0),
-              const Text(
-                'Kcal',
-                style: TextStyle(fontSize: 14.0, color: Colors.white70),
-              ),
-            ],
-          ),
-          Column(
-            children: [
-              Text(
-                '${menuItem.fat.toStringAsFixed(menuItem.fat.truncateToDouble() == menuItem.fat ? 0 : 1)} g', // Show one decimal place only if needed
-                style: const TextStyle(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
-              ),
-              const SizedBox(height: 4.0),
-              const Text(
-                'Fat',
-                style: TextStyle(fontSize: 14.0, color: Colors.white70),
-              ),
-            ],
+          const SizedBox(height: 4.0),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 12.0,
+              color: Colors.black,
+            ),
           ),
         ],
       ),

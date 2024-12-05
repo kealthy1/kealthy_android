@@ -14,7 +14,7 @@ class SearchInput extends ConsumerWidget {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final searchController = TextEditingController();
-
+    final hints = ref.read(searchHintProvider.notifier).hints;
     return Row(
       children: [
         Expanded(
@@ -32,30 +32,82 @@ class SearchInput extends ConsumerWidget {
               ],
             ),
             width: screenWidth * 0.7,
-            child: TextField(
-              readOnly: true,
-              onTap: () {
-                Navigator.of(context).push(
-                  SeamlessRevealRoute(
-                    page:
-                        const AllItemsPage(),
+            child: Stack(
+              children: [
+                TextField(
+                  readOnly: true,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      SeamlessRevealRoute(
+                        page: const AllItemsPage(),
+                      ),
+                    );
+                  },
+                  controller: searchController,
+                  style: const TextStyle(
+                    color: Color(0xFF273847),
                   ),
-                );
-              },
-              controller: searchController,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(CupertinoIcons.search),
-                hintText: "Search \"${hints[hintIndex]}\"",
-                hintStyle: const TextStyle(color: Colors.black),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(CupertinoIcons.search),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 15),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Color(0xFF273847)),
+                    ),
+                    focusedBorder: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                  ),
                 ),
-                focusedBorder: InputBorder.none,
-                enabledBorder: InputBorder.none,
-              ),
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      transitionBuilder: (child, animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: animation.drive(
+                              Tween<Offset>(
+                                begin: const Offset(0, 0.5),
+                                end: Offset.zero,
+                              ).chain(CurveTween(curve: Curves.easeInExpo)),
+                            ),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 48),
+                        key: ValueKey<int>(hintIndex),
+                        child: Row(
+                          children: [
+                            const Text(
+                              'Search ',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontFamily: "poppins",
+                                color: Color(0xFF273847),
+                              ),
+                            ),
+                            Text(
+                              hints.isNotEmpty
+                                  ? '"${hints[hintIndex]}"'
+                                  : '"Salad"',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontFamily: "poppins",
+                                fontWeight: FontWeight.w400,
+                                color: Color(0xFF273847),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

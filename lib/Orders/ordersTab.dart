@@ -13,7 +13,7 @@ class OrdersTabScreen extends StatelessWidget {
         appBar: AppBar(
           toolbarHeight: 10,
           automaticallyImplyLeading: false,
-          backgroundColor: Colors.green,
+          backgroundColor: Color(0xFF273847),
           bottom: const TabBar(
             indicatorColor: Colors.white,
             labelColor: Colors.white,

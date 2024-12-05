@@ -51,14 +51,14 @@ class ReusableCountdownDialog {
                         message,
                         style: const TextStyle(
                             fontSize: 22,
-                            color: Colors.green,
+                            color: Color(0xFF273847),
                             fontFamily: "poppins"),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green),
+                            backgroundColor: Color(0xFF273847)),
                         onPressed: () {
                           Navigator.pop(context);
                           onRedirect();

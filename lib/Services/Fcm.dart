@@ -231,7 +231,7 @@ class DatabaseListener {
       default:
         return {
           'title': "Order Update",
-          'body': "Delivery Partner Assigned Your Order Will Be Picked Shortly",
+          'body': "Delivery Partner Assigned. Your Order Will Be Picked Shortly",
         };
     }
   }

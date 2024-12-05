@@ -20,6 +20,14 @@ class SearchAndFilter extends ConsumerWidget {
           decoration: BoxDecoration(
             color: Colors.grey[200],
             borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 2,
+                blurRadius: 2,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Row(
             children: [
@@ -39,11 +47,14 @@ class SearchAndFilter extends ConsumerWidget {
                       },
                       child: const Icon(
                         Icons.search_sharp,
-                        color: Colors.grey,
+                        color: Color(0xFF273847),
                         size: 30,
                       ),
                     ),
                     hintText: "Search for products",
+                    hintStyle: TextStyle(
+                      color: Color(0xFF273847),
+                    ),
                     border: InputBorder.none,
                   ),
                 ),

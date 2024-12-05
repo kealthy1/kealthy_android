@@ -153,9 +153,9 @@ class _BillItem extends StatelessWidget {
 Future<void> saveSelectedAddress(Address address, double distance) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString('selectedAddressId', address.id);
-  await prefs.setString('Name', address.Name);
+  await prefs.setString('Name', address.name);
   await prefs.setString('selectedRoad', address.road);
-  await prefs.setString('landmark', address.Landmark);
+  await prefs.setString('landmark', address.landmark);
 
   await prefs.setString('selectedType', address.type);
   if (address.directions != null) {

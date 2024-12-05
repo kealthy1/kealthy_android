@@ -181,15 +181,12 @@ class LocationNotifier extends StateNotifier<Position?> {
   }
 }
 
-
-
 class SelectLocationPage extends ConsumerStatefulWidget {
   final double totalPrice;
-  
+
   const SelectLocationPage({
     super.key,
     required this.totalPrice,
-    
   });
 
   @override
@@ -348,8 +345,7 @@ class _LocationPageState extends ConsumerState<SelectLocationPage> {
                                           borderRadius:
                                               BorderRadius.circular(10)),
                                       side: const BorderSide(
-                                          color: Color.fromARGB(
-                                              255, 181, 242, 183))),
+                                          color: Color(0xFF273847))),
                                   onPressed: () async {
                                     ref
                                         .read(
@@ -397,14 +393,12 @@ class _LocationPageState extends ConsumerState<SelectLocationPage> {
                                           width: 24,
                                           height: 24,
                                           child: CircularProgressIndicator(
-                                            color: Colors.green,
+                                            color: Color(0xFF273847),
                                             strokeWidth: 2,
                                           ),
                                         )
-                                      : const Icon(
-                                          Icons.my_location,
-                                          color: Colors.green,
-                                        ),
+                                      : const Icon(Icons.my_location,
+                                          color: Color(0xFF273847)),
                                 ),
                               ),
                             ],
@@ -478,7 +472,7 @@ class _LocationPageState extends ConsumerState<SelectLocationPage> {
                                 }
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
+                                backgroundColor: Color(0xFF273847),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(5),
                                 ),
@@ -551,13 +545,10 @@ class _LocationPageState extends ConsumerState<SelectLocationPage> {
                                       hintText: 'Search location',
                                       hintStyle: TextStyle(
                                         fontSize: 15,
-                                        color: Colors
-                                            .black38, 
+                                        color: Colors.black38,
                                       ),
                                       border: InputBorder.none,
-                                      contentPadding: EdgeInsets.only(
-                                          left:
-                                              16), 
+                                      contentPadding: EdgeInsets.only(left: 16),
                                     ),
                                     style: const TextStyle(
                                       fontSize: 16.0,
@@ -577,13 +568,11 @@ class _LocationPageState extends ConsumerState<SelectLocationPage> {
                                   : const SizedBox.shrink(),
                             ],
                           ),
-
                           const SizedBox(height: 8.0),
                           if (placeSuggestions.isNotEmpty &&
                               _searchController.text.isNotEmpty)
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 10),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
                               child: Column(
                                 children: placeSuggestions.map((suggestion) {
                                   final suggestionName =
@@ -621,7 +610,7 @@ class _LocationPageState extends ConsumerState<SelectLocationPage> {
             )
           : Center(
               child: LoadingAnimationWidget.discreteCircle(
-                color: Colors.green,
+                color: Color(0xFF273847),
                 size: 70,
               ),
             ),

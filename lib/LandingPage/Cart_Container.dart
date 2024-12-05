@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';      
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../Cart/Cart_Items.dart';
 import '../Services/FirestoreCart.dart';
 
@@ -36,7 +36,7 @@ class CartContainer extends ConsumerWidget {
       height: 95,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-          color: Colors.green.shade400,
+          color: Color(0xFF273847),
           borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(10), topRight: Radius.circular(10))),
       child: Row(
@@ -73,7 +73,7 @@ class CartContainer extends ConsumerWidget {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
+              backgroundColor: Color(0xFFF4F4F5),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -81,7 +81,7 @@ class CartContainer extends ConsumerWidget {
             child: const Text(
               'Go to Cart',
               style: TextStyle(
-                color: Colors.green,
+                color: Colors.black,
                 fontFamily: "Poppins",
                 fontWeight: FontWeight.bold,
               ),
@@ -92,7 +92,7 @@ class CartContainer extends ConsumerWidget {
               CupertinoIcons.delete,
               color: Colors.white,
             ),
-             onPressed: () {
+            onPressed: () {
               final cartItems = ref.read(sharedPreferencesCartProvider);
               if (cartItems.isNotEmpty) {
                 ref.read(sharedPreferencesCartProvider.notifier).clearCart();

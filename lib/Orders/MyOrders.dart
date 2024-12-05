@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,7 +8,6 @@ import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'Track.dart';
 
 final phoneNumberProvider = StateProvider<String>((ref) => '');
@@ -144,7 +142,7 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
       body: isLoading
           ? Center(
               child: LoadingAnimationWidget.discreteCircle(
-                color: Colors.green,
+                color: Color(0xFF273847),
                 size: 50,
               ),
             )
@@ -198,6 +196,7 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                             ),
                           ),
                           child: ExpansionTile(
+                            iconColor: Color(0xFF273847),
                             title: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.start,
@@ -283,13 +282,16 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                                             deliveryPartnerName !=
                                                 'Not Assigned')
                                           IconButton(
+                                            style: ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    Colors.black12),
                                             onPressed: () {
                                               FlutterPhoneDirectCaller
                                                   .callNumber(phoneNumber);
                                             },
                                             icon: const Icon(
                                               Icons.call,
-                                              color: Colors.green,
+                                              color: Color(0xFF273847),
                                             ),
                                           ),
                                       ],
@@ -339,7 +341,8 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                                         deliveryPartnerName != 'Not Assigned')
                                       ElevatedButton(
                                         style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.green),
+                                          backgroundColor: Color(0xFF273847),
+                                        ),
                                         onPressed: () {
                                           Navigator.push(
                                             context,
