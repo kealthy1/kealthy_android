@@ -131,7 +131,8 @@ class _SavedAddressState extends State<SavedAddress> {
                         Expanded(
                           child: Text(
                             '$name, $road',
-                            style: const TextStyle(fontWeight: FontWeight.bold,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
                           ),
@@ -141,26 +142,31 @@ class _SavedAddressState extends State<SavedAddress> {
                     const SizedBox(height: 8),
                     Text(
                       formattedDistance,
-                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          color: Colors.black, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      "Delivery Slot: ${slot ?? 'N/A'}",
+                      slot,
                       style: const TextStyle(
-                          color: Colors.black, fontWeight: FontWeight.bold),
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     if (directions!.isNotEmpty)
                       Text(
                         "Instructions: $directions",
-                        style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            color: Colors.black, fontWeight: FontWeight.bold),
                       ),
                     const SizedBox(height: 8),
                     Text(
                       landmark != null && landmark.isNotEmpty
                           ? "Landmark: $landmark"
                           : "",
-                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          color: Colors.black, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),

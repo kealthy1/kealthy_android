@@ -1,8 +1,8 @@
 class AvailableSlotsGenerator {
-  final int slotDurationMinutes; // Duration of each slot
-  final int minGapMinutes; // Minimum gap between current time and next slot
-  final DateTime startTime; // Start time of slot generation
-  final DateTime endTime; // End time of slot generation
+  final int slotDurationMinutes;
+  final int minGapMinutes;
+  final DateTime startTime; 
+  final DateTime endTime; 
 
   AvailableSlotsGenerator({
     required this.slotDurationMinutes,
@@ -11,33 +11,33 @@ class AvailableSlotsGenerator {
     required this.endTime,
   });
 
-  List<DateTime> getAvailableSlots(DateTime currentTime) {
+  List<DateTime> getAvailableSlots(DateTime currentTime, double etaMinutes) {
     List<DateTime> slots = [];
     DateTime adjustedStartTime = startTime;
 
-    int minutesToNextSlot =
-        (adjustedStartTime.difference(currentTime).inMinutes / slotDurationMinutes).ceil() * slotDurationMinutes;
+    DateTime etaAdjustedTime =
+        currentTime.add(Duration(minutes: etaMinutes.toInt()));
 
-    // Special case: If current time is 3:30, skip to 4:15
-    if (currentTime.hour == 3 && currentTime.minute == 30) {
-      adjustedStartTime =
-          adjustedStartTime.add(const Duration(minutes: 45)); // Directly jump to 4:15
-      minutesToNextSlot = 45; // Update minutesToNextSlot for the next iteration
-    }
+    DateTime etaPlusBreak = etaAdjustedTime.add(const Duration(minutes: 30));
 
-    // If the next slot is less than minGapMinutes away, skip it
-    if (minutesToNextSlot < minGapMinutes) {
-      adjustedStartTime = adjustedStartTime.add(Duration(minutes: minutesToNextSlot));
-    }
+    DateTime nextHour = DateTime(
+      etaPlusBreak.year,
+      etaPlusBreak.month,
+      etaPlusBreak.day,
+      etaPlusBreak.hour + 1,
+    );
+
+    adjustedStartTime = nextHour;
 
     while (adjustedStartTime.isBefore(endTime)) {
-      // Check the gap before adding the slot
       if (adjustedStartTime.isAfter(currentTime) &&
-          adjustedStartTime.difference(currentTime).inMinutes >= minGapMinutes) {
+          adjustedStartTime.difference(currentTime).inMinutes >=
+              minGapMinutes) {
         slots.add(adjustedStartTime);
       }
 
-      adjustedStartTime = adjustedStartTime.add(Duration(minutes: slotDurationMinutes));
+      adjustedStartTime =
+          adjustedStartTime.add(Duration(minutes: slotDurationMinutes));
     }
     return slots;
   }

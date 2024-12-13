@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kealthy/LandingPage/Widgets/floating_bottom_navigation_bar.dart';
 import 'package:kealthy/Services/Connection.dart';
-import 'package:kealthy/LandingPage/HomePage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
@@ -37,7 +37,7 @@ class NoInternetPage extends ConsumerWidget {
 
             if (snapshot.data == true) {
               Future.microtask(() => Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const MyHomePage()),
+                    MaterialPageRoute(builder: (context) => const CustomBottomNavigationBar()),
                     (Route<dynamic> route) => false,
                   ));
               return Container();
@@ -65,7 +65,7 @@ class NoInternetPage extends ConsumerWidget {
                     if (isConnected) {
                       Navigator.of(context).pushAndRemoveUntil(
                         MaterialPageRoute(
-                            builder: (context) => const MyHomePage()),
+                            builder: (context) => const CustomBottomNavigationBar()),
                         (Route<dynamic> route) => false,
                       );
                     } else {

@@ -1,12 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:kealthy/Maps/SelectAdress.dart';
 import 'package:kealthy/Payment/RazorPay.dart';
 import 'package:kealthy/Services/Order_Completed.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Cart/AvailableslotGenerator.dart';
+import '../MenuPage/MenuPage.dart';
+import '../MenuPage/Search_provider.dart';
 import '../Orders/ordersTab.dart';
 import '../Services/FirestoreCart.dart';
 import '../Services/PaymentHandler.dart';
@@ -241,9 +241,8 @@ class OrderConfirmation extends ConsumerWidget {
                 const SizedBox(height: 5),
                 isLoading
                     ? const Center(
-                        child: SizedBox(
-                          height: 20,
-                          width: 20,
+                        child: Padding(
+                          padding: EdgeInsets.all(18.0),
                           child: CircularProgressIndicator(
                             color: Color(0xFF273847),
                             strokeWidth: 4.0,
@@ -256,6 +255,12 @@ class OrderConfirmation extends ConsumerWidget {
                           onPressed: isLoading
                               ? null
                               : () async {
+                                  // ignore: unused_result
+                                  ref.refresh(searchQueryProvider);
+                                  ref
+                                          .read(refreshTriggerProvider.notifier)
+                                          .state =
+                                      !ref.read(refreshTriggerProvider);
                                   if (selectedPaymentMethod == null) {
                                     Fluttertoast.showToast(
                                       msg: "Please select a payment method.",
@@ -272,51 +277,11 @@ class OrderConfirmation extends ConsumerWidget {
 
                                   final prefs =
                                       await SharedPreferences.getInstance();
-                                  final String selectedSlot =
-                                      prefs.getString('selectedSlot') ?? '';
-
+                                  final double etaMinutes =
+                                      prefs.getDouble('selectedDistance') ?? 0;
                                   final currentTime = DateTime.now();
-                                  final generator = AvailableSlotsGenerator(
-                                    slotDurationMinutes: 30,
-                                    minGapMinutes: 30,
-                                    startTime: DateTime(
-                                      currentTime.year,
-                                      currentTime.month,
-                                      currentTime.day,
-                                      7,
-                                      0,
-                                    ),
-                                    endTime: DateTime(
-                                      currentTime.year,
-                                      currentTime.month,
-                                      currentTime.day + 1,
-                                      0,
-                                      0,
-                                    ),
-                                  );
-                                  final availableSlots =
-                                      generator.getAvailableSlots(currentTime);
-                                  if (!availableSlots.any((slot) =>
-                                      DateFormat('h:mm a').format(slot) ==
-                                      selectedSlot)) {
-                                    ref
-                                        .read(CODloadingProvider.notifier)
-                                        .state = false;
-
-                                    ref
-                                        .read(CODloadingProvider.notifier)
-                                        .state = false;
-
-                                    Fluttertoast.showToast(
-                                      msg:
-                                          "The chosen time slot is already Closed",
-                                      toastLength: Toast.LENGTH_SHORT,
-                                      gravity: ToastGravity.BOTTOM,
-                                      backgroundColor: Colors.red,
-                                      textColor: Colors.white,
-                                    );
-                                    return;
-                                  }
+                                  currentTime.add(
+                                      Duration(minutes: etaMinutes.toInt()));
 
                                   ref.read(CODloadingProvider.notifier).state =
                                       true;

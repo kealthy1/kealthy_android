@@ -1,7 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kealthy/LandingPage/Help&Support/Help&Support_Tab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../Login/login_page.dart';
 import '../Maps/SelectAdress.dart';
 import '../Orders/ordersTab.dart';
@@ -22,6 +23,16 @@ class UserProfileNotifier extends StateNotifier<UserProfile> {
     String savedName = prefs.getString('Name') ?? 'User';
     state = UserProfile(name: savedName);
   }
+
+  Future<void> updateUserName(String newName) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('Name', newName);
+    state = UserProfile(name: newName);
+  }
+
+  Future<void> refreshUserName() async {
+    await _loadUserName();
+  }
 }
 
 final userProfileProvider =
@@ -34,9 +45,7 @@ class ProfilePage extends ConsumerWidget {
 
   Future<void> _clearPreferencesAndNavigate(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-
     await prefs.remove('phoneNumber');
-
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const LoginFields()),
@@ -45,9 +54,18 @@ class ProfilePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userName = ref.watch(userProfileProvider).name;
+    final userProfile = ref.watch(userProfileProvider);
+    final userName = userProfile.name;
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color(0xFF273847),
+        centerTitle: true,
+        title: Text(
+          "Profile",
+          style: TextStyle(color: Colors.white, fontFamily: "poppins"),
+        ),
+      ),
       backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -57,7 +75,7 @@ class ProfilePage extends ConsumerWidget {
             const SizedBox(height: 16),
             CircleAvatar(
               radius: 50,
-              backgroundColor: Colors.white,
+              backgroundColor: Color(0xFF273847),
               child: Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
@@ -65,10 +83,10 @@ class ProfilePage extends ConsumerWidget {
                 ),
                 child: Center(
                   child: Text(
-                    userName.isNotEmpty ? userName[0].toUpperCase() : 'K',
+                    userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
                     style: const TextStyle(
                       fontSize: 40,
-                      color: Colors.black,
+                      color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -111,12 +129,6 @@ class ProfilePage extends ConsumerWidget {
                   ),
                   _buildMenuItem(
                     context,
-                    Icons.exit_to_app,
-                    'Logout',
-                    () => _clearPreferencesAndNavigate(context),
-                  ),
-                  _buildMenuItem(
-                    context,
                     Icons.article,
                     "Terms and conditions",
                     () => Navigator.push(
@@ -128,15 +140,21 @@ class ProfilePage extends ConsumerWidget {
                   ),
                   _buildMenuItem(
                     context,
-                    Icons.article,
+                    CupertinoIcons.chat_bubble_text,
                     "Help & Support",
                     () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const OrdersTabScreen(),
+                        builder: (context) => const SupportDeskScreen(),
                       ),
                     ),
-                  )
+                  ),
+                  _buildMenuItem(
+                    context,
+                    Icons.exit_to_app,
+                    'Logout',
+                    () => _clearPreferencesAndNavigate(context),
+                  ),
                 ],
               ),
             ),
@@ -151,13 +169,25 @@ class ProfilePage extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Color(0xFF273847),
+        color: Color(0xFFF4F4F5),
+        border: Border.all(
+          color: Color(0xFF273847),
+        ),
         borderRadius: BorderRadius.circular(8),
       ),
       child: ListTile(
-        leading: Icon(icon, color: Colors.white),
-        title: Text(title, style: const TextStyle(color: Colors.white)),
-        trailing: const Icon(Icons.chevron_right, color: Colors.white),
+        leading: Icon(
+          icon,
+          color: Color(0xFF273847),
+        ),
+        title: Text(title,
+            style: const TextStyle(
+              color: Color(0xFF273847),
+            )),
+        trailing: const Icon(
+          Icons.chevron_right,
+          color: Color(0xFF273847),
+        ),
         onTap: onTap,
       ),
     );

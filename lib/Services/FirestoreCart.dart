@@ -20,6 +20,7 @@ class SharedPreferencesCartItem {
   });
 
   double get totalPrice => price * quantity;
+  
 
   Map<String, dynamic> toJson() => {
         'id': id,

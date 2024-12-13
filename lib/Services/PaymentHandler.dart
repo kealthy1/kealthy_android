@@ -38,9 +38,15 @@ class PaymentHandler {
       String Landmark = prefs.getString('landmark') ?? '';
       String phoneNumber = prefs.getString('phoneNumber') ?? '';
       String selectedSlot = prefs.getString('selectedSlot') ?? '';
+      String displaySlot =
+          selectedSlot.toLowerCase().contains('instant delivery')
+              ? 'Instant Delivery'
+              : selectedSlot;
+
       double totalAmountToPay = prefs.getDouble('totalToPay') ?? 0;
       String paymentmethod = prefs.getString('selectedPaymentMethod') ?? '';
       String fcmToken = prefs.getString('fcm_token') ?? '';
+      String cookinginstrcutions = prefs.getString("cookinginstrcutions") ?? "";
 
       if (selectedType.isEmpty || Name.isEmpty || selectedRoad.isEmpty) {
         print("Missing required fields!");
@@ -67,7 +73,7 @@ class PaymentHandler {
           'item_quantity': itemQuantity,
           'item_price': itemPrice,
         });
-         unawaited(reduceItemStock(itemName, itemQuantity));
+        unawaited(reduceItemStock(itemName, itemQuantity));
 
         index++;
       }
@@ -84,15 +90,18 @@ class PaymentHandler {
         'selectedRoad': selectedRoad,
         'phoneNumber': phoneNumber,
         'totalAmountToPay': totalAmountToPay,
-        'selectedSlot': selectedSlot,
+        'selectedSlot': displaySlot,
         'status': 'Order Placed',
         'assignedto': 'NotAssigned',
+        'DA': 'NotAssigned',
+        'DAMOBILE': 'NotAssigned',
         'createdAt': DateTime.now().toIso8601String(),
         'orderItems': orderItems,
         'landmark': Landmark,
         'distance': selectedDistance.toStringAsFixed(2),
         'paymentmethod': paymentmethod,
         'fcm_token': fcmToken,
+        'cookinginstrcutions': cookinginstrcutions,
       });
 
       print("Order details saved successfully with orderId: $orderId");

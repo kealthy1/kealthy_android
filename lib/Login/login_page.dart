@@ -47,8 +47,7 @@ class _LoginFieldsState extends ConsumerState<LoginFields> {
     ref.read(loadingProvider.notifier).state = true;
 
     final phoneNumber = _phoneController.text.trim();
-    const url =
-        'https://api-jfnhkjk4nq-uc.a.run.app/send-otp';
+    const url = 'https://api-jfnhkjk4nq-uc.a.run.app/send-otp';
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -118,15 +117,13 @@ class _LoginFieldsState extends ConsumerState<LoginFields> {
                         text: 'YOUR JOURNEY TO WELLNESS',
                         duration: const Duration(seconds: 1),
                         color: Colors.green,
-                        fontSize: MediaQuery.of(context).size.width *
-                            0.07,
+                        fontSize: MediaQuery.of(context).size.width * 0.07,
                       ),
                       FadeInText(
                         text: 'STARTS HERE.',
                         duration: const Duration(seconds: 1),
                         color: Colors.white,
-                        fontSize: MediaQuery.of(context).size.width *
-                            0.18,
+                        fontSize: MediaQuery.of(context).size.width * 0.18,
                       ),
                       const SizedBox(height: 50),
                       const FadeInText(
@@ -171,7 +168,7 @@ class _LoginFieldsState extends ConsumerState<LoginFields> {
                               }
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
+                              backgroundColor: Color(0xFF273847),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),

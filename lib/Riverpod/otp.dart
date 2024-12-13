@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import '../LandingPage/HomePage.dart';
+import '../LandingPage/Widgets/floating_bottom_navigation_bar.dart';
 
 class OtpState {
   final String? otp;
@@ -46,7 +46,7 @@ class OtpNotifier extends StateNotifier<OtpState> {
         }
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const MyHomePage()),
+          MaterialPageRoute(builder: (context) => const CustomBottomNavigationBar()),
         );
       } else {
         state = OtpState(error: 'Inavalid OTP');

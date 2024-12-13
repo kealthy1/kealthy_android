@@ -4,13 +4,14 @@ class ReusableAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
 
   const ReusableAppBar({
-    required this.title, 
+    required this.title,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      centerTitle: true,
       automaticallyImplyLeading: false,
       title: Text(
         title,
@@ -20,8 +21,7 @@ class ReusableAppBar extends StatelessWidget implements PreferredSizeWidget {
           color: Colors.white,
         ),
       ),
-      backgroundColor: Colors.green[800],
-      centerTitle: true,
+      backgroundColor: Color(0xFF273847),
     );
   }
 

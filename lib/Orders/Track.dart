@@ -126,7 +126,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                                         height: 50,
                                         decoration: const BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: Colors.green,
+                                          color: Color(0xFF273847),
                                         ),
                                         child: const Icon(
                                           CupertinoIcons.house_fill,
@@ -153,7 +153,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                       },
                       loading: () => Center(
                         child: LoadingAnimationWidget.discreteCircle(
-                          color: Colors.green,
+                          color: Color(0xFF273847),
                           size: 50,
                         ),
                       ),
@@ -163,7 +163,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                   },
                   loading: () => Center(
                     child: LoadingAnimationWidget.discreteCircle(
-                      color: Colors.green,
+                      color: Color(0xFF273847),
                       size: 50,
                     ),
                   ),
@@ -172,7 +172,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
               },
               loading: () => Center(
                 child: LoadingAnimationWidget.discreteCircle(
-                  color: Colors.green,
+                  color: Color(0xFF273847),
                   size: 50,
                 ),
               ),
@@ -246,7 +246,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: Colors.green[800],
+                                  color: Color(0xFF273847),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Column(
@@ -277,7 +277,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                         },
                         loading: () => Center(
                           child: LoadingAnimationWidget.discreteCircle(
-                            color: Colors.green,
+                            color: Color(0xFF273847),
                             size: 50,
                           ),
                         ),
@@ -287,7 +287,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                     },
                     loading: () => Center(
                       child: LoadingAnimationWidget.discreteCircle(
-                        color: Colors.green,
+                        color: Color(0xFF273847),
                         size: 50,
                       ),
                     ),
@@ -306,7 +306,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                         child: Container(
                           width: screenWidth * 0.10,
                           height: screenWidth * 0.10,
-                          color: Colors.green[800],
+                          color: Color(0xFF273847),
                           alignment: Alignment.center,
                           child: Text(
                             widget.DeliveryBoy.isNotEmpty
@@ -333,11 +333,13 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                       ),
                       const Spacer(),
                       IconButton(
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey.shade100),
                         icon: const Icon(
-                          CupertinoIcons.phone_circle,
-                          color: Colors.green,
+                          Icons.phone,
+                          color: Color(0xFF273847),
                         ),
-                        iconSize: screenWidth * 0.09,
+                        iconSize: screenWidth * 0.07,
                         onPressed: () async {
                           final phoneNumber = widget.phoneNumber;
                           showDialog(
@@ -370,7 +372,8 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                                   ),
                                   ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.green),
+                                      backgroundColor: Color(0xFF273847),
+                                    ),
                                     onPressed: () async {
                                       Navigator.of(context).pop();
                                       await FlutterPhoneDirectCaller.callNumber(

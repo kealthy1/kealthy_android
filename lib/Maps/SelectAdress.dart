@@ -1,13 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:kealthy/LandingPage/Widgets/Appbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'dart:math';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../Riverpod/distance.dart';
-import 'Select Location.dart';
+import 'fluttermap.dart';
+import 'functions/Location_Permission.dart';
 
 final selectedAddressProvider = StateProvider<Address?>((ref) => null);
 
@@ -104,6 +105,7 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
       await prefs.setStringList('savedAddresses', updatedAddresses);
       final selectedAddressId = prefs.getString('selectedRoad');
       if (selectedAddressId == address.road) {
+        // ignore: unused_result
         await prefs.remove('selectedAddressId');
         await prefs.remove('Name');
         await prefs.remove('selectedRoad');
@@ -137,7 +139,8 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
     final selectedAddress = ref.watch(selectedAddressProvider);
 
     return WillPopScope(
-      onWillPop: ()async {
+      onWillPop: () async {
+        // ignore: unused_result
         ref.refresh(selectedRoadProvider);
         return true;
       },
@@ -157,15 +160,20 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
           child: Column(
             children: [
               GestureDetector(
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    CupertinoModalPopupRoute(
-                      builder: (context) => const SelectLocationPage(
-                        totalPrice: 0,
+                onTap: () async {
+                  bool serviceEnabled =
+                      await Geolocator.isLocationServiceEnabled();
+
+                  if (serviceEnabled) {
+                    Navigator.pushReplacement(
+                      context,
+                      CupertinoModalPopupRoute(
+                        builder: (context) => const SelectLocationPage(),
                       ),
-                    ),
-                  );
+                    );
+                  } else {
+                    checkAndRequestLocation(context);
+                  }
                 },
                 child: Container(
                   decoration: BoxDecoration(
@@ -198,7 +206,7 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              
               _buildCenteredTitle('SAVED ADDRESSES'),
               const SizedBox(height: 10),
               Expanded(
@@ -221,6 +229,7 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
                           final address = addresses[index];
                           final double restaurantLatitude = 10.010279427438405;
                           final double restaurantLongitude = 76.38426666931349;
+
                           final double calculatedDistance = calculatesDistance(
                             address.latitude,
                             address.longitude,
@@ -228,19 +237,39 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
                             restaurantLongitude,
                           );
 
-                          return AddressCard(
-                            address: address,
-                            isSelected: selectedAddress == address,
-                            restaurantLatitude: restaurantLatitude,
-                            restaurantLongitude: restaurantLongitude,
-                            distance: calculatedDistance,
-                            onSelected: () {
-                              ref.read(selectedAddressProvider.notifier).state =
-                                  address;
-                              saveSelectedAddress(address, calculatedDistance);
-                            },
-                            onDelete: () async {
-                              await deleteAddressLocally(address, ref);
+                          final Future<double> drivingDistanceFuture =
+                              calculateDrivingDistance(
+                            apiKey: "AIzaSyD1MUoakZ0mm8WeFv_GK9k_zAWdGk5r1hA",
+                            startLatitude: address.latitude,
+                            startLongitude: address.longitude,
+                            endLatitude: restaurantLatitude,
+                            endLongitude: restaurantLongitude,
+                          );
+
+                          return FutureBuilder<double>(
+                            future: drivingDistanceFuture,
+                            builder: (context, snapshot) {
+                              final double drivingDistance =
+                                  snapshot.data ?? calculatedDistance;
+
+                              return AddressCard(
+                                address: address,
+                                isSelected: selectedAddress == address,
+                                restaurantLatitude: restaurantLatitude,
+                                restaurantLongitude: restaurantLongitude,
+                                distance: drivingDistance,
+                                onSelected: () {
+                                  ref
+                                      .read(selectedAddressProvider.notifier)
+                                      .state = address;
+                                  saveSelectedAddress(address, drivingDistance);
+                                  // ignore: unused_result
+                                  ref.refresh(selectedRoadProvider);
+                                },
+                                onDelete: () async {
+                                  await deleteAddressLocally(address, ref);
+                                },
+                              );
                             },
                           );
                         },
@@ -292,8 +321,6 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
       ),
     );
   }
-
-
 }
 
 class Address {
@@ -348,7 +375,7 @@ class Address {
   }
 }
 
-class AddressCard extends StatelessWidget {
+class AddressCard extends ConsumerWidget {
   final Address address;
   final bool isSelected;
   final VoidCallback onSelected;
@@ -369,7 +396,7 @@ class AddressCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDeliverable = distance <= 30;
     IconData getIconBasedOnType(String type) {
       switch (type.toLowerCase()) {
@@ -385,6 +412,8 @@ class AddressCard extends StatelessWidget {
     return GestureDetector(
       onTap: isDeliverable
           ? () async {
+              // ignore: unused_result
+              ref.refresh(selectedRoadProvider);
               Fluttertoast.showToast(
                 msg: "Address ${address.type} Selected!",
                 toastLength: Toast.LENGTH_SHORT,
@@ -394,7 +423,6 @@ class AddressCard extends StatelessWidget {
                 fontSize: 12.0,
               );
               onSelected();
-              Navigator.pop(context);
             }
           : null,
       child: Container(
@@ -469,9 +497,7 @@ class AddressCard extends StatelessWidget {
                   Navigator.pushReplacement(
                     context,
                     CupertinoModalPopupRoute(
-                      builder: (context) => const SelectLocationPage(
-                        totalPrice: 0,
-                      ),
+                      builder: (context) => const SelectLocationPage(),
                     ),
                   );
                 } else if (choice == 'Delete') {

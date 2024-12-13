@@ -1,7 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kealthy/Cart/SlotsBooking.dart';
+import 'package:kealthy/Maps/SelectAdress.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../Cart/Cart_Items.dart';
+import '../Payment/Bill.dart';
 import '../Services/FirestoreCart.dart';
 
 class CartVisibilityNotifier extends StateNotifier<bool> {
@@ -64,7 +68,29 @@ class CartContainer extends ConsumerWidget {
           ),
           const Spacer(),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              ref.refresh(etaTimeProvider);
+              ref.refresh(distanceProvider);
+              final selectedRoad = prefs.getString('selectedRoad');
+              if (selectedRoad == null || selectedRoad.isEmpty) {
+                Navigator.push(
+                  context,
+                  CupertinoModalPopupRoute(
+                    builder: (context) => const SelectAdress(
+                      totalPrice: 0,
+                    ),
+                  ),
+                );
+                return;
+              }
+
+              await prefs.remove('selectedSlot');
+              // ignore: unused_result
+              ref.refresh(selectedETAProvider);
+              // ignore: unused_result
+              ref.refresh(totalDistanceProvider);
+
               Navigator.push(
                 context,
                 CupertinoModalPopupRoute(

@@ -1,13 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:ntp/ntp.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'AvailableslotGenerator.dart';
 
 final selectedSlotProvider = StateProvider<DateTime?>((ref) => null);
 final isExpandedProvider = StateProvider<bool>((ref) => false);
+final distanceProvider = FutureProvider<double>((ref) async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getDouble('selectedDistance') ?? 0.0;
+});
+
+final selectedETAProvider = StateProvider<DateTime?>((ref) => null);
+
+final etaTimeProvider = FutureProvider<DateTime>((ref) async {
+  final distance = await ref.read(distanceProvider.future);
+
+  const double averageSpeedKmH = 30.0;
+  const int cookingTimeMinutes = 15;
+
+  final etaMinutes = (distance / averageSpeedKmH) * 100 + cookingTimeMinutes;
+
+  final currentTime = DateTime.now();
+  return currentTime.add(Duration(minutes: etaMinutes.toInt()));
+});
 
 class SlotSelectionContainer extends ConsumerWidget {
   const SlotSelectionContainer({super.key});
@@ -16,14 +33,6 @@ class SlotSelectionContainer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedSlot = ref.watch(selectedSlotProvider);
     final isExpanded = ref.watch(isExpandedProvider);
-    if (selectedSlot != null) {
-      final currentTime = DateTime.now();
-      final slotExpiryTime = selectedSlot.add(const Duration(minutes: 10));
-
-      if (currentTime.isAfter(slotExpiryTime)) {
-        ref.read(selectedSlotProvider.notifier).state = null;
-      }
-    }
     return Container(
       width: MediaQuery.of(context).size.width,
       padding: const EdgeInsets.all(15),
@@ -59,7 +68,7 @@ class SlotSelectionContainer extends ConsumerWidget {
                   Text(
                     selectedSlot != null
                         ? 'Slot: ${DateFormat('h:mm a').format(selectedSlot)}'
-                        : 'Select Delivery Slot',
+                        : 'Preferred Delivery Time',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -75,80 +84,84 @@ class SlotSelectionContainer extends ConsumerWidget {
           if (isExpanded)
             Padding(
               padding: const EdgeInsets.only(top: 10),
-              child: FutureBuilder<DateTime>(
-                future: NTP.now(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    final currentTime = snapshot.data!;
-                    final generator = AvailableSlotsGenerator(
-                      slotDurationMinutes: 30,
-                      minGapMinutes: 30,
-                      startTime: DateTime(
-                        currentTime.year,
-                        currentTime.month,
-                        currentTime.day,
-                        7,
-                        0,
-                      ),
-                      endTime: DateTime(
-                        currentTime.year,
-                        currentTime.month,
-                        currentTime.day + 1,
-                        0,
-                        0,
-                      ),
-                    );
-                    final availableSlots =
-                        generator.getAvailableSlots(currentTime);
-                    return Wrap(
-                      spacing: 3,
-                      runSpacing: 10,
-                      children: availableSlots.map((slot) {
-                        final formattedTime = DateFormat('h:mm a').format(slot);
-                        return InkWell(
-                          onTap: () async {
-                            ref.read(selectedSlotProvider.notifier).state =
-                                slot;
-                            ref.read(isExpandedProvider.notifier).state = false;
-                            SharedPreferences prefs =
-                                await SharedPreferences.getInstance();
-                            prefs.setString('selectedSlot',
-                                DateFormat('h:mm a').format(slot));
-                          },
-                          child: Container(
-                            width: MediaQuery.of(context).size.width * 0.26,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: selectedSlot == slot
-                                  ? const Color.fromARGB(255, 223, 240, 224)
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(5),
-                              border: Border.all(color: Colors.black12),
-                            ),
-                            child: Center(
-                              child: Text(
-                                formattedTime,
-                                style: TextStyle(
-                                  color: selectedSlot == slot
-                                      ? Colors.black
-                                      : Colors.black,
-                                  fontWeight: FontWeight.bold,
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final etaTimeAsync = ref.watch(etaTimeProvider);
+
+                  return etaTimeAsync.when(
+                    data: (etaTime) {
+                      final nextFullHourAfterBreak = etaTime
+                          .add(const Duration(minutes: 45))
+                          .add(Duration(hours: 1) -
+                              Duration(minutes: etaTime.minute));
+
+                      final generator = AvailableSlotsGenerator(
+                        slotDurationMinutes: 60,
+                        minGapMinutes: 30,
+                        startTime: nextFullHourAfterBreak,
+                        endTime: DateTime(
+                          etaTime.year,
+                          etaTime.month,
+                          etaTime.day + 1,
+                          0,
+                          0,
+                        ),
+                      );
+
+                      final availableSlots =
+                          generator.getAvailableSlots(DateTime.now(), 0);
+
+                      return Wrap(
+                        spacing: 3,
+                        runSpacing: 10,
+                        children: availableSlots.map((slot) {
+                          final formattedTime =
+                              DateFormat('h:mm a').format(slot);
+                          return InkWell(
+                            onTap: () async {
+                              ref.read(selectedSlotProvider.notifier).state =
+                                  slot;
+                              ref.read(isExpandedProvider.notifier).state =
+                                  false;
+                              SharedPreferences prefs =
+                                  await SharedPreferences.getInstance();
+                              prefs.setString('selectedSlot',
+                                  DateFormat('h:mm a').format(slot));
+                            },
+                            child: Container(
+                              width: MediaQuery.of(context).size.width * 0.26,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: selectedSlot == slot
+                                    ? const Color.fromARGB(255, 223, 240, 224)
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(5),
+                                border: Border.all(color: Colors.black12),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  formattedTime,
+                                  style: TextStyle(
+                                    color: selectedSlot == slot
+                                        ? Colors.black
+                                        : Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        );
-                      }).toList(),
-                    );
-                  } else {
-                    return Center(
-                      child: LoadingAnimationWidget.inkDrop(
-                        size: 50,
-                        color: Colors.green,
-                      ),
-                    );
-                  }
+                          );
+                        }).toList(),
+                      );
+                    },
+                    loading: () => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                    error: (error, stack) => const Center(
+                      child: Text("Error loading ETA."),
+                    ),
+                  );
                 },
               ),
             ),
@@ -157,3 +170,4 @@ class SlotSelectionContainer extends ConsumerWidget {
     );
   }
 }
+

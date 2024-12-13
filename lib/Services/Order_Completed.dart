@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kealthy/LandingPage/HomePage.dart';
+import 'package:kealthy/LandingPage/Widgets/floating_bottom_navigation_bar.dart';
 import 'package:lottie/lottie.dart';
 
 class ReusableCountdownDialog {
@@ -29,7 +29,7 @@ class ReusableCountdownDialog {
               onWillPop: () async {
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => const MyHomePage()),
+                  MaterialPageRoute(builder: (context) => const CustomBottomNavigationBar()),
                   (route) => false,
                 );
                 return false;
@@ -37,6 +37,7 @@ class ReusableCountdownDialog {
               child: Scaffold(
                 backgroundColor: Colors.transparent,
                 body: AlertDialog(
+                  backgroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),

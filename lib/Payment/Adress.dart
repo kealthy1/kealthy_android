@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kealthy/Maps/Widgets/SavedAdress.dart';
+import 'package:kealthy/Payment/SavedAdress.dart';
 import 'package:kealthy/Payment/payment.dart';
 import 'Bill.dart';
-import '../Maps/Widgets/Deliveryinst.dart';
+import 'Deliveryinst.dart';
 
 class AdressPage extends ConsumerWidget {
   final double totalPrice;

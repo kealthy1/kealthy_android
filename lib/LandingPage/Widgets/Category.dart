@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-
 import '../../DetailsPage/SubCategory.dart';
 
 class Category {
@@ -31,45 +30,56 @@ class CategoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FoodCategoriesScreen(
-              category: categoryName,
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double imageHeight = constraints.maxWidth * 0.80;
+        return InkWell(
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FoodCategoriesScreen(
+                  category: categoryName,
+                ),
+              ),
+            );
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CachedNetworkImage(
+                width: constraints.minWidth,
+                height: imageHeight,
+                fit: BoxFit.cover,
+                imageUrl: imageUrl,
+                placeholder: (context, url) => Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(
+                    color: Colors.grey[300],
+                    width: constraints.minWidth,
+                    height: imageHeight,
+                  ),
+                ),
+                errorWidget: (context, url, error) =>
+                    const Icon(Icons.error, size: 40),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                categoryName,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: "poppins"),
+              ),
+            ],
           ),
         );
       },
-      child: Column(
-        children: [
-          CachedNetworkImage(
-            width: 80,
-            height: 80,
-            fit: BoxFit.cover,
-            imageUrl: imageUrl,
-            placeholder: (context, url) => Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
-              child: Container(
-                color: Colors.grey[300],
-                width: screenWidth * 0.25,
-                height: screenWidth * 0.25,
-              ),
-            ),
-            errorWidget: (context, url, error) => const Icon(Icons.error),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            categoryName.replaceAll(r'\n', '\n'),
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -79,8 +89,6 @@ class CategoryGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return StreamBuilder(
       stream: FirebaseFirestore.instance.collection('categories').snapshots(),
       builder: (context, snapshot) {
@@ -91,8 +99,8 @@ class CategoryGrid extends StatelessWidget {
               highlightColor: Colors.grey[100]!,
               child: Container(
                 color: Colors.grey[300],
-                width: screenWidth * 0.25,
-                height: screenWidth * 0.25,
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height,
               ),
             ),
           );
@@ -106,21 +114,26 @@ class CategoryGrid extends StatelessWidget {
             .map((doc) => Category.fromFirestore(doc.data()))
             .toList();
 
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 4,
-              mainAxisSpacing: 4,
-              childAspectRatio: 1.2),
-          itemCount: categories.length,
-          itemBuilder: (context, index) {
-            final category = categories[index];
-            return CategoryItem(
-              categoryName: category.name,
-              imageUrl: category.imageUrl,
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 6,
+                mainAxisSpacing: 6,
+                childAspectRatio: .95,
+              ),
+              itemCount: categories.length,
+              itemBuilder: (context, index) {
+                final category = categories[index];
+                return CategoryItem(
+                  categoryName: category.name,
+                  imageUrl: category.imageUrl,
+                );
+              },
             );
           },
         );

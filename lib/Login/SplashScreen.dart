@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:kealthy/LandingPage/HomePage.dart';
+import 'package:kealthy/LandingPage/Widgets/floating_bottom_navigation_bar.dart';
 import 'package:kealthy/Login/introscreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -21,14 +21,15 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> navigateAfterDelay() async {
     await Future.delayed(const Duration(seconds: 2));
-    
+
     final hasPhoneNumber = await _checkPhoneNumber();
     if (mounted) {
       Navigator.pushReplacement(
         context,
         CupertinoPageRoute(
-          builder: (context) =>
-              hasPhoneNumber ? const MyHomePage() : const IntroScreen(),
+          builder: (context) => hasPhoneNumber
+              ? const CustomBottomNavigationBar()
+              : const IntroScreen(),
         ),
       );
     }

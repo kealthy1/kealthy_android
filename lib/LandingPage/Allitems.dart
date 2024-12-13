@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kealthy/LandingPage/HomePage.dart';
 import 'package:kealthy/LandingPage/Widgets/Recent_Search.dart';
+import 'package:kealthy/LandingPage/Widgets/floating_bottom_navigation_bar.dart';
 import '../MenuPage/Search_provider.dart';
 import '../MenuPage/menu_item.dart';
 import 'Widgets/Search All.dart';
@@ -34,7 +34,7 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
           ref.refresh(searchQueryProvider);
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => MyHomePage()),
+            MaterialPageRoute(builder: (context) => CustomBottomNavigationBar()),
             (route) => false,
           );
           return false;

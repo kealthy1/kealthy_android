@@ -1,19 +1,21 @@
-import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
+import 'dart:io';
+import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/LandingPage/Myprofile.dart';
 import 'package:kealthy/LandingPage/Widgets/Category.dart';
+import '../MenuPage/MenuPage.dart';
 import '../MenuPage/Search_provider.dart';
 import '../Riverpod/BackButton.dart';
 import '../Riverpod/NavBar.dart';
 import '../Services/DeliveryIn_Kakkanad.dart';
 import '../Services/FirestoreCart.dart';
+import '../Services/TimeValidator.dart';
 import 'Cart_Container.dart';
 import 'Widgets/Appbar.dart';
 import 'Widgets/Carousel.dart';
 import 'Widgets/Serach.dart';
-import 'Widgets/floating_bottom_navigation_bar.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class MyHomePage extends ConsumerStatefulWidget {
@@ -27,8 +29,71 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   @override
   void initState() {
     // ignore: unused_result
-    ref.refresh(selectedRoadProvider);
+    ref.refresh(userProfileProvider);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(refreshTriggerProvider.notifier).state =
+          !ref.read(refreshTriggerProvider);
+    });
+
+    _checkTime();
     super.initState();
+  }
+
+  void _checkTime() async {
+    bool isTimeValid = await TimeValidator.validateTime();
+    if (!isTimeValid) {
+      _showErrorAndExit();
+    }
+  }
+
+  void _showErrorAndExit(
+      {String message =
+          'Your device time does not match the server time. Please correct it.'}) {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        title: const Icon(
+          CupertinoIcons.exclamationmark_circle,
+          color: Colors.red,
+          size: 80,
+        ),
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.black, fontFamily: "poppins"),
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () {
+              openDateAndTimeSettings();
+            },
+            child: const Text(
+              'Settings',
+              style: TextStyle(fontFamily: "poppins"),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void openDateAndTimeSettings() {
+    if (Platform.isAndroid) {
+      const intent = AndroidIntent(
+        action: 'android.settings.DATE_SETTINGS',
+      );
+      intent.launch();
+    } else {
+      print('This feature is only available on Android devices.');
+    }
   }
 
   @override
@@ -80,16 +145,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
             return true;
           },
           child: pages[currentIndex],
-        ),
-        bottomNavigationBar: CustomBottomNavigationBar(
-          currentIndex: currentIndex,
-          navbarItems: [
-            FloatingNavbarItem(icon: Icons.home_outlined, title: 'Home'),
-            FloatingNavbarItem(icon: CupertinoIcons.person, title: 'Profile'),
-          ],
-          onTap: (index) {
-            ref.read(bottomNavIndexProvider.notifier).updateIndex(index);
-          },
         ),
         bottomSheet: cartItems.isNotEmpty &&
                 currentIndex != profilePageIndex &&

@@ -9,9 +9,10 @@ import 'Card.dart';
 import 'Search_provider.dart';
 import 'Serach.dart';
 import 'menu_item.dart';
-
+final refreshTriggerProvider = StateProvider<bool>((ref) => false);
 final searchAndFilterProvider =
     FutureProvider.family<List<MenuItem>, String>((ref, categoryName) async {
+      ref.watch(refreshTriggerProvider);
   final searchQuery = ref.watch(searchQueryProvider).toLowerCase().trim();
   final firestore = FirebaseFirestore.instance;
   Query query = firestore

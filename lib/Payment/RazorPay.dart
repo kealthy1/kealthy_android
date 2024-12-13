@@ -4,8 +4,11 @@ import 'package:kealthy/Orders/ordersTab.dart';
 import 'package:kealthy/Services/Order_Completed.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../Services/FirestoreCart.dart';
 import '../Services/PaymentHandler.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class RazorPay extends ConsumerStatefulWidget {
   final double totalAmountToPay;
@@ -42,7 +45,7 @@ class _RazorPayState extends ConsumerState<RazorPay> {
       ReusableCountdownDialog(
         context: context,
         ref: ref,
-        message: "Payment Successful! Redirecting to My Orders",
+        message: "Payment Successful!",
         imagePath: "assets/Animation - 1731992471934.json",
         onRedirect: () {
           Navigator.pushReplacement(
@@ -78,25 +81,52 @@ class _RazorPayState extends ConsumerState<RazorPay> {
     ).show();
   }
 
-  void openCheckout() {
-    var options = {
-      'key': 'rzp_test_GcZZFDPP0jHtC4',
-      'amount': (widget.totalAmountToPay * 100).toString(),
-      'name': 'KEALTHY',
-      'description': 'Payment for your order',
-      'prefill': {
-        'contact': '1234567890',
-        'email': 'customer@example.com',
-      },
-      'external': {
-        'wallets': ['paytm', 'googlepay'],
-      }
-    };
+  void openCheckout() async {
+    String backendUrl = 'https://api-jfnhkjk4nq-uc.a.run.app';
 
     try {
-      _razorpay.open(options);
+      final prefs = await SharedPreferences.getInstance();
+      final Name = prefs.getString('Name');
+      final Address = prefs.getString('Name');
+      final response = await http.post(
+        Uri.parse('$backendUrl/Razorpay/create-order'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'amount': widget.totalAmountToPay,
+          'currency': 'INR',
+          'receipt': 'receipt_${DateTime.now().millisecondsSinceEpoch}',
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        String orderId = data['orderId'];
+
+        var options = {
+          'key': 'rzp_live_DD7Kqm02VtfBmE',
+          'amount': (widget.totalAmountToPay * 100).toString(),
+          'currency': 'INR',
+          'name': 'KEALTHY',
+          'description': Address,
+          'order_id': orderId,
+          'prefill': {
+            'contact': '1234567890',
+            'email': Name,
+          },
+          'external': {
+            'wallets': ['paytm', 'googlepay'],
+          }
+        };
+
+        _razorpay.open(options);
+      } else {
+        throw Exception('Failed to create order: ${response.body}');
+      }
     } catch (e) {
-      print(e);
+      print('Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error initiating payment: $e')),
+      );
     }
   }
 
@@ -110,7 +140,7 @@ class _RazorPayState extends ConsumerState<RazorPay> {
   Widget build(BuildContext context) {
     return Center(
       child: LoadingAnimationWidget.discreteCircle(
-        color: Colors.green,
+        color: Color(0xFF273847),
         size: 70,
       ),
     );

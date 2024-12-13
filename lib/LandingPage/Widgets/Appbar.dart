@@ -1,7 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kealthy/LandingPage/Help&Support/Help&Support_Tab.dart';
 import 'package:kealthy/Orders/ordersTab.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,10 +11,34 @@ import '../../Maps/functions/Delivery_detailslocationprovider.dart';
 import '../../Maps/SelectAdress.dart';
 import '../../Services/Navigation.dart';
 
-final selectedRoadProvider = FutureProvider<String?>((ref) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.getString('selectedRoad');
-});
+class SelectedRoadNotifier extends StateNotifier<String?> {
+  SelectedRoadNotifier() : super(null) {
+    _loadSelectedRoad();
+  }
+
+  // Load the initial selected road from SharedPreferences
+  Future<void> _loadSelectedRoad() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    state = prefs.getString('selectedRoad');
+  }
+
+  // Refresh the selected road when updated
+  Future<void> refreshSelectedRoad() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    state = prefs.getString('selectedRoad');
+  }
+
+  // Update the selected road
+  Future<void> updateSelectedRoad(String newRoad) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selectedRoad', newRoad);
+    state = newRoad; // Trigger a rebuild
+  }
+}
+
+final selectedRoadProvider =
+    StateNotifierProvider<SelectedRoadNotifier, String?>(
+        (ref) => SelectedRoadNotifier());
 
 class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
   const CustomAppBar({super.key});
@@ -25,17 +51,10 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
     return parts.isNotEmpty ? parts[0] : fullLocation;
   }
 
-  Future<String> _getSelectedRoad() async {
-    final prefs = await SharedPreferences.getInstance();
-    final selectedRoad = prefs.getString('selectedRoad') ?? '';
-    return selectedRoad.split(',').first.trim();
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedAddress = ref.watch(selectedAddressProvider);
+    final selectedRoad = ref.watch(selectedRoadProvider); // Reactive watch
     final currentLocation = ref.watch(locationProvider);
-    final selectedRoadAsyncValue = ref.watch(selectedRoadProvider);
 
     final locationParts = currentLocation.split('\n');
     String fullLocation =
@@ -52,116 +71,55 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
     return AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: Colors.white,
-      title: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SelectAdress(
-                    totalPrice: 0,
-                  ),
-                ),
-              );
-            },
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.location_on,
-                  color: Colors.red,
-                  size: 30,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Flexible(
-                            flex: 5,
-                            child: selectedRoadAsyncValue.when(
-                              data: (selectedRoad) {
-                                String displayRoad =
-                                    selectedAddress?.road ?? '';
-
-                                if (displayRoad.isEmpty) {
-                                  return FutureBuilder<String>(
-                                    future: _getSelectedRoad(),
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return LoadingAnimationWidget
-                                            .progressiveDots(
-                                                color: Colors.green, size: 20);
-                                      } else if (snapshot.hasError) {
-                                        return Text(
-                                          "Error: ${snapshot.error}",
-                                          style: const TextStyle(
-                                              color: Colors.red),
-                                        );
-                                      } else {
-                                        displayRoad = snapshot.data!.isNotEmpty
-                                            ? snapshot.data!
-                                            : mainLocation;
-
-                                        return Text(
-                                          displayRoad,
-                                          style: const TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        );
-                                      }
-                                    },
-                                  );
-                                }
-
-                                return Text(
-                                  displayRoad,
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                );
-                              },
-                              loading: () =>
-                                  LoadingAnimationWidget.progressiveDots(
-                                      color: Colors.green, size: 20),
-                              error: (error, stack) => Text(
-                                "Error: $error",
-                                style: const TextStyle(color: Colors.red),
-                              ),
-                            ),
-                          ),
-                          Icon(
-                            Icons.keyboard_arrow_down_outlined,
-                            size: 30,
-                            color: Colors.grey,
-                          )
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+      title: GestureDetector(
+        onTap: () async {
+          final notifier = ref.read(selectedRoadProvider.notifier);
+          final updatedRoad = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const SelectAdress(totalPrice: 0),
             ),
-          ),
-        ],
+          );
+
+          if (updatedRoad != null) {
+            await notifier.updateSelectedRoad(updatedRoad);
+          }
+        },
+        child: Row(
+          children: [
+            const Icon(Icons.location_on, color: Colors.red, size: 30),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      selectedRoad ?? mainLocation,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  const Icon(
+                    Icons.keyboard_arrow_down_outlined,
+                    size: 30,
+                    color: Colors.grey,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
       actions: [
         const Padding(
           padding: EdgeInsets.all(8.0),
           child: MovableButton(),
         ),
+        Help(),
       ],
     );
   }
@@ -194,7 +152,7 @@ class MovableButtonNotifier extends StateNotifier<bool> {
           bool orderExists = orders.any((order) {
             final data = order.value as Map<dynamic, dynamic>?;
 
-            return data != null && data['status'] != 'Order Placed';
+            return data != null && data['assignedto'] != 'NotAssigned';
           });
 
           state = orderExists;
@@ -262,5 +220,60 @@ class MovableButton extends ConsumerWidget {
             : const SizedBox.shrink(),
       ),
     );
+  }
+}
+
+class Help extends ConsumerWidget {
+  const Help({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(movableButtonProvider);
+
+    return GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            SeamlessRevealRoute(
+              page: const SupportDeskScreen(),
+            ),
+          );
+        },
+        child: Stack(
+          children: [
+            IconButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey.shade300),
+              onPressed: () {
+                Navigator.push(
+                    context, SeamlessRevealRoute(page: SupportDeskScreen()));
+              },
+              icon: Icon(
+                CupertinoIcons.chat_bubble_text,
+                size: 25,
+                color: Color(0xFF273847),
+              ),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Color(0xFF273847),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'Help',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ));
   }
 }

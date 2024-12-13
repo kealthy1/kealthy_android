@@ -1,36 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:http/http.dart' as http;
-import 'package:kealthy/Maps/Delivery_details.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shimmer/shimmer.dart';
 import '../Services/placesuggetions.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'Delivery_details.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
+final addressProvider = StateProvider<String?>((ref) => null);
+final mapControllerProvider = StateProvider<MapController?>((ref) => null);
+final suggestionsProvider = StateProvider<List<String>>((ref) {
+  return [];
+});
 final currentlocationProviders =
     StateNotifierProvider<LocationNotifier, Position?>((ref) {
   return LocationNotifier(ref);
 });
 
-final mapControllerProvider =
-    StateProvider<GoogleMapController?>((ref) => null);
-final suggestionsProvider = StateProvider<List<String>>((ref) {
-  return [];
-});
-
 final selectedPositionProvider = StateProvider<LatLng?>((ref) => null);
 final isFetchingLocationProvider = StateProvider<bool>((ref) => false);
-
 final isSearchingProvider = StateProvider<bool>((ref) => false);
-
-final addressProvider = StateProvider<String?>((ref) => null);
-final selectedLocationProvider = StateProvider<String?>((ref) => null);
-final isLoadingProvider = StateProvider<bool>((ref) => false);
 
 class LocationNotifier extends StateNotifier<Position?> {
   LatLng? _selectedPosition;
@@ -60,12 +55,10 @@ class LocationNotifier extends StateNotifier<Position?> {
       if (permission == LocationPermission.deniedForever) return;
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best,
-        forceAndroidLocationManager: true,
-        timeLimit: const Duration(seconds: 30),
       );
       state = position;
-      final LatLng latLngPosition =
-          LatLng(position.latitude, position.longitude);
+
+      final latLngPosition = LatLng(position.latitude, position.longitude);
       ref.read(selectedPositionProvider.notifier).state = latLngPosition;
       await _updateAddress(latLngPosition);
     } catch (e) {
@@ -75,9 +68,8 @@ class LocationNotifier extends StateNotifier<Position?> {
 
   Future<void> _updateAddress(LatLng position) async {
     try {
-      final List<Placemark> placemarks =
+      final placemarks =
           await placemarkFromCoordinates(position.latitude, position.longitude);
-
       if (placemarks.isNotEmpty) {
         final Placemark placemark = placemarks.first;
 
@@ -100,61 +92,50 @@ class LocationNotifier extends StateNotifier<Position?> {
     }
   }
 
-  Future<void> suggestLocations(String query) async {
+  Future<void> fetchPlaceSuggestions(String query) async {
     try {
-      final List<Location> locations = await locationFromAddress(query);
-      if (locations.isNotEmpty) {
-        final suggestions = await Future.wait(locations.map((location) async {
-          final placemarks = await placemarkFromCoordinates(
-            location.latitude,
-            location.longitude,
-          );
-          if (placemarks.isNotEmpty) {
-            final placemark = placemarks.first;
-            return "${placemark.street ?? ''} ${placemark.administrativeArea ?? ''} ${placemark.country ?? ''}";
-          }
-          return '';
-        }).toList());
-
-        ref.read(suggestionsProvider.notifier).state = suggestions;
-      } else {
-        ref.read(suggestionsProvider.notifier).state = [];
+      final response = await http.get(Uri.parse(
+          'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=AIzaSyD1MUoakZ0mm8WeFv_GK9k_zAWdGk5r1hA'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'OK') {
+          final suggestions = (data['predictions'] as List)
+              .map((e) => {
+                    'description': e['description'],
+                    'placeId': e['place_id'],
+                  })
+              .toList();
+          ref.read(placeSuggestionsProvider.notifier).state = suggestions;
+        }
       }
     } catch (e) {
-      print('Error in getting suggestions: $e');
+      print('Error fetching suggestions: $e');
     }
   }
 
   Future<void> searchLocation(String placeId) async {
     try {
       ref.read(isSearchingProvider.notifier).state = true;
+
       final response = await http.get(Uri.parse(
           'https://maps.googleapis.com/maps/api/place/details/json?placeid=$placeId&key=AIzaSyD1MUoakZ0mm8WeFv_GK9k_zAWdGk5r1hA'));
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (data['status'] == 'OK' && data['result'] != null) {
-          final geometry = data['result']['geometry'];
-          final location = geometry['location'];
-          final LatLng position = LatLng(location['lat'], location['lng']);
+        if (data['status'] == 'OK') {
+          final location = data['result']['geometry']['location'];
+          final position = LatLng(location['lat'], location['lng']);
 
-          final GoogleMapController? controller =
-              ref.read(mapControllerProvider);
-          if (controller != null) {
-            await controller.animateCamera(CameraUpdate.newCameraPosition(
-              CameraPosition(
-                target: position,
-                zoom: 18.0,
-              ),
-            ));
-            await _updateAddress(position);
+          ref.read(selectedPositionProvider.notifier).state = position;
+
+          final mapController = ref.read(mapControllerProvider);
+          if (mapController != null) {
+            mapController.move(position, 18.0);
           }
-        } else {
-          print(
-              'Error in searching location: Could not find any result for the supplied address or coordinates.');
+
+          await _updateAddress(position);
+
+          ref.read(placeSuggestionsProvider.notifier).state = [];
         }
-      } else {
-        print('Failed to fetch place details');
       }
     } catch (e) {
       print('Error in searching location: $e');
@@ -162,40 +143,38 @@ class LocationNotifier extends StateNotifier<Position?> {
       ref.read(isSearchingProvider.notifier).state = false;
     }
   }
-
-  Future<String?> formatAddress(Position? position) async {
-    if (position == null) return null;
-    try {
-      final placemarks =
-          await placemarkFromCoordinates(position.latitude, position.longitude);
-      if (placemarks.isNotEmpty) {
-        final place = placemarks[0];
-        return "${place.street ?? ''} ${place.administrativeArea ?? ''} ${place.country ?? ''}";
-      } else {
-        return "Address not found";
-      }
-    } catch (e) {
-      print('Error in reverse geocoding: $e');
-      return "Error getting address";
-    }
-  }
 }
 
 class SelectLocationPage extends ConsumerStatefulWidget {
-  final double totalPrice;
-
   const SelectLocationPage({
     super.key,
-    required this.totalPrice,
   });
 
   @override
-  ConsumerState<SelectLocationPage> createState() => _LocationPageState();
+  ConsumerState<SelectLocationPage> createState() => _SelectLocationPageState();
 }
 
-class _LocationPageState extends ConsumerState<SelectLocationPage> {
+class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
   late TextEditingController _searchController;
-  static const LatLng restaurantLocation = LatLng(10.064555, 76.322242);
+  late MapController _mapController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+    _mapController = MapController();
+
+    Future.microtask(() {
+      ref.read(mapControllerProvider.notifier).state = _mapController;
+      ref.read(currentlocationProviders.notifier)._getCurrentLocation();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   double calculateDistance(LatLng start, LatLng end) {
     return Geolocator.distanceBetween(
@@ -207,112 +186,74 @@ class _LocationPageState extends ConsumerState<SelectLocationPage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _searchController = TextEditingController();
-    ref.read(currentlocationProviders.notifier)._getCurrentLocation();
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final currentPosition = ref.watch(currentlocationProviders);
     final selectedPosition = ref.watch(selectedPositionProvider);
     final address = ref.watch(addressProvider);
     final placeSuggestions = ref.watch(placeSuggestionsProvider);
     final isFetchingLoaction = ref.watch(isFetchingLocationProvider);
-    double? distanceToRestaurant;
-
-    if (currentPosition == null) {
-      print(
-          'currentPosition is null. Location might still be loading or not available.');
-    }
-
-    if (selectedPosition == null) {
-      print(
-          'selectedPosition is null. The user might not have selected a location yet.');
-    }
-
-    if (currentPosition != null && selectedPosition != null) {
-      distanceToRestaurant = calculateDistance(
-        selectedPosition,
-        restaurantLocation,
-      );
-      print('Distance to restaurant: $distanceToRestaurant meters');
-    } else if (currentPosition == null && selectedPosition == null) {
-      print('Either currentPosition or selectedPosition is null');
-    }
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
+      appBar: AppBar(automaticallyImplyLeading: false,
+        centerTitle: true,
+        title: const Text(
+          'Confirm Delivery Location',
+          style: TextStyle(fontFamily: "poppins"),
+        ),
         backgroundColor: Colors.white,
-        title: const Text('Confirm delivery location'),
       ),
       body: currentPosition != null
           ? Stack(
               children: [
-                SizedBox(
-                  height: MediaQuery.of(context).size.height,
-                  child: GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(
-                        currentPosition.latitude,
-                        currentPosition.longitude,
-                      ),
-                      zoom: 18.0,
-                    ),
-                    onMapCreated: (controller) {
-                      ref.read(mapControllerProvider.notifier).state =
-                          controller;
-                    },
-                    onCameraMove: (position) {
-                      ref.read(selectedPositionProvider.notifier).state =
-                          position.target;
-                    },
-                    onCameraIdle: () {
-                      final targetPosition = ref.read(selectedPositionProvider);
-                      if (targetPosition != null) {
-                        ref
-                            .read(currentlocationProviders.notifier)
-                            ._updateAddress(targetPosition);
+                FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    initialCenter: selectedPosition ??
+                        LatLng(currentPosition.latitude,
+                            currentPosition.longitude),
+                    initialZoom: 18.0,
+                    onPositionChanged: (position, hasGesture) {
+                      if (hasGesture) {
+                        ref.read(selectedPositionProvider.notifier).state =
+                            position.center;
                       }
                     },
-                    myLocationButtonEnabled: false,
-                    myLocationEnabled: false,
-                    mapType: MapType.terrain,
-                    mapToolbarEnabled: true,
+                    onMapEvent: (event) {
+                      if (event is MapEventMoveEnd) {
+                        final center =
+                            ref.read(selectedPositionProvider.notifier).state;
+                        if (center != null) {
+                          ref
+                              .read(currentlocationProviders.notifier)
+                              ._updateAddress(center);
+                        }
+                      }
+                    },
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    ),
+                  ],
+                ),
+                // Center Marker
+                const Center(
+                  child: Icon(
+                    Icons.location_pin,
+                    size: 40,
+                    color: Colors.red,
                   ),
                 ),
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.65 / 2 - 25,
-                  left: MediaQuery.of(context).size.width / 2 - 25,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset(
-                        'assets/location_icon.png',
-                        width: 50,
-                      ),
-                    ],
-                  ),
-                ),
+                // Address Display & Action
                 Positioned(
                   bottom: 0,
                   left: 0,
                   right: 0,
                   child: Container(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(16),
                     decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(10.0)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black26,
@@ -320,91 +261,76 @@ class _LocationPageState extends ConsumerState<SelectLocationPage> {
                           offset: Offset(0, -2),
                         )
                       ],
+                      color: Colors.white,
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(10)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10, right: 10),
-                          child: Row(
-                            children: [
-                              const Text(
-                                'DELIVERING YOUR ORDER TO',
-                                style: TextStyle(
-                                  color: Colors.blue,
-                                  fontFamily: 'Poppins',
-                                  fontSize: 12,
-                                ),
+                        Row(
+                          children: [
+                            const Text(
+                              'DELIVERING YOUR ORDER TO',
+                              style: TextStyle(
+                                color: Colors.blue,
+                                fontFamily: 'Poppins',
+                                fontSize: 12,
                               ),
-                              const Spacer(),
-                              SizedBox(
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10)),
-                                      side: const BorderSide(
-                                          color: Color(0xFF273847))),
-                                  onPressed: () async {
+                            ),
+                            Spacer(),
+                            SizedBox(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10)),
+                                    side: const BorderSide(
+                                        color: Color(0xFF273847))),
+                                onPressed: () async {
+                                  ref
+                                      .read(isFetchingLocationProvider.notifier)
+                                      .state = true;
+                                  await ref
+                                      .read(currentlocationProviders.notifier)
+                                      ._getCurrentLocation();
+
+                                  final currentPosition =
+                                      ref.read(currentlocationProviders);
+
+                                  if (currentPosition != null) {
                                     ref
-                                        .read(
-                                            isFetchingLocationProvider.notifier)
-                                        .state = true;
-                                    await ref
                                         .read(currentlocationProviders.notifier)
-                                        ._getCurrentLocation();
-
-                                    final currentPosition =
-                                        ref.read(currentlocationProviders);
-
-                                    if (currentPosition != null) {
-                                      ref
-                                          .read(
-                                              currentlocationProviders.notifier)
-                                          .selectedPosition = LatLng(
-                                        currentPosition.latitude,
-                                        currentPosition.longitude,
-                                      );
-
-                                      final controller =
-                                          ref.read(mapControllerProvider);
-                                      if (controller != null) {
-                                        await controller.animateCamera(
-                                          CameraUpdate.newCameraPosition(
-                                            CameraPosition(
-                                              target: LatLng(
-                                                currentPosition.latitude,
-                                                currentPosition.longitude,
-                                              ),
-                                              zoom: 18.0,
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                    }
-                                    ref
-                                        .read(
-                                            isFetchingLocationProvider.notifier)
-                                        .state = false;
-                                  },
-                                  child: isFetchingLoaction
-                                      ? const SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator(
-                                            color: Color(0xFF273847),
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : const Icon(Icons.my_location,
-                                          color: Color(0xFF273847)),
-                                ),
+                                        .selectedPosition = LatLng(
+                                      currentPosition.latitude,
+                                      currentPosition.longitude,
+                                    );
+                                    _mapController.move(
+                                      LatLng(currentPosition.latitude,
+                                          currentPosition.longitude),
+                                      18.0,
+                                    );
+                                  }
+                                  ref
+                                      .read(isFetchingLocationProvider.notifier)
+                                      .state = false;
+                                },
+                                child: isFetchingLoaction
+                                    ? const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          color: Color(0xFF273847),
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.my_location,
+                                        color: Color(0xFF273847)),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8.0),
                         address != null
                             ? Row(
                                 children: [
@@ -434,7 +360,9 @@ class _LocationPageState extends ConsumerState<SelectLocationPage> {
                                   color: Colors.white,
                                 ),
                               ),
-                        const SizedBox(height: 20),
+                        SizedBox(
+                          height: 20,
+                        ),
                         Align(
                           alignment: Alignment.center,
                           child: SizedBox(
@@ -447,10 +375,9 @@ class _LocationPageState extends ConsumerState<SelectLocationPage> {
 
                                 if (selectedPosition != null) {
                                   final distance = calculateDistance(
-                                    LatLng(selectedPosition.latitude,
-                                        selectedPosition.longitude),
-                                    restaurantLocation,
-                                  );
+                                      selectedPosition,
+                                      LatLng(10.010279427438405,
+                                          76.38426666931349));
 
                                   if (distance > 20000) {
                                     Fluttertoast.showToast(
@@ -488,11 +415,11 @@ class _LocationPageState extends ConsumerState<SelectLocationPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 10),
                       ],
                     ),
                   ),
                 ),
+
                 Positioned(
                   top: MediaQuery.of(context).size.height * 0.01,
                   left: 16.0,

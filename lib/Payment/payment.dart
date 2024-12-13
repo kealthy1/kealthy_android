@@ -18,7 +18,10 @@ class PaymentSection extends ConsumerWidget {
       width: MediaQuery.of(context).size.width * 0.9,
       child: isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF273847)),
+              child: Padding(
+                padding: EdgeInsets.all(8.0),
+                child: CircularProgressIndicator(color: Color(0xFF273847)),
+              ),
             )
           : ElevatedButton(
               onPressed: () async {

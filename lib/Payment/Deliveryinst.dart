@@ -41,11 +41,54 @@ final deliveryInstructionProvider =
   return DeliveryInstructionNotifier();
 });
 
-class DeliveryInstructionsSection extends ConsumerWidget {
+class DeliveryInstructionsSection extends ConsumerStatefulWidget {
   const DeliveryInstructionsSection({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DeliveryInstructionsSection> createState() =>
+      _DeliveryInstructionsSectionState();
+}
+
+class _DeliveryInstructionsSectionState
+    extends ConsumerState<DeliveryInstructionsSection> {
+  late TextEditingController _textController;
+
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController();
+    _loadSavedInstructions();
+    _textController.addListener(_handleTextChange);
+  }
+
+  @override
+  void dispose() {
+    _textController.removeListener(_handleTextChange);
+    _textController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadSavedInstructions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedInstructions = prefs.getString('cookinginstrcutions');
+    _textController.text =
+        savedInstructions ?? "Don't send cutlery, tissues, and Straws";
+  }
+
+  Future<void> _handleTextChange() async {
+    final prefs = await SharedPreferences.getInstance();
+    final text = _textController.text.trim();
+    if (text.isEmpty) {
+      await prefs.remove('cookinginstrcutions');
+      print('Cleared text instruction.');
+    } else {
+      await prefs.setString('cookinginstrcutions', text);
+      print('Saved text instruction: $text');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final selectedInstructions = ref.watch(deliveryInstructionProvider);
 
     return Container(
@@ -54,13 +97,32 @@ class DeliveryInstructionsSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Delivery Instructions',
+            'Instructions',
             style: TextStyle(
               fontSize: 20,
+              fontFamily: "poppins",
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 10),
+          TextField(
+            controller: _textController,
+            textAlign: TextAlign.start,
+            maxLines: 4,
+            decoration: InputDecoration(
+              hintText: "Cooking Instructions",
+              hintStyle: const TextStyle(fontFamily: "Poppins"),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+          const SizedBox(
+            height: 20,
+          ),
           LayoutBuilder(
             builder: (context, constraints) {
               final tileWidth = constraints.maxWidth / 4.5;
@@ -110,6 +172,16 @@ class DeliveryInstructionsSection extends ConsumerWidget {
                       width: tileWidth,
                       height: tileHeight,
                     ),
+                    const SizedBox(width: 10),
+                    _buildInstructionTile(
+                      context: context,
+                      ref: ref,
+                      icon: Icons.pets,
+                      label: 'Pet at Home',
+                      selected: selectedInstructions,
+                      width: tileWidth,
+                      height: tileHeight,
+                    ),
                   ],
                 ),
               );
@@ -119,46 +191,45 @@ class DeliveryInstructionsSection extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildInstructionTile({
-    required BuildContext context,
-    required WidgetRef ref,
-    required IconData icon,
-    required String label,
-    required Set<String> selected,
-    required double width,
-    required double height,
-  }) {
-    final isSelected = selected.contains(label);
+Widget _buildInstructionTile({
+  required BuildContext context,
+  required WidgetRef ref,
+  required IconData icon,
+  required String label,
+  required Set<String> selected,
+  required double width,
+  required double height,
+}) {
+  final isSelected = selected.contains(label);
 
-    return GestureDetector(
-      onTap: () {
-        ref.read(deliveryInstructionProvider.notifier).toggleInstruction(label);
-      },
-      child: Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: isSelected ? Color(0xFF273847) : Colors.grey[100],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon,
-                color: isSelected ? Colors.white : Colors.black, size: 30),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: "poppins",
-                color: isSelected ? Colors.white : Colors.black,
-                fontSize: 10,
-              ),
-            ),
-          ],
-        ),
+  return GestureDetector(
+    onTap: () {
+      ref.read(deliveryInstructionProvider.notifier).toggleInstruction(label);
+    },
+    child: Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: isSelected ? Color(0xFF273847) : Colors.grey[100],
       ),
-    );
-  }
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: isSelected ? Colors.white : Colors.black, size: 30),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: "poppins",
+              color: isSelected ? Colors.white : Colors.black,
+              fontSize: 10,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }

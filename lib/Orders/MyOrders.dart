@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -84,40 +83,12 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
         ordersList.add(Map<String, dynamic>.from(value));
       });
 
-      await _fetchDeliveryPartners(ordersList);
-
       if (!mounted) return;
       ref.read(ordersListProvider.notifier).state = ordersList;
       ref.read(expandedStatesProvider.notifier).state =
           List<bool>.filled(ordersList.length, true);
       ref.read(loadingProvider.notifier).state = false;
     });
-  }
-
-  Future<void> _fetchDeliveryPartners(
-      List<Map<String, dynamic>> ordersList) async {
-    for (var order in ordersList) {
-      String assignedTo = order['assignedto'] ?? '';
-      order['deliveryPartnerName'] =
-          await _fetchDeliveryPartnerName(assignedTo);
-    }
-  }
-
-  Future<String?> _fetchDeliveryPartnerName(String assignedTo) async {
-    try {
-      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
-          .instance
-          .collection('DeliveryUsers')
-          .doc(assignedTo)
-          .get();
-
-      if (snapshot.exists) {
-        return snapshot.data()?['Name'];
-      }
-    } catch (e) {
-      print('Error fetching delivery partner name: $e');
-    }
-    return null;
   }
 
   String getLast9Digits(String orderId) {
@@ -155,8 +126,9 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                     final orderId = getLast9Digits(order['orderId']);
                     final status = order['status'];
                     final deliveryPartnerName =
-                        order['deliveryPartnerName'] ?? 'Not Assigned';
-                    final phoneNumber = order['phoneNumber'] ?? '';
+                        order['assignedto'] ?? 'Not Assigned';
+                    final DAMOBILE = order['DAMOBILE'] ?? 'No value';
+                    final DA = order['assignedto'] ?? "";
                     final address = order['selectedRoad'] ?? '';
                     final orderItems = order['orderItems'] ?? [];
                     final selectedSlot = order['selectedSlot'] ?? '';
@@ -266,7 +238,7 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                                               const SizedBox(width: 5),
                                               Expanded(
                                                 child: Text(
-                                                  'Delivery Partner: $deliveryPartnerName',
+                                                  'Delivery Partner: $DA',
                                                   style: const TextStyle(
                                                     fontFamily: "poppins",
                                                     overflow:
@@ -278,16 +250,15 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                                             ],
                                           ),
                                         ),
-                                        if (status != 'Delivered' &&
-                                            deliveryPartnerName !=
-                                                'Not Assigned')
+                                        if (deliveryPartnerName !=
+                                            'NotAssigned')
                                           IconButton(
                                             style: ElevatedButton.styleFrom(
                                                 backgroundColor:
                                                     Colors.black12),
                                             onPressed: () {
                                               FlutterPhoneDirectCaller
-                                                  .callNumber(phoneNumber);
+                                                  .callNumber(DAMOBILE);
                                             },
                                             icon: const Icon(
                                               Icons.call,
@@ -337,8 +308,7 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                                         ),
                                       );
                                     }),
-                                    if (status != 'Delivered' &&
-                                        deliveryPartnerName != 'Not Assigned')
+                                    if (deliveryPartnerName != 'NotAssigned')
                                       ElevatedButton(
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Color(0xFF273847),
@@ -350,12 +320,11 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                                               builder: (context) =>
                                                   OrderTrackingPage(
                                                 orderid: order['orderId'],
-                                                DeliveryBoy:
-                                                    deliveryPartnerName,
+                                                DeliveryBoy: DA,
                                                 Distance:
                                                     order['selectedDistance'] ??
                                                         0.0,
-                                                phoneNumber: phoneNumber,
+                                                phoneNumber: DAMOBILE,
                                                 Address: address,
                                               ),
                                             ),

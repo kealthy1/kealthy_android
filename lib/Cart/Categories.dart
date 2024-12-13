@@ -1,7 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../Services/FirestoreCart.dart';
+import '../Services/FirestoreCart.dart';
 
 class CategoryContainer extends ConsumerWidget {
   final double screenWidth;
@@ -91,92 +90,91 @@ class CartItemWidget extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Column(
-            children: [
-              if (item.imageUrl.startsWith('http'))
-                CachedNetworkImage(
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                  imageUrl: item.imageUrl,
-                )
-              else
-                Image.asset(
-                  item.imageUrl,
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                ),
-              const SizedBox(
-                height: 3,
-              ),
-              GestureDetector(
-                onTap: onDelete,
-                child: const Text(
-                  "Remove Item",
-                  style: TextStyle(fontSize: 10, color: Colors.red),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(width: screenWidth * 0.05),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                SizedBox(
+                  height: 10,
+                ),
                 Text(
                   item.name,
                   style: const TextStyle(
-                    color: Colors.black,
+                    color: Color(0xFF273847),
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: screenHeight * 0.01),
+                SizedBox(height: screenHeight * 0.015),
                 Text(
-                  '₹${item.price.toStringAsFixed(2)}',
+                  '₹${item.price.toStringAsFixed(0)} /-',
                   style: const TextStyle(
                     color: Color(0xFF273847),
                     fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.01),
+                GestureDetector(
+                  onTap: onDelete,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0, vertical: 4.0),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                    child: const Text(
+                      "Remove",
+                      style: TextStyle(fontSize: 12, color: Colors.black),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
           SizedBox(width: screenWidth * 0.05),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0xFFF4F4F5),
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.remove),
-                  color: Color(0xFF273847),
-                  iconSize: 20,
-                  onPressed: onDecrement,
-                ),
-              ),
-              Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Text(
-                  '${item.quantity}',
-                  style: const TextStyle(fontSize: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove),
+                      color: Color(0xFF273847),
+                      iconSize: 20,
+                      onPressed: onDecrement,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text(
+                        '${item.quantity}',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      color: Color(0xFF273847),
+                      iconSize: 20,
+                      onPressed: onIncrement,
+                    ),
+                  ],
                 ),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0xFFF4F4F5),
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.add),
-                  color: Color(0xFF273847),
-                  iconSize: 20,
-                  onPressed: onIncrement,
+              SizedBox(height: 20),
+              Text(
+                '₹${(item.price * item.quantity).toStringAsFixed(0)} /-',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
