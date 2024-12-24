@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/LandingPage/Help&Support/Help&Support_Tab.dart';
 import 'package:kealthy/Orders/ordersTab.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Maps/functions/Delivery_detailslocationprovider.dart';
 import '../../Maps/SelectAdress.dart';
@@ -16,29 +15,31 @@ class SelectedRoadNotifier extends StateNotifier<String?> {
     _loadSelectedRoad();
   }
 
-  // Load the initial selected road from SharedPreferences
   Future<void> _loadSelectedRoad() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     state = prefs.getString('selectedRoad');
   }
 
-  // Refresh the selected road when updated
   Future<void> refreshSelectedRoad() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     state = prefs.getString('selectedRoad');
   }
 
-  // Update the selected road
   Future<void> updateSelectedRoad(String newRoad) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('selectedRoad', newRoad);
-    state = newRoad; // Trigger a rebuild
+    state = newRoad;
   }
 }
 
 final selectedRoadProvider =
     StateNotifierProvider<SelectedRoadNotifier, String?>(
         (ref) => SelectedRoadNotifier());
+
+final typeProvider = FutureProvider<String?>((ref) async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('type');
+});
 
 class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
   const CustomAppBar({super.key});
@@ -53,7 +54,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedRoad = ref.watch(selectedRoadProvider); // Reactive watch
+    final selectedRoad = ref.watch(selectedRoadProvider);
     final currentLocation = ref.watch(locationProvider);
 
     final locationParts = currentLocation.split('\n');
@@ -93,20 +94,57 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
               child: Row(
                 children: [
                   Flexible(
-                    child: Text(
-                      selectedRoad ?? mainLocation,
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    child: Consumer(
+                      builder: (context, ref, child) {
+                        final typeAsyncValue = ref.watch(typeProvider);
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            typeAsyncValue.when(
+                              data: (type) {
+                                if (type == null || type.trim().isEmpty) {
+                                  return const SizedBox.shrink();
+                                }
+                                return Text(
+                                  type,
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontFamily: "poppins",
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                );
+                              },
+                              loading: () => const CircularProgressIndicator(),
+                              error: (error, _) => const SizedBox.shrink(),
+                            ),
+                            typeAsyncValue.when(
+                              data: (type) => Text(
+                                selectedRoad ?? mainLocation,
+                                style: TextStyle(
+                                  color:
+                                      type == null ? Colors.black : Colors.grey,
+                                  fontSize: type == null ? 20 : 12,
+                                  fontWeight: FontWeight.bold,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              loading: () => const SizedBox.shrink(),
+                              error: (error, _) => Text(
+                                selectedRoad ?? mainLocation,
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
-                  ),
-                  const Icon(
-                    Icons.keyboard_arrow_down_outlined,
-                    size: 30,
-                    color: Colors.grey,
                   ),
                 ],
               ),

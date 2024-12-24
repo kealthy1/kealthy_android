@@ -2,10 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/LandingPage/Help&Support/Help&Support_Tab.dart';
+import 'package:kealthy/LandingPage/Myprofile/PrivacyPolicy.dart';
+import 'package:kealthy/LandingPage/Myprofile/Refund&Policy.dart';
+import 'package:kealthy/LandingPage/Myprofile/Terms&Conditions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Login/login_page.dart';
-import '../Maps/SelectAdress.dart';
-import '../Orders/ordersTab.dart';
+import '../../Login/login_page.dart';
+import '../../Maps/SelectAdress.dart';
+import '../../Orders/ordersTab.dart';
 
 class UserProfile {
   final String name;
@@ -14,20 +17,32 @@ class UserProfile {
 }
 
 class UserProfileNotifier extends StateNotifier<UserProfile> {
+  bool _isDisposed = false;
+
   UserProfileNotifier() : super(UserProfile(name: 'User')) {
     _loadUserName();
   }
 
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
   Future<void> _loadUserName() async {
     final prefs = await SharedPreferences.getInstance();
-    String savedName = prefs.getString('Name') ?? 'User';
-    state = UserProfile(name: savedName);
+    String savedName = prefs.getString('name') ?? 'User';
+    if (!_isDisposed) {
+      state = UserProfile(name: savedName);
+    }
   }
 
   Future<void> updateUserName(String newName) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('Name', newName);
-    state = UserProfile(name: newName);
+    await prefs.setString('name', newName);
+    if (!_isDisposed) {
+      state = UserProfile(name: newName);
+    }
   }
 
   Future<void> refreshUserName() async {
@@ -129,12 +144,34 @@ class ProfilePage extends ConsumerWidget {
                   ),
                   _buildMenuItem(
                     context,
+                    Icons.privacy_tip,
+                    "Privacy Policy",
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PrivacyPolicyPage(),
+                      ),
+                    ),
+                  ),
+                  _buildMenuItem(
+                    context,
                     Icons.article,
                     "Terms and conditions",
                     () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const OrdersTabScreen(),
+                        builder: (context) => const TermsAndConditionsPage(),
+                      ),
+                    ),
+                  ),
+                  _buildMenuItem(
+                    context,
+                    CupertinoIcons.arrow_uturn_left,
+                    "Return and Refund Policies",
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ReturnRefundPolicyPage(),
                       ),
                     ),
                   ),

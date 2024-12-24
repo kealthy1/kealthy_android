@@ -5,7 +5,6 @@ import 'package:kealthy/Services/Connection.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
-// Create a loading provider
 final retryLoadingProvider = StateProvider<bool>((ref) => false);
 
 class NoInternetPage extends ConsumerWidget {

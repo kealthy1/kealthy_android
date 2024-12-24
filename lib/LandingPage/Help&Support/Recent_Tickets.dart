@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -26,9 +27,20 @@ class RecentTicketsPage extends ConsumerWidget {
     return ticketsAsyncValue.when(
       data: (snapshot) {
         if (snapshot.docs.isEmpty) {
-          return const Center(child: Text("No Solved tickets found."));
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(CupertinoIcons.doc, size: 40, color: Colors.black),
+              SizedBox(
+                height: 10,
+              ),
+              Text(
+                "No solved Tickets Found",
+                style: TextStyle(color: Colors.black, fontFamily: "poppins"),
+              )
+            ],
+          );
         }
-
         return ListView.builder(
           itemCount: snapshot.docs.length,
           itemBuilder: (context, index) {
@@ -99,11 +111,10 @@ class RecentTicketsPage extends ConsumerWidget {
         );
       },
       loading: () => Center(
-        child: LoadingAnimationWidget.discreteCircle(
-          color: Color(0xFF273847),
-          size: 50,
-        ),
-      ),
+          child: LoadingAnimationWidget.inkDrop(
+        color: Color(0xFF273847),
+        size: 30,
+      )),
       error: (error, stack) => Center(
         child: Text("Error: $error"),
       ),

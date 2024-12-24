@@ -34,7 +34,8 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
           ref.refresh(searchQueryProvider);
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => CustomBottomNavigationBar()),
+            MaterialPageRoute(
+                builder: (context) => CustomBottomNavigationBar()),
             (route) => false,
           );
           return false;
@@ -194,27 +195,37 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
                                   ),
                                 );
                               },
-                              child: Container(
-                                height: 80,
-                                margin: const EdgeInsets.symmetric(
-                                    vertical: 8, horizontal: 16),
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(18.0),
                                 child: Row(
                                   children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
+                                    Container(
+                                      height: 60,
+                                      width: 60,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade300,
+                                        borderRadius: BorderRadius.circular(10),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.grey.withOpacity(0.3),
+                                            blurRadius: 4.0,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
                                       child: CachedNetworkImage(
-                                        width: 50,
-                                        height: 50,
-                                        fit: BoxFit.cover,
+                                        fit: BoxFit.contain,
                                         imageUrl: suggestion.imageUrl,
+                                        placeholder: (context, url) =>
+                                            const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                        errorWidget: (context, url, error) =>
+                                            const Icon(Icons.error,
+                                                color: Colors.red),
                                       ),
                                     ),
-                                    const SizedBox(width: 15),
+                                    const SizedBox(width: 20),
                                     Expanded(
                                       child: Column(
                                         mainAxisAlignment:
@@ -226,16 +237,18 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
                                             suggestion.name,
                                             style: const TextStyle(
                                               fontSize: 16,
+                                              fontFamily: "poppins",
                                               color: Colors.black,
+                                              fontWeight: FontWeight.bold,
                                             ),
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
                                             suggestion.category,
                                             style: const TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.grey,
-                                            ),
+                                                fontSize: 14,
+                                                color: Colors.grey,
+                                                fontFamily: "poppins"),
                                           ),
                                         ],
                                       ),

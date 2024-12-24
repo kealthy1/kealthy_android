@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-
 import 'noconnection.dart';
 
 class ConnectivityService {
   final InternetConnectionChecker _checker = InternetConnectionChecker();
 
-  Stream<bool> get connectivityStream =>
-      _checker.onStatusChange.map((status) => status == InternetConnectionStatus.connected);
+  Stream<bool> get connectivityStream => _checker.onStatusChange
+      .map((status) => status == InternetConnectionStatus.connected);
 
   Future<bool> isConnected() async {
     return await _checker.hasConnection;
@@ -28,22 +27,24 @@ class ConnectivityWidget extends StatefulWidget {
 
 class _ConnectivityWidgetState extends State<ConnectivityWidget> {
   final ConnectivityService _connectivityService = ConnectivityService();
+  bool _mounted = true;
 
   @override
   void initState() {
     super.initState();
-    // Optionally, you might want to check connection initially
     _checkInitialConnection();
+  }
+
+  @override
+  void dispose() {
+    _mounted = false;
+    super.dispose();
   }
 
   Future<void> _checkInitialConnection() async {
     bool isConnected = await _connectivityService.isConnected();
-    if (!isConnected) {
-      // If not connected initially, navigate to the NoInternetPage
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const NoInternetPage()),
-        (Route<dynamic> route) => false, // Remove all previous routes
-      );
+    if (!isConnected && _mounted) {
+      _navigateToNoConnectionPage();
     }
   }
 
@@ -54,10 +55,9 @@ class _ConnectivityWidgetState extends State<ConnectivityWidget> {
       builder: (context, snapshot) {
         final isConnected = snapshot.data ?? true;
 
-        // If not connected, navigate to the NoInternetPage
-        if (!isConnected) {
+        if (!isConnected && _mounted) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            _navigateToNoConnectionPage(context);
+            _navigateToNoConnectionPage();
           });
         }
 
@@ -69,11 +69,12 @@ class _ConnectivityWidgetState extends State<ConnectivityWidget> {
     );
   }
 
-  void _navigateToNoConnectionPage(BuildContext context) {
-    // Directly navigate to NoInternetPage
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const NoInternetPage()),
-      (Route<dynamic> route) => false,
-    );
+  void _navigateToNoConnectionPage() {
+    if (_mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const NoInternetPage()),
+        (Route<dynamic> route) => false,
+      );
+    }
   }
 }

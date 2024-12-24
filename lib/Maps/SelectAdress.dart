@@ -3,25 +3,54 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:kealthy/LandingPage/Widgets/Appbar.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
+import '../Payment/Addressconfirm.dart';
+import '../Payment/Bill.dart';
+import '../Payment/SavedAdress.dart';
 import '../Riverpod/distance.dart';
+import '../Services/adresslisten.dart';
 import 'fluttermap.dart';
 import 'functions/Location_Permission.dart';
+import 'package:http/http.dart' as http;
 
+final loadingProvider = StateProvider<bool>((ref) => false);
 final selectedAddressProvider = StateProvider<Address?>((ref) => null);
+final loadingAddressProvider = StateProvider<String?>((ref) => null);
+ final addressesProvider = FutureProvider<List<Address>>((ref) async {
+    const String apiUrl = "https://api-jfnhkjk4nq-uc.a.run.app/getalladdresses";
 
-final addressesProvider = FutureProvider<List<Address>>((ref) async {
-  final prefs = await SharedPreferences.getInstance();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final phoneNumber = prefs.getString('phoneNumber');
 
-  final savedAddresses = prefs.getStringList('savedAddresses') ?? [];
+      if (phoneNumber == null || phoneNumber.isEmpty) {
+        throw Exception("Phone number not found in SharedPreferences.");
+      }
 
-  return savedAddresses
-      .map((addressJson) => Address.fromJson(jsonDecode(addressJson)))
-      .toList();
-});
+      print("Using phoneNumber: $phoneNumber");
 
+      final response = await http.get(
+        Uri.parse("$apiUrl?phoneNumber=$phoneNumber"),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        return (jsonResponse['data'] as List)
+            .map((data) => Address.fromJson(data))
+            .toList();
+      } else {
+        throw Exception(
+            "Failed to fetch addresses. Status Code: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error fetching addresses: $e");
+      throw Exception("Error fetching addresses");
+    }
+  });
 class SelectAdress extends ConsumerStatefulWidget {
   final double totalPrice;
 
@@ -41,95 +70,70 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
     });
   }
 
-  Future<void> saveAddress(Address newAddress, WidgetRef ref) async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedAddresses = prefs.getStringList('savedAddresses') ?? [];
+ 
 
-    List<Address> addresses = savedAddresses
-        .map((addressJson) => Address.fromJson(jsonDecode(addressJson)))
-        .toList();
+  Future<void> deleteAddressFromAPI(Address address, WidgetRef ref) async {
+    const String apiUrl = "https://api-jfnhkjk4nq-uc.a.run.app/deleteAddress";
 
-    bool isTypeReplaced = false;
-
-    addresses = addresses.map((address) {
-      if (address.type == newAddress.type) {
-        isTypeReplaced = true;
-        return newAddress;
-      }
-      return address;
-    }).toList();
-
-    if (!isTypeReplaced) {
-      addresses.add(newAddress);
-    }
-
-    await prefs.setStringList(
-      'savedAddresses',
-      addresses.map((address) => jsonEncode(address.toJson())).toList(),
-    );
-
-    // ignore: unused_result
-    ref.refresh(addressesProvider);
-  }
-
-  Future<void> saveSelectedAddress(Address address, double distance) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    await prefs.setString('selectedAddressId', address.id);
-    await prefs.setString('Name', address.name);
-    await prefs.setString('selectedRoad', address.road);
-    await prefs.setString('selectedType', address.type);
-
-    if (address.directions != null) {
-      await prefs.setString('selectedDirections', address.directions!);
-    }
-
-    await prefs.setDouble('selectedLatitude', address.latitude);
-    await prefs.setDouble('selectedLongitude', address.longitude);
-    await prefs.setDouble('selectedDistance', distance);
-    await prefs.setString('landmark', address.landmark);
-
-    print('Address saved: ${address.name}, Distance: $distance');
-  }
-
-  Future<void> deleteAddressLocally(Address address, WidgetRef ref) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final savedAddresses = prefs.getStringList('savedAddresses') ?? [];
+      final phoneNumber = prefs.getString('phoneNumber');
+      await prefs.remove("type");
+      await prefs.remove("selectedRoad");
+      await prefs.remove("selectedAddressMessage");
 
-      final updatedAddresses = savedAddresses
-          .where((addressJson) =>
-              Address.fromJson(jsonDecode(addressJson)).road != address.road)
-          .toList();
-
-      await prefs.setStringList('savedAddresses', updatedAddresses);
-      final selectedAddressId = prefs.getString('selectedRoad');
-      if (selectedAddressId == address.road) {
-        // ignore: unused_result
-        await prefs.remove('selectedAddressId');
-        await prefs.remove('Name');
-        await prefs.remove('selectedRoad');
-        await prefs.remove('selectedType');
-        await prefs.remove('selectedDirections');
-        await prefs.remove('selectedLatitude');
-        await prefs.remove('selectedLongitude');
-        await prefs.remove('selectedDistance');
-        await prefs.remove('landmark');
-        print('Selected address cleared from SharedPreferences');
+      if (phoneNumber == null || phoneNumber.isEmpty) {
+        Fluttertoast.showToast(
+          msg: "Phone number not found. Please log in again.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 12.0,
+        );
+        return;
       }
-      // ignore: unused_result
-      ref.refresh(addressesProvider);
 
+      final response = await http.delete(
+        Uri.parse("$apiUrl?phoneNumber=$phoneNumber&type=${address.type}"),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        Fluttertoast.showToast(
+          msg: "Address deleted successfully",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 12.0,
+        );
+
+        // ignore: unused_result
+        ref.refresh(addressesProvider);
+      } else if (response.statusCode == 404) {
+        Fluttertoast.showToast(
+          msg: "Address not found: ${address.type}",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
+          backgroundColor: Colors.orange,
+          textColor: Colors.white,
+          fontSize: 12.0,
+        );
+      } else {
+        throw Exception(
+            "Failed to delete address. Status: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error deleting address: $e");
       Fluttertoast.showToast(
-        msg: "Address deleted successfully",
+        msg: "Failed to delete address. Please try again.",
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.TOP,
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.red,
         textColor: Colors.white,
         fontSize: 12.0,
       );
-    } catch (e) {
-      print('Error deleting address: $e');
     }
   }
 
@@ -141,7 +145,18 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
     return WillPopScope(
       onWillPop: () async {
         // ignore: unused_result
-        ref.refresh(selectedRoadProvider);
+        ref.refresh(selectedAddressProviders);
+        // ignore: unused_result
+        ref.refresh(selectedSlotProviders);
+        // ignore: unused_result
+        ref.refresh(savedAddressProvider); 
+        // ignore: unused_result
+        ref.refresh(totalDistanceProvider);
+        // ignore: unused_result
+        ref.refresh(selectedRoadProvider); 
+        // ignore: unused_result
+        ref.refresh(typeProvider);
+
         return true;
       },
       child: Scaffold(
@@ -168,7 +183,13 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
                     Navigator.pushReplacement(
                       context,
                       CupertinoModalPopupRoute(
-                        builder: (context) => const SelectLocationPage(),
+                        builder: (context) => SelectLocationPage(
+                          name: "",
+                          selectedRoad: "",
+                          landmark: "",
+                          type: "",
+                          directions: '',
+                        ),
                       ),
                     );
                   } else {
@@ -206,15 +227,24 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
                   ),
                 ),
               ),
-              
+              const SizedBox(height: 10),
               _buildCenteredTitle('SAVED ADDRESSES'),
               const SizedBox(height: 10),
               Expanded(
                 child: addressesAsyncValue.when(
                   data: (addresses) {
                     if (addresses.isEmpty) {
-                      return const Center(
-                          child: Text('No saved addresses found.'));
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.location_on_outlined,
+                              size: 50, color: Colors.red),
+                          Text(
+                            'No saved addresses found.',
+                            style: TextStyle(fontFamily: "poppins"),
+                          ),
+                        ],
+                      );
                     }
 
                     return RefreshIndicator(
@@ -258,16 +288,24 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
                                 restaurantLatitude: restaurantLatitude,
                                 restaurantLongitude: restaurantLongitude,
                                 distance: drivingDistance,
-                                onSelected: () {
+                                onSelected: () async {
+                                  final prefs =
+                                      await SharedPreferences.getInstance();
+                                  final phoneNumber =
+                                      prefs.getString('phoneNumber');
+                                  await prefs.setDouble(
+                                      'selectedDistance', drivingDistance);
+                                  await ref
+                                      .read(updateAddressProvider.notifier)
+                                      .updateSelectedAddress(
+                                          phoneNumber!, address.type);
+
                                   ref
                                       .read(selectedAddressProvider.notifier)
                                       .state = address;
-                                  saveSelectedAddress(address, drivingDistance);
-                                  // ignore: unused_result
-                                  ref.refresh(selectedRoadProvider);
                                 },
                                 onDelete: () async {
-                                  await deleteAddressLocally(address, ref);
+                                  await deleteAddressFromAPI(address, ref);
                                 },
                               );
                             },
@@ -276,8 +314,12 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
                       ),
                     );
                   },
-                  loading: () => const Center(
-                      child: CircularProgressIndicator(color: Colors.green)),
+                  loading: () => Center(
+                    child: LoadingAnimationWidget.inkDrop(
+                      color: Color(0xFF273847),
+                      size: 60,
+                    ),
+                  ),
                   error: (error, stack) => Center(child: Text('Error: $error')),
                 ),
               ),
@@ -326,51 +368,57 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
 class Address {
   final String id;
   final String name;
-  final String landmark;
   final String road;
+  final String landmark;
+  final String directions;
+  final DateTime? deliveryDate;
   final String type;
-  final String? directions;
-  final String? phoneNumber;
   final double latitude;
   final double longitude;
+  final bool selected;
 
   Address({
     required this.id,
     required this.name,
     required this.road,
+    required this.landmark,
+    required this.directions,
+    this.deliveryDate,
     required this.type,
-    this.directions,
-    this.phoneNumber,
     required this.latitude,
     required this.longitude,
-    required this.landmark,
+    required this.selected,
   });
 
   factory Address.fromJson(Map<String, dynamic> json) {
     return Address(
       id: json['_id'] ?? '',
-      name: json['name'] ?? 'Unknown',
-      road: json['road'] ?? 'Unknown',
-      type: json['type'] ?? 'Other',
+      name: json['Name'] ?? '',
+      road: json['road'] ?? '',
+      landmark: json['Landmark'] ?? '',
       directions: json['directions'],
-      phoneNumber: json['phoneNumber'],
+      deliveryDate: json['deliveryDate'] != null
+          ? DateTime.parse(json['deliveryDate'])
+          : null,
+      type: json['type'] ?? '',
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
-      landmark: json['landmark'] ?? 'Unknown',
+      selected: json['selected'] ?? true,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       '_id': id,
-      'name': name,
+      'Name': name,
       'road': road,
-      'type': type,
+      'Landmark': landmark,
       'directions': directions,
-      'phoneNumber': phoneNumber,
+      'deliveryDate': deliveryDate?.toIso8601String(),
+      'type': type,
       'latitude': latitude,
       'longitude': longitude,
-      'landmark': landmark,
+      'selected': selected,
     };
   }
 }
@@ -397,7 +445,9 @@ class AddressCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDeliverable = distance <= 30;
+    final loadingAddress = ref.watch(loadingAddressProvider);
+    final isLoading = loadingAddress == address.type;
+
     IconData getIconBasedOnType(String type) {
       switch (type.toLowerCase()) {
         case 'home':
@@ -410,129 +460,168 @@ class AddressCard extends ConsumerWidget {
     }
 
     return GestureDetector(
-      onTap: isDeliverable
-          ? () async {
-              // ignore: unused_result
-              ref.refresh(selectedRoadProvider);
+      onTap: () async {
+        ref.read(loadingAddressProvider.notifier).state = address.type;
+        final prefs = await SharedPreferences.getInstance();
+        final phoneNumber = prefs.getString('phoneNumber');
+
+        if (phoneNumber != null) {
+          final success = await ref
+              .read(updateAddressProvider.notifier)
+              .updateSelectedAddress(phoneNumber, address.type);
+          if (Navigator.canPop(context)) {
+            if (success) {
+              await prefs.setString('selectedRoad', address.road);
+
+              await prefs.setString('type', address.type);
+              await prefs.setString('name', address.name);
+              await prefs.setString('selectedAddressMessage', address.road);
+
               Fluttertoast.showToast(
-                msg: "Address ${address.type} Selected!",
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.TOP,
+                msg: "Address ${address.type} Selected ✔️",
                 backgroundColor: Colors.green,
                 textColor: Colors.white,
-                fontSize: 12.0,
               );
+
+              ref.invalidate(selectedAddressProvider);
+              ref.invalidate(selectedSlotProviders);
               onSelected();
+            } else {
+              Fluttertoast.showToast(
+                msg: "Failed to select address. Try again.",
+                backgroundColor: Colors.red,
+                textColor: Colors.white,
+              );
             }
-          : null,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Column(
-              children: [
-                Icon(getIconBasedOnType(address.type),
-                    color: Color(0xFF273847)),
-                const SizedBox(height: 8),
-                Text(
-                  '${distance.toStringAsFixed(2)} km',
-                  style: const TextStyle(color: Colors.black54, fontSize: 10),
+          }
+        } else {
+          Fluttertoast.showToast(
+            msg: "Phone number not found. Please log in again.",
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+          );
+        }
+
+        ref.read(loadingAddressProvider.notifier).state = null;
+      },
+      child: isLoading
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: LoadingAnimationWidget.inkDrop(
+                  color: Color(0xFF273847),
+                  size: 50,
                 ),
-              ],
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+            )
+          : Container(
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    blurRadius: 5,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
                 children: [
-                  Text(
-                    address.type,
-                    style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black54),
+                  Column(
+                    children: [
+                      Icon(getIconBasedOnType(address.type),
+                          color: const Color(0xFF273847)),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${distance.toStringAsFixed(2)} km',
+                        style: const TextStyle(
+                            color: Colors.black54, fontSize: 10),
+                      ),
+                    ],
                   ),
-                  Text(
-                    '${address.name}, ${address.road}',
-                    style: const TextStyle(fontSize: 15, color: Colors.black54),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          address.type,
+                          style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black54),
+                        ),
+                        Text(
+                          '${address.name}, ${address.road}',
+                          style: const TextStyle(
+                              fontSize: 15, color: Colors.black54),
+                        ),
+                        if (address.landmark.isNotEmpty)
+                          Text(
+                            'Landmark: ${address.landmark}',
+                            style: const TextStyle(color: Colors.black54),
+                          ),
+                        Text(
+                          'Directions: ${address.directions}',
+                          style: const TextStyle(color: Colors.black54),
+                        ),
+                      ],
+                    ),
                   ),
-                  if (address.landmark.isNotEmpty)
-                    Text(
-                      'Landmark: ${address.landmark}',
-                      style: const TextStyle(color: Colors.black54),
-                    ),
-                  if (address.directions != null)
-                    Text(
-                      'Instructions: ${address.directions}',
-                      style: const TextStyle(color: Colors.black54),
-                    ),
-                  Text(
-                    isDeliverable
-                        ? "Delivery available"
-                        : "Delivery unavailable",
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontFamily: "Poppins",
-                        color: isDeliverable ? Colors.green : Colors.red),
+                  PopupMenuButton<String>(
+                    color: Colors.white,
+                    onSelected: (String choice) {
+                      if (choice == 'Edit') {
+                        Navigator.pushReplacement(
+                          context,
+                          CupertinoModalPopupRoute(
+                            builder: (context) => SelectLocationPage(
+                              name: address.name,
+                              selectedRoad: address.road,
+                              landmark: address.landmark,
+                              type: address.type,
+                              directions: address.directions,
+                            ),
+                          ),
+                        );
+                      } else if (choice == 'Delete') {
+                        onDelete();
+                      }
+                    },
+                    itemBuilder: (BuildContext context) => [
+                      const PopupMenuItem<String>(
+                        value: 'Edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, color: Color(0xFF273847)),
+                            SizedBox(width: 8),
+                            Text(
+                              'Edit',
+                              style: TextStyle(fontFamily: "poppins"),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'Delete',
+                        child: Row(
+                          children: [
+                            Icon(CupertinoIcons.delete,
+                                color: Color(0xFF273847)),
+                            SizedBox(width: 8),
+                            Text('Delete',
+                                style: TextStyle(fontFamily: "poppins")),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            PopupMenuButton<String>(
-              color: Colors.white,
-              onSelected: (String choice) {
-                if (choice == 'Edit') {
-                  Navigator.pushReplacement(
-                    context,
-                    CupertinoModalPopupRoute(
-                      builder: (context) => const SelectLocationPage(),
-                    ),
-                  );
-                } else if (choice == 'Delete') {
-                  onDelete();
-                }
-              },
-              itemBuilder: (BuildContext context) => [
-                const PopupMenuItem<String>(
-                  value: 'Edit',
-                  child: Row(
-                    children: [
-                      Icon(Icons.edit, color: Color(0xFF273847)),
-                      SizedBox(width: 8),
-                      Text(
-                        'Edit',
-                        style: TextStyle(fontFamily: "poppins"),
-                      ),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'Delete',
-                  child: Row(
-                    children: [
-                      Icon(CupertinoIcons.delete, color: Color(0xFF273847)),
-                      SizedBox(width: 8),
-                      Text('Delete', style: TextStyle(fontFamily: "poppins")),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

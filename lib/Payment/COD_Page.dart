@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kealthy/Maps/SelectAdress.dart';
 import 'package:kealthy/Payment/RazorPay.dart';
+import 'package:kealthy/Services/Navigation.dart';
 import 'package:kealthy/Services/Order_Completed.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../MenuPage/MenuPage.dart';
@@ -12,42 +12,61 @@ import '../Services/FirestoreCart.dart';
 import '../Services/PaymentHandler.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'payment_service.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 final paymentMethodProvider = StateProvider<String?>((ref) => null);
 
 final CODloadingProvider = StateProvider<bool>((ref) => false);
-final savedAddressProvider =
+final codpageprovider =
     StateNotifierProvider<AddressNotifier, Map<String, dynamic>>(
-        (ref) => AddressNotifier());
+  (ref) => AddressNotifier(),
+);
 
 class AddressNotifier extends StateNotifier<Map<String, dynamic>> {
-  AddressNotifier() : super({});
-
-  Future<void> loadSavedAddress() async {
-    final prefs = await SharedPreferences.getInstance();
-    final road = prefs.getString('selectedRoad');
-    final directions = prefs.getString('selectedDirections');
-    final name = prefs.getString('Name');
-    final slot = prefs.getString('selectedSlot');
-    final distance = prefs.getDouble('selectedDistance');
-
-    state = {
-      'road': road,
-      'directions': directions,
-      'Name': name,
-      'selectedSlot': slot,
-      'selectedDistance': distance,
-    };
+  AddressNotifier() : super({}) {
+    fetchSelectedAddress();
   }
 
-  Future<void> updateAddress(
-      String road, String directions, String name, String slot) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('selectedRoad', road);
-    await prefs.setString('selectedDirections', directions);
-    await prefs.setString('Name', name);
-    await prefs.setString('selectedSlot', slot);
-    await loadSavedAddress();
+  Future<void> fetchSelectedAddress() async {
+    const String apiUrl =
+        "https://api-jfnhkjk4nq-uc.a.run.app/getSelectedAddress";
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final phoneNumber = prefs.getString('phoneNumber');
+      final selectedSlot = prefs.getString('selectedSlot');
+
+      final response = await http.get(
+        Uri.parse("$apiUrl?phoneNumber=$phoneNumber"),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        final addressData = jsonResponse['data'];
+
+        state = {
+          'road': addressData['road'] ?? 'N/A',
+          'directions': addressData['directions'] ?? 'N/A',
+          'Name': addressData['Name'] ?? 'N/A',
+          'selectedSlot': selectedSlot,
+          'selectedDistance': addressData['distance'] ?? 0.0,
+          'latitude': addressData['latitude'] ?? 0.0,
+          'longitude': addressData['longitude'] ?? 0.0,
+          'Landmark': addressData['Landmark'] ?? 0.0,
+          'type': addressData['type'] ?? 'N/A',
+        };
+      } else {
+        print("Error fetching address: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error fetching address: $e");
+    }
+  }
+
+  void refreshAddress() {
+    fetchSelectedAddress();
   }
 }
 
@@ -63,12 +82,9 @@ class OrderConfirmation extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedPaymentMethod = ref.watch(paymentMethodProvider);
     final isLoading = ref.watch(CODloadingProvider);
-    final savedAddressData = ref.watch(savedAddressProvider);
+    ref.watch(codpageprovider);
     double totalAmountToPay = PaymentService().totalToPay;
 
-    ref.read(savedAddressProvider.notifier).loadSavedAddress();
-
-    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         // ignore: unused_result
@@ -103,78 +119,6 @@ class OrderConfirmation extends ConsumerWidget {
                 _buildPaymentOption(context, ref, Icons.payment,
                     'Online Payment', selectedPaymentMethod),
                 const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Delivery address',
-                      style: TextStyle(
-                        fontSize: 25,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          CupertinoModalPopupRoute(
-                            builder: (context) =>
-                                const SelectAdress(totalPrice: 0),
-                          ),
-                        ).then((_) => ref
-                            .read(savedAddressProvider.notifier)
-                            .loadSavedAddress());
-                      },
-                      icon: const Icon(
-                        Icons.mode_edit_outlined,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: ResponsiveContainer(
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const SizedBox(width: 8),
-                            const Icon(Icons.location_on,
-                                size: 30, color: Colors.black),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    '${savedAddressData['Name'] ?? 'N/A'}',
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${savedAddressData['road'] ?? 'N/A'}',
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                      'Delivery Slot: ${savedAddressData['selectedSlot'] ?? 'N/A'}',
-                                      overflow: TextOverflow.ellipsis),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${(savedAddressData['selectedDistance'] != null ? savedAddressData['selectedDistance'].toStringAsFixed(2) : 'N/A')} km',
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 10),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
                 const SizedBox(height: 16),
               ],
             ),
@@ -291,19 +235,28 @@ class OrderConfirmation extends ConsumerWidget {
                                   try {
                                     if (selectedPaymentMethod ==
                                         'Online Payment') {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => RazorPay(
-                                            totalAmountToPay: totalAmountToPay,
-                                            cartItems: cartItems,
-                                          ),
-                                        ),
-                                      );
+                                      Navigator.pushReplacement(
+                                          context,
+                                          SeamlessRevealRoute(
+                                            page: RazorPay(
+                                              totalAmountToPay:
+                                                  totalAmountToPay,
+                                            ),
+                                          ));
                                     } else if (selectedPaymentMethod ==
                                         'Cash on Delivery') {
-                                      await paymentHandler.saveOrderDetails();
+                                      await paymentHandler
+                                          .saveOrderDetails(ref);
                                       await paymentHandler.clearCart(ref);
+                                      final prefs =
+                                          await SharedPreferences.getInstance();
+                                      prefs.setString(
+                                          'Rate', 'Your feedback message here');
+                                      prefs.setInt(
+                                          'RateTimestamp',
+                                          DateTime.now()
+                                              .millisecondsSinceEpoch);
+
                                       ref
                                           .read(CODloadingProvider.notifier)
                                           .state = false;

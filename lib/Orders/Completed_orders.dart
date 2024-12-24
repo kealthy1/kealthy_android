@@ -1,31 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:kealthy/Services/Loading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-class OrderData {
-  final String name;
-  final String assignedTo;
-  final String distance;
-  final String orderId;
-  final String phoneNumber;
-  final String Date;
-  final double totalAmountToPay;
-  final List<OrderItem> orderItems;
-
-  OrderData({
-    required this.name,
-    required this.assignedTo,
-    required this.distance,
-    required this.orderId,
-    required this.phoneNumber,
-    required this.totalAmountToPay,
-    required this.orderItems,
-    required this.Date,
-  });
-}
+import 'package:http/http.dart' as http;
 
 class OrderItem {
   final String itemName;
@@ -37,6 +17,55 @@ class OrderItem {
     required this.itemPrice,
     required this.itemQuantity,
   });
+
+  factory OrderItem.fromMap(Map<String, dynamic> data) {
+    return OrderItem(
+      itemName: data['item_name']?.toString() ?? 'Unknown Item',
+      itemPrice: (data['item_price'] as num?)?.toDouble() ?? 0.0,
+      itemQuantity: (data['item_quantity'] as int?) ?? 0,
+    );
+  }
+}
+
+class OrderData {
+  final String name;
+  final String assignedTo;
+  final String distance;
+  final String orderId;
+  final String phoneNumber;
+  final String date;
+  final String time;
+  final double totalAmountToPay;
+  final List<OrderItem> orderItems;
+
+  OrderData({
+    required this.name,
+    required this.assignedTo,
+    required this.distance,
+    required this.orderId,
+    required this.phoneNumber,
+    required this.totalAmountToPay,
+    required this.orderItems,
+    required this.date,
+    required this.time,
+  });
+  factory OrderData.fromMap(Map<String, dynamic> data) {
+    List<OrderItem> items = (data['orderItems'] as List<dynamic>? ?? [])
+        .map((item) => OrderItem.fromMap(item as Map<String, dynamic>))
+        .toList();
+
+    return OrderData(
+      name: data['Name']?.toString() ?? 'Unknown Name',
+      assignedTo: data['assignedTo']?.toString() ?? 'Unknown',
+      distance: data['distance']?.toString() ?? '0',
+      orderId: data['orderId']?.toString() ?? 'Unknown',
+      phoneNumber: data['phoneNumber']?.toString() ?? 'Unknown',
+      totalAmountToPay: (data['totalAmountToPay'] as num?)?.toDouble() ?? 0.0,
+      orderItems: items,
+      date: data['date']?.toString() ?? '',
+      time: data['time']?.toString() ?? '',
+    );
+  }
 }
 
 class OrderDataNotifier extends StateNotifier<AsyncValue<List<OrderData>?>> {
@@ -53,40 +82,27 @@ class OrderDataNotifier extends StateNotifier<AsyncValue<List<OrderData>?>> {
         return;
       }
 
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('Completed Orders')
-          .where('phoneNumber', isEqualTo: phoneNumber)
-          .get();
+      final apiUrl = "https://api-jfnhkjk4nq-uc.a.run.app/orders/$phoneNumber";
+      final response = await http.get(Uri.parse(apiUrl));
 
-      if (querySnapshot.docs.isEmpty) {
-        state = const AsyncValue.data(null);
-        return;
-      }
+      if (response.statusCode == 200) {
+        final List<dynamic> responseData = jsonDecode(response.body)['orders'];
 
-      final orders = querySnapshot.docs.map((doc) {
-        final data = doc.data();
+        if (responseData.isEmpty) {
+          state = const AsyncValue.data([]);
+          return;
+        }
 
-        List<OrderItem> items = (data['orderItems'] as List<dynamic>)
-            .map((item) => OrderItem(
-                  itemName: item['item_name'] as String,
-                  itemPrice: item['item_price'].toDouble(),
-                  itemQuantity: item['item_quantity'] as int,
-                ))
+        final orders = responseData
+            .map((data) => OrderData.fromMap(data as Map<String, dynamic>))
             .toList();
 
-        return OrderData(
-          name: data['Name'],
-          assignedTo: data['assignedTo'],
-          distance: data['distance'],
-          orderId: data['orderId'],
-          Date: data['date'],
-          phoneNumber: data['phoneNumber'],
-          totalAmountToPay: data['totalAmountToPay'].toDouble(),
-          orderItems: items,
-        );
-      }).toList();
-
-      state = AsyncValue.data(orders);
+        state = AsyncValue.data(orders);
+      } else if (response.statusCode == 404) {
+        state = const AsyncValue.data([]);
+      } else {
+        throw Exception("Failed to fetch orders: ${response.body}");
+      }
     } catch (e) {
       state = AsyncValue.error(e.toString(), StackTrace.current);
     }
@@ -111,7 +127,25 @@ class OrderCard extends ConsumerWidget {
       body: orderDataAsync.when(
         data: (orders) {
           if (orders == null || orders.isEmpty) {
-            return const Center(child: Text("No order data found."));
+            return Center(
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.shopping_cart_outlined,
+                    size: 100,
+                    color: Color(0xFF273847),
+                  ),
+                  Text(
+                    'No orders found',
+                    style: TextStyle(
+                      fontFamily: "poppins",
+                      color: Color(0xFF273847),
+                    ),
+                  ),
+                ],
+              ),
+            );
           }
 
           return ListView.builder(
@@ -165,13 +199,27 @@ class OrderCard extends ConsumerWidget {
                               ),
                             ],
                           ),
-                          Text(
-                            orderData.Date,
-                            style: const TextStyle(
-                                color: Colors.black,
-                                fontFamily: "poppins",
-                                overflow: TextOverflow.ellipsis),
-                          )
+                          Column(
+                            children: [
+                              Text(
+                                orderData.date,
+                                style: const TextStyle(
+                                    color: Colors.black,
+                                    fontFamily: "poppins",
+                                    overflow: TextOverflow.ellipsis),
+                              ),
+                              Text(
+                                DateFormat('h:mm a').format(
+                                  DateFormat('HH:mm:ss').parse(orderData.time),
+                                ),
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontFamily: "poppins",
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              )
+                            ],
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),

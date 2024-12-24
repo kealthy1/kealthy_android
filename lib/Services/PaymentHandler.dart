@@ -6,6 +6,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../Payment/COD_Page.dart';
 import 'FirestoreCart.dart';
 
 class PaymentHandler {
@@ -20,42 +21,31 @@ class PaymentHandler {
     return '$randomNum$timestamp';
   }
 
-  Future<void> saveOrderDetails() async {
+  Future<void> saveOrderDetails(WidgetRef ref) async {
     try {
+      final savedAddress = ref.read(codpageprovider);
+
+      double selectedDistance = savedAddress['selectedDistance'] ?? 0.0;
+      String name = savedAddress['Name'] ?? '';
+
+      String selectedDirections = savedAddress['directions'] ?? '';
+      double selectedLatitude = savedAddress['latitude'] ?? 0.0;
+      double selectedLongitude = savedAddress['longitude'] ?? 0.0;
+      String selectedRoad = savedAddress['road'] ?? '';
+      String landmark = savedAddress['Landmark'] ?? '';
+
       SharedPreferences prefs = await SharedPreferences.getInstance();
-
-      String selectedType = prefs.getString('selectedType') ?? '';
-      double selectedDistance = prefs.getDouble('selectedDistance') ?? 0.0;
-      String Name = prefs.getString('Name') ?? '';
-
-      String deliveryInstructions =
-          (prefs.getStringList('deliveryInstructions') ?? []).join(', ');
-
-      String selectedDirections = prefs.getString('selectedDirections') ?? '';
-      double selectedLatitude = prefs.getDouble('selectedLatitude') ?? 0.0;
-      double selectedLongitude = prefs.getDouble('selectedLongitude') ?? 0.0;
-      String selectedRoad = prefs.getString('selectedRoad') ?? '';
-      String Landmark = prefs.getString('landmark') ?? '';
       String phoneNumber = prefs.getString('phoneNumber') ?? '';
       String selectedSlot = prefs.getString('selectedSlot') ?? '';
-      String displaySlot =
-          selectedSlot.toLowerCase().contains('instant delivery')
-              ? 'Instant Delivery'
-              : selectedSlot;
-
-      double totalAmountToPay = prefs.getDouble('totalToPay') ?? 0;
-      String paymentmethod = prefs.getString('selectedPaymentMethod') ?? '';
+      double totalAmountToPay = prefs.getDouble('totalToPay') ?? 0.0;
+      String paymentMethod = prefs.getString('selectedPaymentMethod') ?? '';
       String fcmToken = prefs.getString('fcm_token') ?? '';
-      String cookinginstrcutions = prefs.getString("cookinginstrcutions") ?? "";
-
-      if (selectedType.isEmpty || Name.isEmpty || selectedRoad.isEmpty) {
-        print("Missing required fields!");
-        return;
-      }
+      String cookingInstructions = prefs.getString('cookinginstrcutions') ?? '';
+      Object deliveryInstructions =
+          prefs.getString('deliveryInstructions') ?? '';
 
       String orderId = generateOrderId();
-
-      DatabaseReference ref = database1.ref().child('orders').child(orderId);
+      DatabaseReference refDB = database1.ref().child('orders').child(orderId);
 
       List<Map<String, dynamic>> orderItems = [];
       int index = 0;
@@ -74,15 +64,12 @@ class PaymentHandler {
           'item_price': itemPrice,
         });
         unawaited(reduceItemStock(itemName, itemQuantity));
-
         index++;
       }
-
-      await ref.set({
+      await refDB.set({
         'orderId': orderId,
-        'selectedType': selectedType,
         'selectedDistance': selectedDistance,
-        'Name': Name,
+        'Name': name,
         'deliveryInstructions': deliveryInstructions,
         'selectedDirections': selectedDirections,
         'selectedLatitude': selectedLatitude,
@@ -90,18 +77,18 @@ class PaymentHandler {
         'selectedRoad': selectedRoad,
         'phoneNumber': phoneNumber,
         'totalAmountToPay': totalAmountToPay,
-        'selectedSlot': displaySlot,
+        'selectedSlot': selectedSlot,
         'status': 'Order Placed',
         'assignedto': 'NotAssigned',
         'DA': 'NotAssigned',
         'DAMOBILE': 'NotAssigned',
         'createdAt': DateTime.now().toIso8601String(),
         'orderItems': orderItems,
-        'landmark': Landmark,
+        'landmark': landmark,
         'distance': selectedDistance.toStringAsFixed(2),
-        'paymentmethod': paymentmethod,
+        'paymentmethod': paymentMethod,
         'fcm_token': fcmToken,
-        'cookinginstrcutions': cookinginstrcutions,
+        'cookinginstrcutions': cookingInstructions,
       });
 
       print("Order details saved successfully with orderId: $orderId");

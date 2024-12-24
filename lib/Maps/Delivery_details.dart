@@ -3,25 +3,38 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:kealthy/LandingPage/Myprofile.dart';
 import 'package:kealthy/LandingPage/Widgets/floating_bottom_navigation_bar.dart';
-import 'package:kealthy/Maps/SelectAdress.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../Riverpod/distance.dart';
+import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../Cart/SlotsBooking.dart';
+import '../Payment/SavedAdress.dart';
 import 'fluttermap.dart';
 
 final selectedSlotProvider = StateProvider<String?>((ref) => null);
 final issavedProvider = StateProvider<bool>((ref) => false);
 
 class AddressForm extends ConsumerStatefulWidget {
-  final double totalPrice;
+  final double latitude;
+  final double longitude;
+  final String name;
+  final String selectedRoad;
+  final String landmark;
+  final String type;
+  final String directions;
+
   final String? date;
 
   const AddressForm({
     super.key,
-    required this.totalPrice,
+    required this.longitude,
+    required this.latitude,
     this.date,
+    required this.name,
+    required this.selectedRoad,
+    required this.landmark,
+    required this.type,
+    required this.directions,
   });
 
   @override
@@ -38,8 +51,15 @@ class _AddressFormState extends ConsumerState<AddressForm> {
   @override
   void initState() {
     super.initState();
+    houseController.text = widget.name.isNotEmpty ? widget.name : '';
+    apartmentController.text =
+        widget.selectedRoad.isNotEmpty ? widget.selectedRoad : '';
+    LandMarkController.text = widget.landmark.isNotEmpty ? widget.landmark : '';
+    directionsController.text =
+        widget.directions.isNotEmpty ? widget.directions : '';
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(buttonPressedProvider.notifier).state = widget.type;
       final address = ref.read(addressProvider);
       if (address!.isNotEmpty) {
         List<String> addressParts = address.split(',');
@@ -82,223 +102,193 @@ class _AddressFormState extends ConsumerState<AddressForm> {
               ),
             ),
           ),
-          const SizedBox(
-            height: 20,
-          ),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 3.0,
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text(
+                  'Save the adress as',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.grey),
                 ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Save the adress as',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.grey),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: _buildSaveButton(Icons.home, 'Home')),
+                    const SizedBox(width: 4),
+                    Expanded(child: _buildSaveButton(Icons.work, 'Work')),
+                    const SizedBox(width: 4),
+                    Expanded(
+                        child: _buildSaveButton(Icons.more_horiz, 'Other')),
+                  ],
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(10.0),
+                    border: Border.all(color: Colors.black26),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(child: _buildSaveButton(Icons.home, 'Home')),
-                      const SizedBox(width: 4),
-                      Expanded(child: _buildSaveButton(Icons.work, 'Work')),
-                      const SizedBox(width: 4),
-                      Expanded(
-                          child: _buildSaveButton(Icons.more_horiz, 'Other')),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(10.0),
-                      border: Border.all(color: Colors.black26),
-                    ),
-                    child: address != null
-                        ? Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 5),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    address,
-                                    style: const TextStyle(
-                                        fontSize: 13, color: Colors.black45),
-                                    overflow: TextOverflow.clip,
+                  child: address != null
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 5),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  address,
+                                  style: const TextStyle(
+                                      fontSize: 13, color: Colors.black45),
+                                  overflow: TextOverflow.clip,
+                                ),
+                              ),
+                              Flexible(
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          side: const BorderSide(
+                                              color: Colors.black45))),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: const Text(
+                                    'Change',
+                                    style: TextStyle(
+                                        fontSize: 11, color: Colors.black45),
                                   ),
                                 ),
-                                Flexible(
-                                  child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            side: const BorderSide(
-                                                color: Colors.black45))),
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                    child: const Text(
-                                      'Change',
-                                      style: TextStyle(
-                                          fontSize: 11, color: Colors.black45),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : const Text('Loading Address...'),
-                  ),
-                  const SizedBox(
-                    height: 5,
-                  ),
-                  const Text(
-                    'Updated based on your map pin',
-                    style: TextStyle(fontSize: 11, color: Colors.black45),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: houseController,
-                    decoration: const InputDecoration(
-                      hintText: 'Name',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                        borderSide: BorderSide(color: Colors.black),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black),
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                      ),
-                    ),
-                    cursorColor: Colors.black,
-                    keyboardType: TextInputType.text,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: apartmentController,
-                    decoration: const InputDecoration(
-                      hintText: 'Flat / Room / area',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                        borderSide: BorderSide(color: Colors.black),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black),
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                      ),
-                    ),
-                    keyboardType: TextInputType.text,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: LandMarkController,
-                    decoration: const InputDecoration(
-                      hintText: 'Landmark (optional)',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                        borderSide: BorderSide(color: Colors.black),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black),
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                      ),
-                    ),
-                    keyboardType: TextInputType.text,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: directionsController,
-                    maxLength: 200,
-                    decoration: const InputDecoration(
-                      hintText: 'Directions',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                        borderSide: BorderSide(color: Colors.black),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black),
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                      ),
-                    ),
-                    maxLines: 4,
-                    keyboardType: TextInputType.multiline,
-                    textAlign: TextAlign.start,
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: issaved
-                        ? const Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                color: Color(0xFF273847),
-                                strokeWidth: 5,
                               ),
-                            ),
-                          )
-                        : SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                // ignore: unused_result
-                                ref.refresh(userProfileProvider);
-                                ref.read(issavedProvider.notifier);
-                                bool isSaved =
-                                    await _saveAndSelectAddress(ref, 0.0);
-                                ref.read(savedValueProvider);
-                                if (isSaved) {
-                                  Navigator.pushAndRemoveUntil(
-                                    context,
-                                    CupertinoModalPopupRoute(
-                                      builder: (context) =>
-                                          const CustomBottomNavigationBar(),
-                                    ),
-                                    (route) => false,
-                                  );
-                                }
-                                ref.read(issavedProvider.notifier).state =
-                                    false;
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFF273847),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 20.0),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Text(
-                                'SAVE AND PROCEED',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                            ],
+                          ),
+                        )
+                      : const Text('Loading Address...'),
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
+                const Text(
+                  'Updated based on your map pin',
+                  style: TextStyle(fontSize: 11, color: Colors.black45),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: houseController,
+                  decoration: const InputDecoration(
+                    hintText: 'Name',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black),
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                    ),
+                  ),
+                  cursorColor: Colors.black,
+                  keyboardType: TextInputType.text,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: apartmentController,
+                  decoration: const InputDecoration(
+                    hintText: 'Flat / Room / area',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black),
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                    ),
+                  ),
+                  keyboardType: TextInputType.text,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: LandMarkController,
+                  decoration: const InputDecoration(
+                    hintText: 'Landmark (optional)',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black),
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                    ),
+                  ),
+                  keyboardType: TextInputType.text,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: directionsController,
+                  decoration: const InputDecoration(
+                    hintText: 'Directions',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black),
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                    ),
+                  ),
+                  maxLines: 2,
+                  keyboardType: TextInputType.multiline,
+                  textAlign: TextAlign.start,
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                issaved
+                    ? const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF273847),
+                            strokeWidth: 5,
+                          ),
+                        ),
+                      )
+                    : SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            const double restaurantLatitude =
+                                10.010279427438405;
+                            const double restaurantLongitude =
+                                76.38426666931349;
+                            await _calculateDrivingDistanceAndSave(
+                                ref, restaurantLatitude, restaurantLongitude);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF273847),
+                            padding: const EdgeInsets.symmetric(vertical: 20.0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                  ),
-                ],
-              ),
+                          child: const Text(
+                            'SAVE AND PROCEED',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+              ],
             ),
           ),
         ],
@@ -344,7 +334,48 @@ class _AddressFormState extends ConsumerState<AddressForm> {
 
   final savedValueProvider = StateProvider<String>((ref) => '');
 
-  Future<bool> _saveAndSelectAddress(WidgetRef ref, double distance) async {
+  Future<void> _calculateDrivingDistanceAndSave(
+      WidgetRef ref, double startLatitude, double startLongitude) async {
+    try {
+      final double destinationLatitude = widget.latitude;
+      final double destinationLongitude = widget.longitude;
+
+      final double drivingDistance = await _calculateDrivingDistance(
+        startLatitude,
+        startLongitude,
+        destinationLatitude,
+        destinationLongitude,
+      );
+
+      print('Calculated Driving Distance: $drivingDistance km');
+
+      bool isSaved = await _saveAndSelectAddress(
+        ref,
+      );
+
+      if (isSaved) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          CupertinoModalPopupRoute(
+            builder: (context) => const CustomBottomNavigationBar(),
+          ),
+          (route) => false,
+        );
+      }
+
+      ref.read(issavedProvider.notifier).state = false;
+    } catch (e) {
+      print("Error calculating or saving address: $e");
+      Fluttertoast.showToast(
+        msg: "Failed to save address. Please try again.",
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+      ref.read(issavedProvider.notifier).state = false;
+    }
+  }
+
+  Future<bool> _saveAndSelectAddress(WidgetRef ref) async {
     ref.read(issavedProvider.notifier).state = true;
 
     final name = houseController.text.trim();
@@ -352,20 +383,16 @@ class _AddressFormState extends ConsumerState<AddressForm> {
     final directions = directionsController.text.trim();
     final savedValue = ref.read(savedValueProvider);
     final landmark = LandMarkController.text.trim();
-    final address = addressController.text.trim();
-    final combinedRoad = '$road $address';
+    final combinedRoad = '$road, ${addressController.text.trim()}';
 
     if (name.isEmpty ||
         road.isEmpty ||
         directions.isEmpty ||
         savedValue.isEmpty) {
       Fluttertoast.showToast(
-        msg: "Please fill all fields",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.TOP,
+        msg: "All fields are required",
         backgroundColor: Colors.red,
         textColor: Colors.white,
-        fontSize: 12.0,
       );
       ref.read(issavedProvider.notifier).state = false;
       return false;
@@ -373,126 +400,140 @@ class _AddressFormState extends ConsumerState<AddressForm> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-
       final phoneNumber = prefs.getString('phoneNumber');
-      final latitude = prefs.getDouble('latitude');
-      final longitude = prefs.getDouble('longitude');
 
       if (phoneNumber == null || phoneNumber.isEmpty) {
         Fluttertoast.showToast(
-          msg: "Your Cache Cleared. Relogin to Continue",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.TOP,
+          msg: "Phone number not found. Please log in again.",
           backgroundColor: Colors.red,
           textColor: Colors.white,
-          fontSize: 12.0,
         );
         ref.read(issavedProvider.notifier).state = false;
         return false;
       }
 
-      if (longitude == null || latitude == null) {
-        Fluttertoast.showToast(
-          msg: "Location data is not available.",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.TOP,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 12.0,
-        );
-        ref.read(issavedProvider.notifier).state = false;
-        return false;
-      }
-      final double restaurantLatitude = 10.010279427438405;
-      final double restaurantLongitude = 76.38426666931349;
-      const String apiKey = "AIzaSyD1MUoakZ0mm8WeFv_GK9k_zAWdGk5r1hA";
-      final double drivingDistance = await calculateDrivingDistance(
-        apiKey: apiKey,
-        startLatitude: latitude,
-        startLongitude: longitude,
-        endLatitude: restaurantLatitude,
-        endLongitude: restaurantLongitude,
+      const double restaurantLatitude = 10.010279427438405;
+      const double restaurantLongitude = 76.38426666931349;
+
+      final double destinationLatitude = widget.latitude;
+      final double destinationLongitude = widget.longitude;
+
+      final double drivingDistance = await _calculateDrivingDistance(
+        restaurantLatitude,
+        restaurantLongitude,
+        destinationLatitude,
+        destinationLongitude,
       );
 
+      print('Driving Distance: $drivingDistance km');
+
       final newAddressData = {
-        'name': name,
+        'phoneNumber': phoneNumber,
+        'Name': name,
         'road': combinedRoad,
         'directions': directions,
-        'phoneNumber': phoneNumber,
-        'deliveryDate': DateTime.now().toIso8601String(),
         'type': savedValue,
-        'latitude': latitude,
-        'longitude': longitude,
-        'landmark': landmark,
+        'latitude': destinationLatitude,
+        'longitude': destinationLongitude,
+        'Landmark': landmark,
+        'deliveryDate': DateTime.now().toIso8601String(),
+        'selected': true,
         'distance': drivingDistance,
       };
 
-      final savedAddresses = prefs.getStringList('savedAddresses') ?? [];
-      List<Map<String, dynamic>> addressList = savedAddresses
-          .map((e) => jsonDecode(e) as Map<String, dynamic>)
-          .toList();
+      print('New Address Data: $newAddressData');
+      const String apiUrl =
+          "https://api-jfnhkjk4nq-uc.a.run.app/addselectAddress";
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(newAddressData),
+      );
 
-      bool isTypeReplaced = false;
-      addressList = addressList.map((address) {
-        if (address['type'] == savedValue) {
-          isTypeReplaced = true;
-          return newAddressData;
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        if (responseData['success'] == true) {
+          // ignore: unused_result
+          ref.refresh(selectedAddressProviders);
+          // ignore: unused_result
+          ref.refresh(distanceProvider);
+          // ignore: unused_result
+          ref.refresh(etaTimeProvider);
+          await prefs.setString('selectedRoad', road);
+          await prefs.setString('type', savedValue);
+          await prefs.setString('name', name);
+          await prefs.remove("selectedAddressMessage");
+          Fluttertoast.showToast(
+            msg: "Address saved successfully",
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+          );
+          Navigator.pushAndRemoveUntil(
+            context,
+            CupertinoModalPopupRoute(
+              builder: (context) => const CustomBottomNavigationBar(),
+            ),
+            (route) => false,
+          );
+
+          ref.read(issavedProvider.notifier).state = false;
+          return true;
+        } else {
+          Fluttertoast.showToast(
+            msg: responseData['message'] ?? "Failed to save address.",
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+          );
         }
-        return address;
-      }).toList();
-
-      if (!isTypeReplaced) {
-        addressList.add(newAddressData);
+      } else {
+        Fluttertoast.showToast(
+          msg: "Error: ${response.statusCode}. Failed to save address.",
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
       }
-
-      await prefs.setStringList(
-        'savedAddresses',
-        addressList.map((address) => jsonEncode(address)).toList(),
-      );
-
-      final selectedAddress = Address(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        name: name,
-        road: combinedRoad,
-        directions: directions,
-        type: savedValue,
-        latitude: latitude,
-        longitude: longitude,
-        landmark: landmark,
-      );
-
-      await prefs.setString('selectedAddressId', selectedAddress.id);
-      await prefs.setString('Name', selectedAddress.name);
-      await prefs.setString('selectedRoad', selectedAddress.road);
-      await prefs.setString('selectedType', selectedAddress.type);
-      if (selectedAddress.directions != null) {
-        await prefs.setString(
-            'selectedDirections', selectedAddress.directions!);
-      }
-      await prefs.setDouble('selectedLatitude', selectedAddress.latitude);
-      await prefs.setDouble('selectedLongitude', selectedAddress.longitude);
-      await prefs.setDouble('selectedDistance', drivingDistance);
-      await prefs.setString('landmark', selectedAddress.landmark);
-
-      print(
-          'Address saved and selected: ${selectedAddress.name}, Distance: $drivingDistance');
 
       ref.read(issavedProvider.notifier).state = false;
-      return true;
+      return false;
     } catch (e) {
-      print('Error: $e');
+      print('Error saving address: $e');
       Fluttertoast.showToast(
-        msg: "Failed to save address. Please try again.",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.TOP,
+        msg: "Something went wrong. Please try again.",
         backgroundColor: Colors.red,
         textColor: Colors.white,
-        fontSize: 12.0,
       );
       ref.read(issavedProvider.notifier).state = false;
       return false;
     }
   }
 
-  final selectedSlotProvider = StateProvider<String>((ref) => '');
+  Future<double> _calculateDrivingDistance(double startLatitude,
+      double startLongitude, double endLatitude, double endLongitude) async {
+    const String apiKey = "AIzaSyD1MUoakZ0mm8WeFv_GK9k_zAWdGk5r1hA";
+    final String url =
+        "https://maps.googleapis.com/maps/api/directions/json?origin=$startLatitude,$startLongitude&destination=$endLatitude,$endLongitude&mode=walking&key=$apiKey";
+
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        final routes = jsonResponse['routes'] as List;
+
+        if (routes.isNotEmpty) {
+          final legs = routes[0]['legs'] as List;
+          final distance = legs[0]['distance']['value'] as int;
+          return distance / 1000;
+        } else {
+          throw Exception("No route found between the locations.");
+        }
+      } else {
+        throw Exception(
+            "Failed to fetch driving distance: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error calculating distance: $e");
+      return 5;
+    }
+  }
 }

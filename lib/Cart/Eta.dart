@@ -33,7 +33,7 @@ class EstimatedTimeSelector extends ConsumerWidget {
         if (distance != null) {
           const double averageSpeedKmH = 30.0;
           const int cookingTimeMinutes = 15;
-          etaMinutes = (distance / averageSpeedKmH) * 60 + cookingTimeMinutes;
+          etaMinutes = (distance / averageSpeedKmH) * 100 + cookingTimeMinutes;
         }
 
         return Container(

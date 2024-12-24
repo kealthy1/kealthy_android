@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import 'package:kealthy/LandingPage/Widgets/floating_bottom_navigation_bar.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -104,248 +105,285 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
     final ordersList = ref.watch(ordersListProvider);
     final expandedStates = ref.watch(expandedStatesProvider);
     final isLoading = ref.watch(loadingProvider);
-    return Scaffold(
-      appBar: AppBar(
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const CustomBottomNavigationBar()),
+          (route) => false,
+        );
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          toolbarHeight: 1,
+        ),
         backgroundColor: Colors.white,
-        toolbarHeight: 1,
-      ),
-      backgroundColor: Colors.white,
-      body: isLoading
-          ? Center(
-              child: LoadingAnimationWidget.discreteCircle(
-                color: Color(0xFF273847),
-                size: 50,
-              ),
-            )
-          : ordersList.isEmpty
-              ? const Center(child: Text('No orders found.'))
-              : ListView.builder(
-                  itemCount: ordersList.length,
-                  itemBuilder: (context, index) {
-                    final order = ordersList[index];
-                    final orderId = getLast9Digits(order['orderId']);
-                    final status = order['status'];
-                    final deliveryPartnerName =
-                        order['assignedto'] ?? 'Not Assigned';
-                    final DAMOBILE = order['DAMOBILE'] ?? 'No value';
-                    final DA = order['assignedto'] ?? "";
-                    final address = order['selectedRoad'] ?? '';
-                    final orderItems = order['orderItems'] ?? [];
-                    final selectedSlot = order['selectedSlot'] ?? '';
-                    final expanded = expandedStates[index];
-
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border(
-                            top: BorderSide(
-                                color: Colors.grey.shade300, width: 1),
-                            bottom: BorderSide(
-                                color: Colors.grey.shade300, width: 1),
-                            left: BorderSide(
-                                color: Colors.grey.shade300, width: 1),
-                            right: BorderSide(
-                                color: Colors.grey.shade300, width: 1),
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.shade300,
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+        body: isLoading
+            ? Center(
+                child: LoadingAnimationWidget.discreteCircle(
+                  color: Color(0xFF273847),
+                  size: 50,
+                ),
+              )
+            : ordersList.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.shopping_cart_outlined,
+                          size: 100,
+                          color: Color(0xFF273847),
                         ),
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        child: Theme(
-                          data: Theme.of(context).copyWith(
-                            dividerColor: Colors.transparent,
-                            expansionTileTheme: const ExpansionTileThemeData(
-                              backgroundColor: Colors.white,
-                              collapsedBackgroundColor: Colors.white,
-                            ),
+                        Text(
+                          'No orders found',
+                          style: TextStyle(
+                            fontFamily: "poppins",
+                            color: Color(0xFF273847),
                           ),
-                          child: ExpansionTile(
-                            iconColor: Color(0xFF273847),
-                            title: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.start,
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: ordersList.length,
+                    itemBuilder: (context, index) {
+                      final order = ordersList[index];
+                      final orderId = getLast9Digits(order['orderId']);
+                      final status = order['status'];
+                      final deliveryPartnerName =
+                          order['assignedto'] ?? 'Not Assigned';
+                      final DAMOBILE = order['DAMOBILE'] ?? 'No value';
+                      final DA = order['DA'] ?? "";
+                      final address = order['selectedRoad'] ?? '';
+                      final orderItems = order['orderItems'] ?? [];
+                      final selectedSlot = order['selectedSlot'] ?? '';
+                      final expanded = expandedStates[index];
+
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border(
+                              top: BorderSide(
+                                  color: Colors.grey.shade300, width: 1),
+                              bottom: BorderSide(
+                                  color: Colors.grey.shade300, width: 1),
+                              left: BorderSide(
+                                  color: Colors.grey.shade300, width: 1),
+                              right: BorderSide(
+                                  color: Colors.grey.shade300, width: 1),
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.shade300,
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: Theme(
+                            data: Theme.of(context).copyWith(
+                              dividerColor: Colors.transparent,
+                              expansionTileTheme: const ExpansionTileThemeData(
+                                backgroundColor: Colors.white,
+                                collapsedBackgroundColor: Colors.white,
+                              ),
+                            ),
+                            child: ExpansionTile(
+                              iconColor: Color(0xFF273847),
+                              title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            'Order ID: $orderId',
+                                            style: TextStyle(
+                                                fontFamily: "poppins",
+                                                overflow:
+                                                    TextOverflow.ellipsis),
+                                          ),
+                                          const SizedBox(width: 5),
+                                          Icon(
+                                            CupertinoIcons.doc,
+                                            size: 16,
+                                            color: Colors.grey,
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(2.0),
+                                    child: Text(
+                                      status,
+                                      style: const TextStyle(
+                                        fontFamily: "poppins",
+                                        overflow: TextOverflow.ellipsis,
+                                        fontSize: 14,
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              initiallyExpanded: expanded,
+                              onExpansionChanged: (bool expanded) {
+                                final updatedStates =
+                                    List<bool>.from(expandedStates);
+                                updatedStates[index] = expanded;
+                                ref
+                                    .read(expandedStatesProvider.notifier)
+                                    .state = updatedStates;
+                              },
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'Order ID: $orderId',
-                                          style: TextStyle(
-                                              fontFamily: "poppins",
-                                              overflow: TextOverflow.ellipsis),
-                                        ),
-                                        const SizedBox(width: 5),
-                                        Icon(
-                                          CupertinoIcons.doc,
-                                          size: 16,
-                                          color: Colors.grey,
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
                                 Padding(
-                                  padding: const EdgeInsets.all(2.0),
-                                  child: Text(
-                                    status,
-                                    style: const TextStyle(
-                                      fontFamily: "poppins",
-                                      overflow: TextOverflow.ellipsis,
-                                      fontSize: 14,
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  CupertinoIcons.person,
+                                                  size: 16,
+                                                  color: Colors.grey,
+                                                ),
+                                                const SizedBox(width: 5),
+                                                Expanded(
+                                                  child: Text(
+                                                    'Delivery Partner: $DA',
+                                                    style: const TextStyle(
+                                                      fontFamily: "poppins",
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                    maxLines: 1,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          if (deliveryPartnerName !=
+                                              'NotAssigned')
+                                            IconButton(
+                                              style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      Colors.black12),
+                                              onPressed: () {
+                                                FlutterPhoneDirectCaller
+                                                    .callNumber(DAMOBILE);
+                                              },
+                                              icon: const Icon(
+                                                Icons.call,
+                                                color: Color(0xFF273847),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            CupertinoIcons.time,
+                                            size: 16,
+                                            color: Colors.grey,
+                                          ),
+                                          const SizedBox(width: 5),
+                                          Flexible(
+                                            child: Text(
+                                              'Delivery Time: $selectedSlot',
+                                              style: const TextStyle(
+                                                fontFamily: "poppins",
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 5),
+                                      const Divider(
+                                        thickness: 1.5,
+                                        color: Colors.grey,
+                                      ),
+                                      ...orderItems
+                                          .take(
+                                              expanded ? orderItems.length : 2)
+                                          .map((item) {
+                                        return ListTile(
+                                          title: Text(
+                                            item['item_name'],
+                                            style: const TextStyle(
+                                                fontFamily: "poppins",
+                                                color: Colors.black,
+                                                fontSize: 12),
+                                          ),
+                                          trailing: Text(
+                                            'Qty: ${item['item_quantity']}',
+                                            style: TextStyle(
+                                              fontFamily: "poppins",
+                                            ),
+                                          ),
+                                        );
+                                      }),
+                                      if (deliveryPartnerName != 'NotAssigned')
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Color(0xFF273847),
+                                          ),
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              CupertinoModalPopupRoute(
+                                                builder: (context) =>
+                                                    OrderTrackingPage(
+                                                  orderid: order['orderId'],
+                                                  DeliveryBoy: DA,
+                                                  Distance: order[
+                                                          'selectedDistance'] ??
+                                                      0.0,
+                                                  phoneNumber: DAMOBILE,
+                                                  Address: address,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          child: const Text(
+                                            'Track Order',
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          ),
+                                        ),
+                                      const SizedBox(height: 10),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
-                            initiallyExpanded: expanded,
-                            onExpansionChanged: (bool expanded) {
-                              final updatedStates =
-                                  List<bool>.from(expandedStates);
-                              updatedStates[index] = expanded;
-                              ref.read(expandedStatesProvider.notifier).state =
-                                  updatedStates;
-                            },
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                CupertinoIcons.person,
-                                                size: 16,
-                                                color: Colors.grey,
-                                              ),
-                                              const SizedBox(width: 5),
-                                              Expanded(
-                                                child: Text(
-                                                  'Delivery Partner: $DA',
-                                                  style: const TextStyle(
-                                                    fontFamily: "poppins",
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  ),
-                                                  maxLines: 1,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        if (deliveryPartnerName !=
-                                            'NotAssigned')
-                                          IconButton(
-                                            style: ElevatedButton.styleFrom(
-                                                backgroundColor:
-                                                    Colors.black12),
-                                            onPressed: () {
-                                              FlutterPhoneDirectCaller
-                                                  .callNumber(DAMOBILE);
-                                            },
-                                            icon: const Icon(
-                                              Icons.call,
-                                              color: Color(0xFF273847),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 5),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          CupertinoIcons.time,
-                                          size: 16,
-                                          color: Colors.grey,
-                                        ),
-                                        const SizedBox(width: 5),
-                                        Text(
-                                          'Expected Delivery Time: $selectedSlot',
-                                          style: const TextStyle(
-                                              fontFamily: "poppins",
-                                              overflow: TextOverflow.ellipsis),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 5),
-                                    const Divider(
-                                      thickness: 1.5,
-                                      color: Colors.grey,
-                                    ),
-                                    ...orderItems
-                                        .take(expanded ? orderItems.length : 2)
-                                        .map((item) {
-                                      return ListTile(
-                                        title: Text(
-                                          item['item_name'],
-                                          style: const TextStyle(
-                                              fontFamily: "poppins",
-                                              color: Colors.black,
-                                              fontSize: 12),
-                                        ),
-                                        trailing: Text(
-                                          'Qty: ${item['item_quantity']}',
-                                          style: TextStyle(
-                                            fontFamily: "poppins",
-                                          ),
-                                        ),
-                                      );
-                                    }),
-                                    if (deliveryPartnerName != 'NotAssigned')
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Color(0xFF273847),
-                                        ),
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            CupertinoModalPopupRoute(
-                                              builder: (context) =>
-                                                  OrderTrackingPage(
-                                                orderid: order['orderId'],
-                                                DeliveryBoy: DA,
-                                                Distance:
-                                                    order['selectedDistance'] ??
-                                                        0.0,
-                                                phoneNumber: DAMOBILE,
-                                                Address: address,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        child: const Text(
-                                          'Track Order',
-                                          style: TextStyle(color: Colors.white),
-                                        ),
-                                      ),
-                                    const SizedBox(height: 10),
-                                  ],
-                                ),
-                              ),
-                            ],
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  ),
+      ),
     );
   }
 }

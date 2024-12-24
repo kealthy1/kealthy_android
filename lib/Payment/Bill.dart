@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Maps/SelectAdress.dart';
 import 'payment_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,14 +8,13 @@ final totalDistanceProvider = FutureProvider<double?>((ref) async {
   return prefs.getDouble('selectedDistance');
 });
 
+
 class BillDetails extends ConsumerWidget {
   final double totalPrice;
-  final String time;
 
   const BillDetails({
     super.key,
     required this.totalPrice,
-    required this.time,
   });
 
   @override
@@ -29,13 +27,11 @@ class BillDetails extends ConsumerWidget {
         double discountedFee = 0;
 
         if (totalDistance != null) {
-          // Calculate original fee based on the entire distance
           originalFee = totalDistance * 10;
 
-          // Apply the discount for the first 10 km
           if (totalDistance > 10) {
             double chargeableDistance = totalDistance - 10;
-            discountedFee = chargeableDistance * 10; // Fee for distance > 10 km
+            discountedFee = chargeableDistance * 10;
           }
         }
 
@@ -188,22 +184,4 @@ class _BillItem extends StatelessWidget {
       ],
     );
   }
-}
-
-Future<void> saveSelectedAddress(Address address, double distance) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('selectedAddressId', address.id);
-  await prefs.setString('Name', address.name);
-  await prefs.setString('selectedRoad', address.road);
-  await prefs.setString('landmark', address.landmark);
-
-  await prefs.setString('selectedType', address.type);
-  if (address.directions != null) {
-    await prefs.setString('selectedDirections', address.directions!);
-  }
-  await prefs.setDouble('selectedLatitude', address.latitude);
-  await prefs.setDouble('selectedLongitude', address.longitude);
-  await prefs.setDouble('selectedDistance', distance);
-
-  print(distance);
 }

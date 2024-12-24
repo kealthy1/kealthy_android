@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ntp/ntp.dart';
 import 'AvailableslotGenerator.dart';
 
 final selectedSlotProvider = StateProvider<DateTime?>((ref) => null);
 final isExpandedProvider = StateProvider<bool>((ref) => false);
 final distanceProvider = FutureProvider<double>((ref) async {
   final prefs = await SharedPreferences.getInstance();
-  return prefs.getDouble('selectedDistance') ?? 0.0;
+  return prefs.getDouble('selectedDistance') ?? 3.0;
 });
 
 final selectedETAProvider = StateProvider<DateTime?>((ref) => null);
@@ -22,7 +22,7 @@ final etaTimeProvider = FutureProvider<DateTime>((ref) async {
 
   final etaMinutes = (distance / averageSpeedKmH) * 100 + cookingTimeMinutes;
 
-  final currentTime = DateTime.now();
+  final currentTime = await NTP.now();
   return currentTime.add(Duration(minutes: etaMinutes.toInt()));
 });
 
@@ -33,6 +33,7 @@ class SlotSelectionContainer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedSlot = ref.watch(selectedSlotProvider);
     final isExpanded = ref.watch(isExpandedProvider);
+
     return Container(
       width: MediaQuery.of(context).size.width,
       padding: const EdgeInsets.all(15),
@@ -109,50 +110,60 @@ class SlotSelectionContainer extends ConsumerWidget {
                       );
 
                       final availableSlots =
-                          generator.getAvailableSlots(DateTime.now(), 0);
+                          generator.getAvailableSlots(etaTime, 0);
 
-                      return Wrap(
-                        spacing: 3,
-                        runSpacing: 10,
-                        children: availableSlots.map((slot) {
-                          final formattedTime =
-                              DateFormat('h:mm a').format(slot);
-                          return InkWell(
-                            onTap: () async {
-                              ref.read(selectedSlotProvider.notifier).state =
-                                  slot;
-                              ref.read(isExpandedProvider.notifier).state =
-                                  false;
-                              SharedPreferences prefs =
-                                  await SharedPreferences.getInstance();
-                              prefs.setString('selectedSlot',
-                                  DateFormat('h:mm a').format(slot));
-                            },
-                            child: Container(
-                              width: MediaQuery.of(context).size.width * 0.26,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: selectedSlot == slot
-                                    ? const Color.fromARGB(255, 223, 240, 224)
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(5),
-                                border: Border.all(color: Colors.black12),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  formattedTime,
-                                  style: TextStyle(
-                                    color: selectedSlot == slot
-                                        ? Colors.black
-                                        : Colors.black,
-                                    fontWeight: FontWeight.bold,
+                      return SingleChildScrollView(
+                        child: Wrap(
+                          spacing: 5,
+                          runSpacing: 10,
+                          children: availableSlots.map((slot) {
+                            final formattedTime =
+                                DateFormat('h:mm a').format(slot);
+                            return GestureDetector(
+                              onTap: () async {
+                                print('Selected Slot: $formattedTime');
+                                ref.read(selectedSlotProvider.notifier).state =
+                                    slot;
+                                ref.read(isExpandedProvider.notifier).state =
+                                    false;
+
+                                final prefs =
+                                    await SharedPreferences.getInstance();
+                                final success = await prefs.setString(
+                                    'selectedSlot', formattedTime);
+
+                                if (success) {
+                                  print('Saved Slot: $formattedTime');
+                                } else {
+                                  print('Failed to save slot');
+                                }
+                              },
+                              child: Container(
+                                width: MediaQuery.of(context).size.width * 0.26,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: selectedSlot == slot
+                                      ? const Color.fromARGB(255, 223, 240, 224)
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(color: Colors.black12),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    formattedTime,
+                                    style: TextStyle(
+                                      color: selectedSlot == slot
+                                          ? Colors.black
+                                          : Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          );
-                        }).toList(),
+                            );
+                          }).toList(),
+                        ),
                       );
                     },
                     loading: () => const Center(
@@ -170,4 +181,3 @@ class SlotSelectionContainer extends ConsumerWidget {
     );
   }
 }
-

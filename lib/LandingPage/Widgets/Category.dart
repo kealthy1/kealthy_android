@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:kealthy/Services/Navigation.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../DetailsPage/SubCategory.dart';
 
@@ -32,39 +33,58 @@ class CategoryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        double imageHeight = constraints.maxWidth * 0.80;
+        double imageHeight = constraints.maxWidth * 0.70;
         return InkWell(
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
           onTap: () {
             Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FoodCategoriesScreen(
-                  category: categoryName,
-                ),
-              ),
-            );
+                context,
+                SeamlessRevealRoute(
+                    page: FoodCategoriesScreen(category: categoryName)));
           },
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CachedNetworkImage(
-                width: constraints.minWidth,
-                height: imageHeight,
-                fit: BoxFit.cover,
-                imageUrl: imageUrl,
-                placeholder: (context, url) => Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                  child: Container(
-                    color: Colors.grey[300],
-                    width: constraints.minWidth,
-                    height: imageHeight,
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  width: constraints.maxWidth,
+                  height: imageHeight,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.3),
+                        blurRadius: 4.0,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Shimmer.fromColors(
+                        baseColor: Colors.grey[300]!,
+                        highlightColor: Colors.grey[100]!,
+                        child: Container(
+                          color: Colors.grey[300],
+                          width: constraints.maxWidth,
+                          height: imageHeight,
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        color: Colors.grey.shade300,
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.error,
+                            size: 40, color: Colors.red),
+                      ),
+                    ),
                   ),
                 ),
-                errorWidget: (context, url, error) =>
-                    const Icon(Icons.error, size: 40),
               ),
               const SizedBox(height: 5),
               Text(
@@ -72,9 +92,10 @@ class CategoryItem extends StatelessWidget {
                 textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: "poppins"),
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: "Poppins",
+                ),
               ),
             ],
           ),

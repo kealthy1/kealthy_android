@@ -5,9 +5,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 class DeliveryInstructionNotifier extends StateNotifier<Set<String>> {
   DeliveryInstructionNotifier() : super({});
 
+  /// Toggles the delivery instruction. If the instruction exists, it will be removed; otherwise, it will be set.
   Future<void> toggleInstruction(String instruction) async {
     final prefs = await SharedPreferences.getInstance();
     final updatedInstructions = Set<String>.from(state);
+
     if (updatedInstructions.contains(instruction)) {
       updatedInstructions.remove(instruction);
     } else {
@@ -16,12 +18,14 @@ class DeliveryInstructionNotifier extends StateNotifier<Set<String>> {
 
     if (updatedInstructions.isEmpty) {
       await prefs.remove('deliveryInstructions');
-      print('Cleared all delivery instructions due to none selected.');
+      print('Cleared all delivery instructions.');
     } else {
-      await prefs.setStringList(
-          'deliveryInstructions', updatedInstructions.toList());
-      print('Saved Instructions: ${updatedInstructions.toList()}');
+      // Convert the set into a comma-separated string
+      final instructionsString = updatedInstructions.join(',');
+      await prefs.setString('deliveryInstructions', instructionsString);
+      print('Saved Instructions: $instructionsString');
     }
+
     state = updatedInstructions;
 
     print(
@@ -33,6 +37,19 @@ class DeliveryInstructionNotifier extends StateNotifier<Set<String>> {
     await prefs.remove('deliveryInstructions');
     state = {};
     print('Cleared all delivery instructions.');
+  }
+
+  Future<void> loadInstructions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedInstructions = prefs.getString('deliveryInstructions');
+
+    if (savedInstructions != null && savedInstructions.isNotEmpty) {
+      state = savedInstructions.split(',').toSet();
+    } else {
+      state = {};
+    }
+
+    print('Loaded instructions: $state');
   }
 }
 
@@ -59,6 +76,9 @@ class _DeliveryInstructionsSectionState
     _textController = TextEditingController();
     _loadSavedInstructions();
     _textController.addListener(_handleTextChange);
+
+    // Load saved delivery instructions
+    ref.read(deliveryInstructionProvider.notifier).loadInstructions();
   }
 
   @override
@@ -120,9 +140,7 @@ class _DeliveryInstructionsSectionState
               ),
             ),
           ),
-          const SizedBox(
-            height: 20,
-          ),
+          const SizedBox(height: 20),
           LayoutBuilder(
             builder: (context, constraints) {
               final tileWidth = constraints.maxWidth / 4.5;
@@ -213,7 +231,7 @@ Widget _buildInstructionTile({
       height: height,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: isSelected ? Color(0xFF273847) : Colors.grey[100],
+        color: isSelected ? const Color(0xFF273847) : Colors.grey[100],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

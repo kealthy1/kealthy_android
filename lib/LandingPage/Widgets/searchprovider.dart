@@ -19,6 +19,9 @@ class ProductSuggestion {
   final String imageUrl;
   final String nutrients;
   final double SOH;
+  final Map<String, String> macros;
+  final Map<String, String> micros;
+  final Map<String, String> ingredients;
 
   ProductSuggestion({
     required this.name,
@@ -36,6 +39,9 @@ class ProductSuggestion {
     required this.imageUrl,
     required this.nutrients,
     required this.SOH,
+    required this.macros,
+    required this.micros,
+    required this.ingredients,
   });
 
   factory ProductSuggestion.fromFirestore(Map<String, dynamic> data) {
@@ -55,6 +61,9 @@ class ProductSuggestion {
       nutrients: data['nutrients'] ?? '',
       id: data['Name'],
       SOH: _parseDouble(data['SOH']),
+      macros: Map<String, String>.from(data['Macros'] ?? {}),
+      micros: Map<String, String>.from(data['Micros'] ?? {}),
+      ingredients: Map<String, String>.from(data['Ingredients'] ?? {}),
     );
   }
 
@@ -74,20 +83,24 @@ class ProductSuggestion {
 
   MenuItem toMenuItem() {
     return MenuItem(
-        name: name,
-        price: price,
-        category: category,
-        time: time,
-        delivery: delivery,
-        description: description,
-        protein: protein,
-        carbs: carbs,
-        kcal: kcal,
-        fat: fat,
-        rating: rating,
-        imageUrl: imageUrl,
-        nutrients: nutrients,
-        SOH: SOH);
+      name: name,
+      price: price,
+      category: category,
+      time: time,
+      delivery: delivery,
+      description: description,
+      protein: protein,
+      carbs: carbs,
+      kcal: kcal,
+      fat: fat,
+      rating: rating,
+      imageUrl: imageUrl,
+      nutrients: nutrients,
+      macros: macros,
+      ingredients: ingredients,
+      micros: micros,
+      SOH: SOH,
+    );
   }
 }
 
@@ -126,9 +139,9 @@ class ProductSuggestionsNotifier
     final normalizedQuery = query.trim().toLowerCase();
 
     try {
-      final snapshot =
-          await FirebaseFirestore.instance.collection('Products')
-          .where("SOH",isNotEqualTo: 0)
+      final snapshot = await FirebaseFirestore.instance
+          .collection('Products')
+          .where("SOH", isNotEqualTo: 0)
           .get();
 
       final uniqueProducts = <String, ProductSuggestion>{};

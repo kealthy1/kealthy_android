@@ -5,19 +5,16 @@ import 'package:kealthy/Services/Order_Completed.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Services/FirestoreCart.dart';
 import '../Services/PaymentHandler.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class RazorPay extends ConsumerStatefulWidget {
   final double totalAmountToPay;
-  final List<SharedPreferencesCartItem> cartItems;
 
   const RazorPay({
     super.key,
     required this.totalAmountToPay,
-    required this.cartItems,
   });
 
   @override
@@ -40,12 +37,15 @@ class _RazorPayState extends ConsumerState<RazorPay> {
   Future<void> _handlePaymentSuccess(PaymentSuccessResponse response) async {
     try {
       PaymentHandler paymentHandler = PaymentHandler();
-      await paymentHandler.saveOrderDetails();
+      await paymentHandler.saveOrderDetails(ref);
       await paymentHandler.clearCart(ref);
+      final prefs = await SharedPreferences.getInstance();
+      prefs.setString('Rate', 'Your feedback message here');
+      prefs.setInt('RateTimestamp', DateTime.now().millisecondsSinceEpoch);
       ReusableCountdownDialog(
         context: context,
         ref: ref,
-        message: "Payment Successful!",
+        message: "Order Placed Successfully",
         imagePath: "assets/Animation - 1731992471934.json",
         onRedirect: () {
           Navigator.pushReplacement(
@@ -87,9 +87,8 @@ class _RazorPayState extends ConsumerState<RazorPay> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final Name = prefs.getString('Name');
-      final Address = prefs.getString('Name');
       final response = await http.post(
-        Uri.parse('$backendUrl/Razorpay/create-order'),
+        Uri.parse('$backendUrl/create-order'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'amount': widget.totalAmountToPay,
@@ -103,14 +102,16 @@ class _RazorPayState extends ConsumerState<RazorPay> {
         String orderId = data['orderId'];
 
         var options = {
-          'key': 'rzp_live_DD7Kqm02VtfBmE',
+          'key': 'rzp_live_jA2MRdwkkUcT9v',
           'amount': (widget.totalAmountToPay * 100).toString(),
           'currency': 'INR',
-          'name': 'KEALTHY',
-          'description': Address,
+          'name': 'Kealthy',
+          'description': 'Kealthy',
+          'image':
+              'https://firebasestorage.googleapis.com/v0/b/kealthy-90c55.appspot.com/o/final-image-removebg-preview.png?alt=media&token=3184c1f9-2162-45e2-9bea-95519ef1519b',
           'order_id': orderId,
           'prefill': {
-            'contact': '1234567890',
+            'contact': '+918848673425',
             'email': Name,
           },
           'external': {
@@ -124,9 +125,6 @@ class _RazorPayState extends ConsumerState<RazorPay> {
       }
     } catch (e) {
       print('Error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error initiating payment: $e')),
-      );
     }
   }
 
@@ -138,10 +136,31 @@ class _RazorPayState extends ConsumerState<RazorPay> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: LoadingAnimationWidget.discreteCircle(
-        color: Color(0xFF273847),
-        size: 70,
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            LoadingAnimationWidget.inkDrop(
+              color: Color(0xFF273847),
+              size: 70,
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            Text(
+              'Loading Payments.',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                fontFamily: "poppins",
+                color: Color(0xFF273847),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

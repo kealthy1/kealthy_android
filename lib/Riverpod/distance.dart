@@ -43,7 +43,6 @@ Future<double> calculateDrivingDistance({
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);
 
-    print('API Response: ${response.body}');
 
     if (data['rows'] != null &&
         data['rows'].isNotEmpty &&

@@ -1,12 +1,10 @@
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:typed_data';
- import 'dart:ui' as ui;
+import 'dart:ui' as ui;
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -14,7 +12,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   final imageUrl = message.notification?.android?.imageUrl ??
       message.notification?.apple?.imageUrl;
-
 
   await NotificationService.instance.showNotification(
     title: message.notification?.title ?? "",
@@ -45,8 +42,8 @@ class NotificationService {
           message.notification?.apple?.imageUrl;
 
       showNotification(
-        title: message.notification?.title ?? "No Title",
-        body: message.notification?.body ?? "No Body",
+        title: message.notification?.title ?? "",
+        body: message.notification?.body ?? "",
         imageUrl: imageUrl,
       );
     });
@@ -150,89 +147,24 @@ class NotificationService {
     );
   }
 
+  Future<Uint8List> _downloadImage(String url,
+      {int width = 400, int height = 350}) async {
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final codec = await ui.instantiateImageCodec(
+        response.bodyBytes,
+        targetWidth: width,
+        targetHeight: height,
+      );
 
-Future<Uint8List> _downloadImage(String url,
-    {int width = 400, int height = 350}) async {
-  final response = await http.get(Uri.parse(url));
-  if (response.statusCode == 200) {
-    final codec = await ui.instantiateImageCodec(
-      response.bodyBytes,
-      targetWidth: width,
-      targetHeight: height,
-    );
+      final frame = await codec.getNextFrame();
+      final resizedImage = frame.image;
 
-    final frame = await codec.getNextFrame();
-    final resizedImage = frame.image;
-
-    final byteData = await resizedImage.toByteData(format: ui.ImageByteFormat.png);
-    return byteData!.buffer.asUint8List();
-  } else {
-    throw Exception('Failed to download image from $url');
-  }
-}
-
-}
-
-class DatabaseListener {
-  final FirebaseDatabase _database = FirebaseDatabase.instanceFor(
-    app: Firebase.app(),
-    databaseURL: 'https://kealthy-90c55-dd236.firebaseio.com/',
-  );
-
-  void listenForOrderStatusChanges() async {
-    final prefs = await SharedPreferences.getInstance();
-    final phoneNumber = prefs.getString('phoneNumber');
-
-    if (phoneNumber == null) {
-      return;
-    }
-
-    final ordersRef = _database.ref('orders');
-
-    ordersRef.onChildChanged.listen((event) {
-      final data = event.snapshot.value as Map<dynamic, dynamic>?;
-
-      if (data != null &&
-          data['phoneNumber'] == phoneNumber &&
-          data.containsKey('status')) {
-        final orderId = event.snapshot.key;
-        final status = data['status'] ?? "Unknown";
-
-        print(
-            'Order $orderId for phoneNumber $phoneNumber status changed to: $status');
-
-        final notificationDetails = _getNotificationDetails(status);
-
-        NotificationService.instance.showNotification(
-          title: notificationDetails['title']!,
-          body: notificationDetails['body']!,
-        );
-      }
-    });
-  }
-
-  Map<String, String> _getNotificationDetails(String status) {
-    switch (status) {
-      case "Order Packed":
-        return {
-          'title': "Out for Delivery",
-          'body': "Your order is on the way.",
-        };
-      case "Order Reached":
-        return {
-          'title': "Delivery Partner Arrived",
-          'body': "The delivery partner has reached your location.",
-        };
-      case "Order Delivered":
-        return {
-          'title': "Order Delivered",
-          'body': "Your order has been successfully delivered.",
-        };
-      default:
-        return {
-          'title': "Order Update",
-          'body': "Delivery Partner Assigned. Your Order Will Be Picked Shortly",
-        };
+      final byteData =
+          await resizedImage.toByteData(format: ui.ImageByteFormat.png);
+      return byteData!.buffer.asUint8List();
+    } else {
+      throw Exception('Failed to download image from $url');
     }
   }
 }

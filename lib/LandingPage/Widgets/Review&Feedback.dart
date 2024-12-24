@@ -1,186 +1,440 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../Services/FeedbackAPI.dart';
 
-class FeedbackBottomSheet extends StatelessWidget {
-  final String title;
-  final String message;
-  final VoidCallback onSend;
-  final VoidCallback onCancel;
+final isLoadingProvider = StateProvider<bool>((ref) => false);
 
-  const FeedbackBottomSheet({
-    super.key,
-    required this.title,
-    required this.message,
-    required this.onSend,
-    required this.onCancel,
+final feedbackProvider = StateNotifierProvider<FeedbackNotifier, FeedbackState>(
+  (ref) => FeedbackNotifier(),
+);
+
+class FeedbackState {
+  final int deliveryRating;
+  final int websiteRating;
+  final String additionalFeedback;
+  final String satisfactionText;
+  final bool showDeliveryRatingError;
+  final bool showWebsiteRatingError;
+  final bool showSatisfactionTextError;
+  final bool showAdditionalFeedbackError;
+
+  FeedbackState({
+    this.deliveryRating = 0,
+    this.websiteRating = 0,
+    this.additionalFeedback = '',
+    this.satisfactionText = '',
+    this.showDeliveryRatingError = false,
+    this.showWebsiteRatingError = false,
+    this.showSatisfactionTextError = false,
+    this.showAdditionalFeedbackError = false,
   });
 
-  static void show(
-    BuildContext context, {
-    required String title,
-    required String message,
-    required VoidCallback onSend,
-    required VoidCallback onCancel,
+  FeedbackState copyWith({
+    int? deliveryRating,
+    int? websiteRating,
+    String? additionalFeedback,
+    String? satisfactionText,
+    bool? showDeliveryRatingError,
+    bool? showWebsiteRatingError,
+    bool? showSatisfactionTextError,
+    bool? showAdditionalFeedbackError,
   }) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => FeedbackBottomSheet(
-        title: title,
-        message: message,
-        onSend: onSend,
-        onCancel: onCancel,
-      ),
+    return FeedbackState(
+      deliveryRating: deliveryRating ?? this.deliveryRating,
+      websiteRating: websiteRating ?? this.websiteRating,
+      additionalFeedback: additionalFeedback ?? this.additionalFeedback,
+      satisfactionText: satisfactionText ?? this.satisfactionText,
+      showDeliveryRatingError:
+          showDeliveryRatingError ?? this.showDeliveryRatingError,
+      showWebsiteRatingError:
+          showWebsiteRatingError ?? this.showWebsiteRatingError,
+      showSatisfactionTextError:
+          showSatisfactionTextError ?? this.showSatisfactionTextError,
+      showAdditionalFeedbackError:
+          showAdditionalFeedbackError ?? this.showAdditionalFeedbackError,
     );
   }
+}
+
+class FeedbackNotifier extends StateNotifier<FeedbackState> {
+  FeedbackNotifier() : super(FeedbackState());
+
+  void setDeliveryRating(int rating) {
+    state =
+        state.copyWith(deliveryRating: rating, showDeliveryRatingError: false);
+  }
+
+  void setWebsiteRating(int rating) {
+    state =
+        state.copyWith(websiteRating: rating, showWebsiteRatingError: false);
+  }
+
+  void setAdditionalFeedback(String feedback) {
+    state = state.copyWith(
+        additionalFeedback: feedback, showAdditionalFeedbackError: false);
+  }
+
+  void setSatisfactionText(String text) {
+    state = state.copyWith(
+        satisfactionText: text, showSatisfactionTextError: false);
+  }
+
+  bool validateFields() {
+    bool isValid = true;
+
+    if (state.deliveryRating == 0) {
+      state = state.copyWith(showDeliveryRatingError: true);
+      isValid = false;
+    }
+
+    if (state.websiteRating == 0) {
+      state = state.copyWith(showWebsiteRatingError: true);
+      isValid = false;
+    }
+
+    if (state.satisfactionText.isEmpty) {
+      state = state.copyWith(showSatisfactionTextError: true);
+      isValid = false;
+    }
+
+    if (state.additionalFeedback.isEmpty) {
+      state = state.copyWith(showAdditionalFeedbackError: true);
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  Future<bool> submitFeedback(BuildContext context) async {
+    if (!validateFields()) return false;
+
+    final feedbackService = FeedbackService();
+
+    try {
+      await feedbackService.saveFeedbackToServer(
+        deliveryRating: state.deliveryRating.toDouble(),
+        websiteRating: state.websiteRating.toDouble(),
+        satisfactionText: state.satisfactionText,
+        additionalFeedback: state.additionalFeedback,
+      );
+
+      Fluttertoast.showToast(
+        msg: "Feedback submitted successfully",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.black54,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+
+      return true;
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: "Failed to submit feedback: $e",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      return false;
+    }
+  }
+}
+
+class FeedbackPage extends ConsumerWidget {
+  const FeedbackPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: MediaQuery.of(context).viewInsets,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final feedbackState = ref.watch(feedbackProvider);
+    final feedbackNotifier = ref.read(feedbackProvider.notifier);
+    final isLoading = ref.watch(isLoadingProvider);
+
+    return WillPopScope(
+      onWillPop: () async {
+        // ignore: unused_result
+        ref.refresh(feedbackProvider);
+        // ignore: unused_result
+        ref.refresh(isLoadingProvider);
+        return true;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.white,
+          title: const Text(
+            'Share Your Feedback',
+            style: TextStyle(color: Colors.black, fontFamily: "poppins"),
+          ),
+          centerTitle: true,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 20,
+                const Text(
+                  "How satisfied are you with the delivery process?",
+                  style: TextStyle(
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    fontFamily: "poppins",
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.grey),
-                  onPressed: () => Navigator.of(context).pop(),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: List.generate(5, (index) {
+                    return IconButton(
+                      icon: Icon(
+                        Icons.star,
+                        color: feedbackState.deliveryRating > index
+                            ? Colors.amber
+                            : Colors.grey,
+                        size: 30,
+                      ),
+                      onPressed: () {
+                        feedbackNotifier.setDeliveryRating(index + 1);
+                      },
+                    );
+                  }),
+                ),
+                if (feedbackState.showDeliveryRatingError)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 5),
+                    child: Text(
+                      "Please provide a delivery rating",
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 12,
+                        fontFamily: "poppins",
+                      ),
+                    ),
+                  ),
+                const Divider(
+                  thickness: 2,
+                ),
+                const Text(
+                  "How satisfied are you with the usability of the App?",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: "poppins",
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: List.generate(5, (index) {
+                    return IconButton(
+                      icon: Icon(
+                        Icons.star,
+                        color: feedbackState.websiteRating > index
+                            ? Colors.amber
+                            : Colors.grey,
+                        size: 30,
+                      ),
+                      onPressed: () {
+                        feedbackNotifier.setWebsiteRating(index + 1);
+                      },
+                    );
+                  }),
+                ),
+                if (feedbackState.showWebsiteRatingError)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 5),
+                    child: Text(
+                      "Please provide a website rating",
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 12,
+                        fontFamily: "poppins",
+                      ),
+                    ),
+                  ),
+                const Divider(
+                  thickness: 2,
+                ),
+                const Text(
+                  "How would you describe your satisfaction?",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: "poppins",
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    {
+                      "icon": Icons.sentiment_very_dissatisfied,
+                      "text": "Very Dissatisfied",
+                      "color": Colors.red,
+                      "iconsize": 30
+                    },
+                    {
+                      "icon": Icons.sentiment_dissatisfied,
+                      "text": "Dissatisfied",
+                      "color": Colors.orange,
+                    },
+                    {
+                      "icon": Icons.sentiment_neutral,
+                      "text": "Neutral",
+                      "color": Colors.grey,
+                    },
+                    {
+                      "icon": Icons.sentiment_satisfied,
+                      "text": "Satisfied",
+                      "color": Colors.lightGreen,
+                    },
+                    {
+                      "icon": Icons.sentiment_very_satisfied,
+                      "text": "Very Satisfied",
+                      "color": Colors.green,
+                    },
+                  ].map((smiley) {
+                    return Column(
+                      children: [
+                        if (feedbackState.satisfactionText == smiley['text'])
+                          Text(
+                            smiley['text'] as String,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: "poppins",
+                              color: smiley['color'] as Color,
+                            ),
+                          ),
+                        const SizedBox(height: 5),
+                        IconButton(
+                          icon: Icon(
+                            smiley['icon'] as IconData,
+                            color:
+                                feedbackState.satisfactionText == smiley['text']
+                                    ? smiley['color'] as Color
+                                    : Colors.grey,
+                            size: 30,
+                          ),
+                          onPressed: () {
+                            feedbackNotifier
+                                .setSatisfactionText(smiley['text'] as String);
+                          },
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+                if (feedbackState.showSatisfactionTextError)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 5),
+                    child: Text(
+                      "Please select a satisfaction level",
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 12,
+                        fontFamily: "poppins",
+                      ),
+                    ),
+                  ),
+                const Divider(
+                  thickness: 2,
+                ),
+                const Text(
+                  "Do you have any thoughts you'd like to share?",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: "poppins",
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  cursorColor: Colors.black,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                      borderSide: BorderSide(color: const Color(0xFF273847)),
+                    ),
+                    disabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                      borderSide: BorderSide(color: const Color(0xFF273847)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                      borderSide: BorderSide(color: const Color(0xFF273847)),
+                    ),
+                    border: const OutlineInputBorder(),
+                    hintText: "Type your feedback here...",
+                    hintStyle: const TextStyle(fontFamily: "poppins"),
+                    errorText: feedbackState.showAdditionalFeedbackError
+                        ? "This field cannot be empty"
+                        : null,
+                  ),
+                  onChanged: (value) {
+                    feedbackNotifier.setAdditionalFeedback(value);
+                  },
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    isLoading
+                        ? LoadingAnimationWidget.inkDrop(
+                            color: const Color(0xFF273847),
+                            size: 30,
+                          )
+                        : ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF273847),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 30, vertical: 15),
+                            ),
+                            onPressed: () async {
+                              ref.read(isLoadingProvider.notifier).state = true;
+
+                              try {
+                                final isSuccess = await feedbackNotifier
+                                    .submitFeedback(context);
+                                if (isSuccess) {
+                                  Navigator.pop(context);
+                                  // ignore: unused_result
+                                  ref.refresh(feedbackProvider);
+                                  // ignore: unused_result
+                                  ref.refresh(isLoadingProvider);
+                                } else {
+                                  print('Feedback submission failed.');
+                                }
+                              } finally {
+                                ref.read(isLoadingProvider.notifier).state =
+                                    false;
+                              }
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              prefs.remove('Rate');
+                              prefs.remove('RateTimestamp');
+                            },
+                            child: const Text(
+                              'Submit',
+                              style: TextStyle(
+                                fontFamily: "poppins",
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                  ],
                 ),
               ],
             ),
           ),
-          const Divider(),
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    message,
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 20),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.sentiment_very_dissatisfied,
-                            color: Colors.grey),
-                        onPressed: () {},
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.sentiment_dissatisfied,
-                            color: Colors.grey),
-                        onPressed: () {},
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.sentiment_neutral,
-                            color: Colors.grey),
-                        onPressed: () {},
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.sentiment_satisfied,
-                            color: Colors.amber),
-                        onPressed: () {},
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.sentiment_very_satisfied,
-                            color: Colors.grey),
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Additional Thoughts Section
-                  Text(
-                    "Do you have any thoughts you'd like to share?",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const TextField(
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: "Type your feedback here...",
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Follow-Up Section
-                  Text(
-                    'May we follow you up on your feedback?',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Radio(
-                        value: true,
-                        groupValue: null,
-                        onChanged: (value) {},
-                      ),
-                      const Text('Yes'),
-                      const SizedBox(width: 20),
-                      Radio(
-                        value: false,
-                        groupValue: null,
-                        onChanged: (value) {},
-                      ),
-                      const Text('No'),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        ElevatedButton(
-                          onPressed: onSend,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 30, vertical: 15),
-                          ),
-                          child: const Text('Send'),
-                        ),
-                        OutlinedButton(
-                          onPressed: onCancel,
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 30, vertical: 15),
-                          ),
-                          child: const Text('Cancel'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

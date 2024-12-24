@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shimmer/shimmer.dart';
 import '../Services/placesuggetions.dart';
@@ -146,8 +145,18 @@ class LocationNotifier extends StateNotifier<Position?> {
 }
 
 class SelectLocationPage extends ConsumerStatefulWidget {
+  final String name;
+  final String selectedRoad;
+  final String landmark;
+  final String type;
+  final String directions;
   const SelectLocationPage({
     super.key,
+    required this.name,
+    required this.selectedRoad,
+    required this.landmark,
+    required this.type,
+    required this.directions,
   });
 
   @override
@@ -195,7 +204,8 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(automaticallyImplyLeading: false,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
         centerTitle: true,
         title: const Text(
           'Confirm Delivery Location',
@@ -238,7 +248,6 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
                     ),
                   ],
                 ),
-                // Center Marker
                 const Center(
                   child: Icon(
                     Icons.location_pin,
@@ -246,7 +255,6 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
                     color: Colors.red,
                   ),
                 ),
-                // Address Display & Action
                 Positioned(
                   bottom: 0,
                   left: 0,
@@ -388,14 +396,16 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
                                     return;
                                   }
 
-                                  final prefs =
-                                      await SharedPreferences.getInstance();
-                                  await prefs.setDouble(
-                                      'latitude', selectedPosition.latitude);
-                                  await prefs.setDouble(
-                                      'longitude', selectedPosition.longitude);
-
-                                  _showAddressFormBottomSheet(context);
+                                  _showAddressFormBottomSheet(
+                                    context,
+                                    widget.name,
+                                    widget.selectedRoad,
+                                    widget.landmark,
+                                    widget.type,
+                                    selectedPosition.latitude,
+                                    selectedPosition.longitude,
+                                    widget.directions,
+                                  );
                                 }
                               },
                               style: ElevatedButton.styleFrom(
@@ -419,7 +429,6 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
                     ),
                   ),
                 ),
-
                 Positioned(
                   top: MediaQuery.of(context).size.height * 0.01,
                   left: 16.0,
@@ -536,15 +545,23 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
               ],
             )
           : Center(
-              child: LoadingAnimationWidget.discreteCircle(
-                color: Color(0xFF273847),
-                size: 70,
-              ),
-            ),
+              child: LoadingAnimationWidget.inkDrop(
+              color: Color(0xFF273847),
+              size: 70,
+            )),
     );
   }
 
-  void _showAddressFormBottomSheet(BuildContext context) {
+  void _showAddressFormBottomSheet(
+    BuildContext context,
+    String name,
+    String selectedRoad,
+    String landmark,
+    String type,
+    double latitude,
+    double longitude,
+    String directions,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -557,8 +574,14 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        child: const AddressForm(
-          totalPrice: 0,
+        child: AddressForm(
+          name: name,
+          selectedRoad: selectedRoad,
+          landmark: landmark,
+          type: type,
+          latitude: latitude,
+          longitude: longitude,
+          directions: directions,
         ),
       ),
     );

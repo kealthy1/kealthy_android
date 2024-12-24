@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kealthy/Payment/SavedAdress.dart';
+import 'package:kealthy/Payment/Addressconfirm.dart';
 import 'package:kealthy/Payment/payment.dart';
 import 'Bill.dart';
 import 'Deliveryinst.dart';
@@ -8,13 +8,12 @@ import 'Deliveryinst.dart';
 class AdressPage extends ConsumerWidget {
   final double totalPrice;
   final double? totalDistance;
- 
 
-  const AdressPage(
-      {super.key,
-      required this.totalPrice,
-      this.totalDistance,
-    });
+  const AdressPage({
+    super.key,
+    required this.totalPrice,
+    this.totalDistance,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,7 +22,7 @@ class AdressPage extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 218, 214, 214),
         automaticallyImplyLeading: false,
-        centerTitle: false,
+        centerTitle: true,
         title: const Text(
           'Confirm Address',
           style: TextStyle(fontFamily: "poppins"),
@@ -36,10 +35,13 @@ class AdressPage extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SavedAddress(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    child: ConfirmOrder(),
+                  ),
                   const DeliveryInstructionsSection(),
                   BillDetails(
-                    totalPrice: totalPrice, time: '',
+                    totalPrice: totalPrice,
                   ),
                 ],
               ),

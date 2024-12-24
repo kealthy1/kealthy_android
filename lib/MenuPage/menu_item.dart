@@ -15,6 +15,9 @@ class MenuItem {
   final String imageUrl;
   final String nutrients;
   final double SOH;
+  final Map<String, String> macros;
+  final Map<String,String> micros; 
+  final Map<String ,String> ingredients; 
 
   MenuItem({
     required this.name,
@@ -31,6 +34,9 @@ class MenuItem {
     required this.imageUrl,
     required this.nutrients,
     required this.SOH,
+    required this.macros,
+    required this.micros,
+    required this.ingredients,
   });
 
   factory MenuItem.fromFirestore(Map<String, dynamic> data) {
@@ -49,8 +55,13 @@ class MenuItem {
       imageUrl: data['ImageUrl'] ?? '',
       nutrients: data['nutrients'] ?? '',
       SOH: _parseDouble(data['SOH']),
+      macros: Map<String, String>.from(data['Macros'] ?? {}),
+      micros: Map<String,String>.from(data['Micros'] ?? {}),
+      ingredients: Map<String, String>.from(data['Ingredients'] ?? {}),
     );
   }
+
+  
 
   static double _parseDouble(dynamic value) {
     if (value == null) return 0.0;

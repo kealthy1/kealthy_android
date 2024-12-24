@@ -76,22 +76,30 @@ class DropdownNotifier extends StateNotifier<DropdownState> {
   void updateFirstDropdown(String value) {
     List<String> secondOptions;
 
-    if (value == 'Past Orders') {
+    if (value == 'Orders') {
       secondOptions = [
         'Missing Items in Order',
-        'Delivery Partner Rude Behavior',
         'Delivery Cancelled Without Notice',
-        'Package Not Received'
+        'Package Not Received',
+        'Late Delivery',
+        'Other',
       ];
     } else if (value == 'Payments') {
       secondOptions = ['Failed', 'Pending'];
     } else if (value == 'Report Bug') {
       secondOptions = [
         'App Crashing',
-        'UI Issue',
         'Unable to Login',
         'Feature Not Working',
-        'Slow Performance'
+        'Slow Performance',
+        'other',
+      ];
+    } else if (value == 'Feedback') {
+      secondOptions = [
+        'Order Experience',
+        'App Experience',
+        'Delivery Experience',
+        'Other'
       ];
     } else {
       secondOptions = [];

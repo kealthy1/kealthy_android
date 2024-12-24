@@ -1,11 +1,10 @@
 import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Myprofile.dart';
+import '../Myprofile/Myprofile.dart';
 import 'Providers.dart';
 import 'Recent_Tickets.dart';
 import 'on_going_Tickets.dart';
@@ -150,7 +149,7 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
                                               255, 57, 161, 75)),
                                       onPressed: () {
                                         FlutterPhoneDirectCaller.callNumber(
-                                            "7994689802");
+                                            "8848673425");
                                       },
                                       child: const Text(
                                         "Call Now",
@@ -322,7 +321,7 @@ class OpenTicketBottomSheet extends ConsumerWidget {
             CustomDropdown(
               value: dropdownState.firstDropdownValue,
               hintText: "Select Category",
-              items: ["Past Orders", "Payments", "Report Bug"],
+              items: ["Orders", "Payments", "Report Bug", "Feedback"],
               onChanged: (value) {
                 if (value != null) dropdownNotifier.updateFirstDropdown(value);
               },
@@ -391,7 +390,6 @@ class OpenTicketBottomSheet extends ConsumerWidget {
                           return;
                         }
 
-                        // Set loading state
                         ref.read(loadingProvider.notifier).state = true;
 
                         try {
@@ -405,7 +403,6 @@ class OpenTicketBottomSheet extends ConsumerWidget {
                           dropdownNotifier.updateFirstDropdown("");
                           Navigator.pop(context);
                         } finally {
-                          // Reset loading state
                           ref.read(loadingProvider.notifier).state = false;
                         }
                       },
@@ -419,7 +416,7 @@ class OpenTicketBottomSheet extends ConsumerWidget {
                 child: isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text(
-                        "Raise Ticket",
+                        "Submit",
                         style: TextStyle(
                           color: Colors.white,
                           fontFamily: "Poppins",
@@ -473,5 +470,5 @@ Future<void> saveTicketToFirestore({
 
 String _generateUniqueTicketId() {
   Random random = Random();
-  return (random.nextInt(900000) + 100000).toString(); // Generate 6-digit ID
+  return (random.nextInt(900000) + 100000).toString();
 }

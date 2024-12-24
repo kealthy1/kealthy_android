@@ -9,71 +9,67 @@ class LocationAccessWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Container(
-  padding: const EdgeInsets.all(16),
-  width: double.infinity,
-  height: MediaQuery.of(context).size.height * 0.4,
-  decoration: const BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-  ),
-  child: Column(
-    mainAxisSize: MainAxisSize.max,
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      Image.asset(
-        'assets/Location.JPG',
-        height: MediaQuery.of(context).size.height * 0.15,
-        width: MediaQuery.of(context).size.width * 0.5,
+      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      height: MediaQuery.of(context).size.height * 0.4,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
-      const SizedBox(height: 8),
-      const Text(
-        'Location Access',
-        style: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      const SizedBox(height: 4),
-      const Text(
-        'Please enable location access to use this feature',
-        style: TextStyle(
-          fontSize: 16,
-          color: Colors.grey,
-        ),
-        textAlign: TextAlign.center,
-      ),
-      const SizedBox(height: 16),
-      ElevatedButton(
-        onPressed: () async {
-          bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-          if (!serviceEnabled) {
-            await Geolocator.openLocationSettings();
-          } else {
-            onClose();
-          }
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green,
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Image.asset(
+            'assets/Location.JPG',
+            height: MediaQuery.of(context).size.height * 0.15,
+            width: MediaQuery.of(context).size.width * 0.5,
           ),
-        ),
-        child: const Text(
-          'ENABLE',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+          const SizedBox(height: 8),
+          const Text(
+            'Location Access',
+            style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                fontFamily: "poppins"),
           ),
-        ),
+          const SizedBox(height: 4),
+          const Text(
+            'Please enable location access to use this feature',
+            style: TextStyle(
+                fontSize: 16, color: Colors.grey, fontFamily: "poppins"),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () async {
+              bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+              if (!serviceEnabled) {
+                await Geolocator.openLocationSettings();
+              } else {
+                onClose();
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+            child: const Text(
+              'ENABLE',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: "poppins"),
+            ),
+          ),
+        ],
       ),
-    ],
-  ),
-);
-
+    );
   }
 }
 

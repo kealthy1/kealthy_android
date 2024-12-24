@@ -27,7 +27,7 @@ class AddToCart extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              menuItem.name,
+              "₹${menuItem.price.toStringAsFixed(0)} /-",
               style: const TextStyle(fontSize: 24, fontFamily: "Poppins"),
             ),
             Container(
@@ -111,14 +111,6 @@ class AddToCart extends ConsumerWidget {
               fontSize: 18.0,
               color: Colors.black,
             ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 1),
-          child: Text(
-            "₹Price ${menuItem.price.toStringAsFixed(0)} /-",
-            style: const TextStyle(fontSize: 20, fontFamily: "Poppins"),
           ),
         ),
       ],

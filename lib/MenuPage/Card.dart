@@ -41,24 +41,22 @@ class MenuItemCard extends ConsumerWidget {
                       topLeft: Radius.circular(15),
                       topRight: Radius.circular(15),
                     ),
-                    child: CachedNetworkImage(
-                      height: 230,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      imageUrl: menuItem.imageUrl,
-                      placeholder: (context, url) => Center(
-                        child: Shimmer.fromColors(
+                    child: AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: CachedNetworkImage(
+                        width: double.infinity,
+                        fit: BoxFit.fill,
+                        imageUrl: menuItem.imageUrl,
+                        placeholder: (context, url) => Shimmer.fromColors(
                           baseColor: Colors.grey[300]!,
                           highlightColor: Colors.grey[100]!,
                           child: Container(
-                            height: 200,
-                            width: double.infinity,
                             color: Colors.grey[300],
                           ),
                         ),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
                       ),
-                      errorWidget: (context, url, error) =>
-                          const Icon(Icons.error),
                     ),
                   ),
                   Padding(

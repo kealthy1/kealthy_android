@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:kealthy/LandingPage/Help&Support/Chat.dart';
-import 'package:kealthy/Services/Navigation.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -29,7 +27,19 @@ class OngoingTicketsPage extends ConsumerWidget {
     return ticketsAsyncValue.when(
       data: (snapshot) {
         if (snapshot.docs.isEmpty) {
-          return const Center(child: Text("No Active tickets found."));
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(CupertinoIcons.xmark_circle, size: 40, color: Colors.black),
+              SizedBox(
+                height: 10,
+              ),
+              Text(
+                "No Active Tickets Found",
+                style: TextStyle(color: Colors.black, fontFamily: "poppins"),
+              )
+            ],
+          );
         }
 
         return ListView.builder(
@@ -100,37 +110,37 @@ class OngoingTicketsPage extends ConsumerWidget {
                       style: TextStyle(fontFamily: "poppins"),
                     ),
                     const SizedBox(height: 10),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushReplacement(
-                            context,
-                            SeamlessRevealRoute(
-                                page: TicketChatPage(
-                              ticketId: data['ticketId'] ?? "ID",
-                            )));
-                      },
-                      child: Row(
-                        children: [
-                          Icon(
-                            CupertinoIcons.chat_bubble_text,
-                            size: 25,
-                            color: Color(0xFF273847),
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Text(
-                            "Chat with Support",
-                            style: TextStyle(
-                              color: Colors.green,
-                              fontSize: 14,
-                              fontFamily: "poppins",
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    // GestureDetector(
+                    //   onTap: () {
+                    //     Navigator.pushReplacement(
+                    //         context,
+                    //         SeamlessRevealRoute(
+                    //             page: TicketChatPage(
+                    //           ticketId: data['ticketId'] ?? "ID",
+                    //         )));
+                    //   },
+                    //   child: Row(
+                    //     children: [
+                    //       Icon(
+                    //         CupertinoIcons.chat_bubble_text,
+                    //         size: 25,
+                    //         color: Color(0xFF273847),
+                    //       ),
+                    //       SizedBox(
+                    //         width: 10,
+                    //       ),
+                    //       Text(
+                    //         "Chat with Support",
+                    //         style: TextStyle(
+                    //           color: Colors.green,
+                    //           fontSize: 14,
+                    //           fontFamily: "poppins",
+                    //           fontWeight: FontWeight.bold,
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
@@ -139,11 +149,10 @@ class OngoingTicketsPage extends ConsumerWidget {
         );
       },
       loading: () => Center(
-        child: LoadingAnimationWidget.discreteCircle(
-          color: Color(0xFF273847),
-          size: 50,
-        ),
-      ),
+          child: LoadingAnimationWidget.inkDrop(
+        color: Color(0xFF273847),
+        size: 30,
+      )),
       error: (error, stack) => Center(
         child: Text("Error: $error"),
       ),

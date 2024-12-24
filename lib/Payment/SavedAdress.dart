@@ -1,207 +1,211 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:kealthy/Maps/SelectAdress.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
-import 'dart:async';
+import '../Maps/SelectAdress.dart';
 
-class SavedAddress extends StatefulWidget {
+final selectedSlotProviders = FutureProvider<String?>((ref) async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('selectedSlot') ?? 'No slot selected';
+});
+final selectedAddressProviders =
+    FutureProvider<Map<String, dynamic>?>((ref) async {
+  const String apiUrl =
+      "https://api-jfnhkjk4nq-uc.a.run.app/getSelectedAddress";
+
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final phoneNumber = prefs.getString('phoneNumber');
+
+    if (phoneNumber == null) {
+      throw Exception("Phone number not found in SharedPreferences");
+    }
+
+    final response = await http.get(
+      Uri.parse("$apiUrl?phoneNumber=$phoneNumber"),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body);
+      final Map<String, dynamic> addressData = jsonResponse['data'];
+
+      return addressData;
+    } else {
+      throw Exception("Failed to fetch address: ${response.statusCode}");
+    }
+  } catch (e) {
+    print("Error fetching address: $e");
+    return null;
+  }
+});
+
+class SavedAddress extends ConsumerWidget {
   const SavedAddress({super.key});
 
   @override
-  _SavedAddressState createState() => _SavedAddressState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final addressAsyncValue = ref.watch(selectedAddressProviders);
+    ref.watch(selectedSlotProviders);
 
-class _SavedAddressState extends State<SavedAddress> {
-  final StreamController<void> _preferencesStreamController =
-      StreamController<void>.broadcast();
+    return addressAsyncValue.when(
+      data: (savedAddressData) {
+        if (savedAddressData == null) {
+          return const Center(child: Text('No address saved'));
+        }
+        final addressType = savedAddressData['type'];
+        final name = savedAddressData['Name'];
+        final road = savedAddressData['road'];
+        final distance = savedAddressData['distance'] != null
+            ? '${savedAddressData['distance'].toStringAsFixed(1)} km'
+            : 'N/A';
+        final directions = savedAddressData['directions'];
+        final landmark = savedAddressData['Landmark'];
+        IconData getIconForAddressType(String? addressType) {
+          if (addressType == "Work") {
+            return Icons.work_outline;
+          } else if (addressType == "Home") {
+            return CupertinoIcons.home;
+          } else {
+            return Icons.location_on;
+          }
+        }
 
-  @override
-  void dispose() {
-    _preferencesStreamController.close();
-    super.dispose();
-  }
-
-  Future<void> _updateSharedPreferences() async {
-    _preferencesStreamController.add(null);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<void>(
-      stream: _preferencesStreamController.stream,
-      builder: (context, snapshot) {
-        return FutureBuilder<Map<String, dynamic>?>(
-          future: _getSavedAddress(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                  child: Shimmer.fromColors(
-                baseColor: Colors.grey[300]!,
-                highlightColor: Colors.grey[100]!,
-                child: Container(
-                  color: Colors.grey[300],
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
                 ),
-              ));
-            } else if (snapshot.hasError) {
-              print('Error loading address: ${snapshot.error}');
-              return const Text('Error loading address');
-            } else if (!snapshot.hasData || snapshot.data == null) {
-              return const Text('No address saved');
-            }
-
-            final savedAddressData = snapshot.data!;
-            final addressType = savedAddressData['type'];
-            final name = savedAddressData['Name'];
-            final road = savedAddressData['road'];
-            final distance = savedAddressData['distance'];
-            final directions = savedAddressData['directions'];
-            final landmark = savedAddressData['landmark'];
-            final slot = savedAddressData['selectedSlot'];
-
-            String formattedDistance =
-                distance != null ? '${distance.toStringAsFixed(1)} km' : 'N/A';
-
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Delivery',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          CupertinoModalPopupRoute(
+                            builder: (context) =>
+                                const SelectAdress(totalPrice: 0),
+                          ),
+                        ).then((_) {});
+                      },
+                      child: const Text(
+                        'Change',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey,
+                          fontFamily: "poppins",
+                        ),
+                      ),
                     ),
                   ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 16),
+                Row(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Delivery',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.pushReplacement(
-                                context,
-                                CupertinoModalPopupRoute(
-                                  builder: (context) =>
-                                      const SelectAdress(totalPrice: 0),
-                                )).then((value) {
-                              _updateSharedPreferences();
-                            });
-                          },
-                          child: const Text(
-                            'Change',
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                                fontFamily: "poppins"),
-                          ),
-                        ),
-                      ],
+                    Icon(
+                      getIconForAddressType(addressType),
+                      size: 24,
+                      color: Colors.black,
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          addressType ?? '',
-                          style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: "poppins"),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '$name, $road',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
+                    const SizedBox(width: 8),
                     Text(
-                      formattedDistance,
+                      addressType ?? '',
                       style: const TextStyle(
-                          color: Colors.black, fontWeight: FontWeight.bold),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: "poppins",
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      slot,
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '$name, $road',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  distance,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (directions != null && directions.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      "Directions: $directions",
+                      style: const TextStyle(
+                        fontFamily: "poppins",
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                if (landmark != null && landmark.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      "Landmark: $landmark",
                       style: const TextStyle(
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    if (directions!.isNotEmpty)
-                      Text(
-                        "Instructions: $directions",
-                        style: const TextStyle(
-                            color: Colors.black, fontWeight: FontWeight.bold),
-                      ),
-                    const SizedBox(height: 8),
-                    Text(
-                      landmark != null && landmark.isNotEmpty
-                          ? "Landmark: $landmark"
-                          : "",
-                      style: const TextStyle(
-                          color: Colors.black, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+                  )
+                else
+                  const SizedBox.shrink(),
+              ],
+            ),
+          ),
         );
       },
+      loading: () => Center(
+        child: Shimmer.fromColors(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: Container(
+            width: double.infinity,
+            height: 150,
+            color: Colors.grey[300],
+          ),
+        ),
+      ),
+      error: (error, _) => Center(
+        child: Text(
+          'Error loading address: $error',
+          style: const TextStyle(color: Colors.red),
+        ),
+      ),
     );
-  }
-
-  Future<Map<String, dynamic>?> _getSavedAddress() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final name = prefs.getString('Name');
-    final road = prefs.getString('selectedRoad');
-    final type = prefs.getString('selectedType');
-    final distance = prefs.getDouble('selectedDistance');
-    final mobile = prefs.getString('phoneNumber');
-    final directions = prefs.getString('selectedDirections');
-    final landmark = prefs.getString('landmark');
-    final slot = prefs.getString('selectedSlot');
-
-    if (name != null && road != null && type != null) {
-      return {
-        'Name': name,
-        'road': road,
-        'type': type,
-        'distance': distance,
-        'mobile': mobile,
-        'directions': directions,
-        'selectedSlot': slot,
-        'landmark': landmark,
-      };
-    }
-    return null;
   }
 }

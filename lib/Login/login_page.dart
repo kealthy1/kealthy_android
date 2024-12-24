@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:kealthy/Login/otp_screen.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../Riverpod/LoadingproviderLoginpage.dart';
 import '../Riverpod/Texanimation.dart';
 
@@ -16,7 +17,7 @@ class LoginFields extends ConsumerStatefulWidget {
 }
 
 class _LoginFieldsState extends ConsumerState<LoginFields> {
-  final _phoneController = TextEditingController(text: '+91  ');
+  final _phoneController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -85,6 +86,7 @@ class _LoginFieldsState extends ConsumerState<LoginFields> {
     final isLoading = ref.watch(loadingProvider);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           Container(
@@ -176,8 +178,9 @@ class _LoginFieldsState extends ConsumerState<LoginFields> {
                                   vertical: 15.0, horizontal: 30.0),
                             ),
                             child: isLoading
-                                ? const CupertinoActivityIndicator(
-                                    color: Colors.black,
+                                ? LoadingAnimationWidget.inkDrop(
+                                    color: Colors.white,
+                                    size: 20,
                                   )
                                 : const Text(
                                     'Continue',
