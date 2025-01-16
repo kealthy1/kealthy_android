@@ -130,7 +130,7 @@ class TermsAndConditionsPage extends StatelessWidget {
             const SizedBox(height: 20),
             _buildSectionTitle("Limitation of Liability"),
             const Text(
-              "Notwithstanding any damages that You might incur, the entire liability of the Company and any of its suppliers under any provision of this Terms and Your exclusive remedy for all of the foregoing shall be limited to the amount actually paid by You through the Service or 100 USD if You haven't purchased anything through the Service \n .",
+              "Notwithstanding any damages that You might incur,",
               style: TextStyle(fontSize: 14, fontFamily: 'Poppins'),
             ),
             const SizedBox(height: 20),

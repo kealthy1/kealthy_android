@@ -1,5 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:kealthy/Maps/SelectAdress.dart';
 import 'package:kealthy/Payment/COD_Page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -25,6 +28,20 @@ class PaymentSection extends ConsumerWidget {
             )
           : ElevatedButton(
               onPressed: () async {
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                final selectedRoad = prefs.getString('selectedRoad');
+
+                if (selectedRoad == null || selectedRoad.isEmpty) {
+                  Navigator.pushReplacement(
+                    context,
+                    CupertinoModalPopupRoute(
+                      builder: (context) => SelectAdress(
+                        totalPrice: totalAmountToPay,
+                      ),
+                    ),
+                  );
+                  return;
+                }
                 // ignore: unused_result
                 ref.refresh(paymentMethodProvider);
                 ref.read(isLoadingProvider.notifier).state = true;
@@ -35,7 +52,7 @@ class PaymentSection extends ConsumerWidget {
                   await prefs.remove('selectedPaymentMethod');
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
+                    CupertinoModalPopupRoute(
                       builder: (context) => const OrderConfirmation(
                         cartItems: [],
                       ),
@@ -55,9 +72,11 @@ class PaymentSection extends ConsumerWidget {
                   fontSize: 18,
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Checkout',
-                style: TextStyle(color: Colors.white, fontFamily: "poppins"),
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                ),
               ),
             ),
     );

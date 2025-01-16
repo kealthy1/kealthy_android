@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'payment_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,7 +8,6 @@ final totalDistanceProvider = FutureProvider<double?>((ref) async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getDouble('selectedDistance');
 });
-
 
 class BillDetails extends ConsumerWidget {
   final double totalPrice;
@@ -25,13 +25,38 @@ class BillDetails extends ConsumerWidget {
       data: (totalDistance) {
         double originalFee = 0;
         double discountedFee = 0;
+        bool isFreeDelivery = false;
+        bool showUnlockMessage = false;
 
         if (totalDistance != null) {
-          originalFee = totalDistance * 10;
+          // Calculate original fee (total distance at standard rates)
+          originalFee = totalDistance > 10
+              ? (10 * 5) + ((totalDistance - 10) * 10)
+              : totalDistance * 5;
 
-          if (totalDistance > 10) {
-            double chargeableDistance = totalDistance - 10;
-            discountedFee = chargeableDistance * 10;
+          // Delivery fee logic
+          if (totalPrice >= 499) {
+            if (totalDistance > 10) {
+              // First 10 km free, charge ₹10/km for remaining
+              discountedFee = (totalDistance - 10) * 10;
+            } else {
+              // Free delivery for distances ≤ 10 km
+              discountedFee = 0;
+              isFreeDelivery = true;
+            }
+          } else {
+            if (totalDistance > 10) {
+              // Charge ₹5/km for first 10 km and ₹10/km for remaining
+              discountedFee = (10 * 5) + ((totalDistance - 10) * 10);
+            } else {
+              // Charge ₹5/km for distances ≤ 10 km
+              discountedFee = totalDistance * 5;
+            }
+
+            // Show "Unlock Free Delivery" message
+            if (totalDistance <= 10) {
+              showUnlockMessage = true;
+            }
           }
         }
 
@@ -58,14 +83,26 @@ class BillDetails extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'Bill Details',
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 16),
+                    if (isFreeDelivery || showUnlockMessage)
+                      Text(
+                        isFreeDelivery
+                            ? 'You Unlocked A Free Delivery 🎉'
+                            : '🎉 Unlock Free delivery on bill amount above ₹499!',
+                        style: GoogleFonts.poppins(
+                          color: isFreeDelivery ? Colors.green : Colors.orange,
+                        ),
+                      )
+                    else
+                      const SizedBox.shrink(),
+                    const SizedBox(height: 10),
                     ListView(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -76,24 +113,24 @@ class BillDetails extends ConsumerWidget {
                           amount: '₹${totalPrice.toStringAsFixed(0)}/-',
                         ),
                         const SizedBox(height: 5),
-                        _BillItem(
-                          amountColor: totalDistance != null
-                              ? Colors.green
-                              : Colors.grey,
+                         _BillItem(
+                          amountColor:
+                              isFreeDelivery ? Colors.green : Colors.grey,
                           title:
                               'Delivery Fee | ${totalDistance != null ? totalDistance.toStringAsFixed(2) : 'N/A'} km',
                           amount: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                '₹${originalFee.toStringAsFixed(0)} /-',
-                                style: const TextStyle(
-                                  decoration: TextDecoration.lineThrough,
-                                  color: Colors.grey,
+                              if (isFreeDelivery)
+                                Text(
+                                  '₹${originalFee.toStringAsFixed(0)} /-',
+                                  style: const TextStyle(
+                                    decoration: TextDecoration.lineThrough,
+                                    color: Colors.grey,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              totalDistance != null && totalDistance <= 10
+                              if (isFreeDelivery) const SizedBox(width: 8),
+                              isFreeDelivery
                                   ? const Text(
                                       'Free',
                                       style: TextStyle(
@@ -164,19 +201,17 @@ class _BillItem extends StatelessWidget {
         Expanded(
           child: Text(
             title,
-            style: TextStyle(
+            style: GoogleFonts.poppins(
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              fontFamily: "poppins",
             ),
           ),
         ),
         if (amount is String)
           Text(
             amount,
-            style: TextStyle(
-              color: amountColor,
-              fontFamily: "poppins",
+            style: GoogleFonts.poppins(
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              color: Colors.black,
             ),
           )
         else if (amount is Widget)

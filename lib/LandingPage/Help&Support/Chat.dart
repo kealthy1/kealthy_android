@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:google_fonts/google_fonts.dart';
 import 'chatprovider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -21,9 +22,11 @@ class TicketChatPage extends ConsumerWidget {
         backgroundColor: const Color(0xFF273847),
         centerTitle: true,
         automaticallyImplyLeading: false,
-        title: const Text(
+        title: Text(
           'Chat Support',
-          style: TextStyle(color: Colors.white, fontFamily: "poppins"),
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+          ),
         ),
       ),
       body: messagesStream.when(
@@ -66,7 +69,7 @@ class TicketChatPage extends ConsumerWidget {
                   const TextStyle(fontSize: 16, color: Colors.white),
               inputTextCursorColor: Colors.white,
               sentMessageBodyTextStyle: const TextStyle(
-                color: Colors.white, 
+                color: Colors.white,
               ),
               receivedMessageBodyTextStyle: const TextStyle(
                 color: Colors.white,

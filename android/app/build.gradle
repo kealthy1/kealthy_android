@@ -22,13 +22,14 @@ android {
 
     kotlinOptions {
         jvmTarget = "1.8"
+        freeCompilerArgs += ["-Xlint:unchecked", "-Xlint:deprecation"]
     }
 
     defaultConfig {
         applicationId = "com.COTOLORE.Kealthy"
         minSdk = 23
         targetSdk = 34
-        versionCode 6
+        versionCode 15
         versionName = flutter.versionName
     }
 

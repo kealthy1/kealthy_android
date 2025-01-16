@@ -1,7 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:kealthy/Services/Navigation.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../DetailsPage/SubCategory.dart';
 
@@ -40,8 +42,10 @@ class CategoryItem extends StatelessWidget {
           onTap: () {
             Navigator.push(
                 context,
-                SeamlessRevealRoute(
-                    page: FoodCategoriesScreen(category: categoryName)));
+                CupertinoModalPopupRoute(
+                    builder: (context) => FoodCategoriesScreen(
+                          category: categoryName,
+                        )));
           },
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -65,6 +69,7 @@ class CategoryItem extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: CachedNetworkImage(
+                      cacheManager: DefaultCacheManager(),
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Shimmer.fromColors(
@@ -91,10 +96,9 @@ class CategoryItem extends StatelessWidget {
                 categoryName,
                 textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: "Poppins",
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  color: Colors.black,
                 ),
               ),
             ],

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:ntp/ntp.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,17 +25,19 @@ class AdressSlot extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        surfaceTintColor: Colors.white,
         backgroundColor: Colors.white,
         centerTitle: true,
         automaticallyImplyLeading: false,
-        title: const Text(
+        title: Text(
           "Confirm Address",
-          style: TextStyle(color: Colors.black, fontFamily: "poppins"),
+          style: GoogleFonts.poppins(
+            color: Colors.black,
+          ),
         ),
       ),
       body: Column(
         children: [
-          // Scrollable content
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(8.0),
@@ -48,6 +51,30 @@ class AdressSlot extends ConsumerWidget {
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
                         final etaTime = snapshot.data!['etaTime'];
+                        final currentTime = snapshot.data!['currentTime'];
+
+                        final startBoundary = DateTime(
+                          currentTime.year,
+                          currentTime.month,
+                          currentTime.day,
+                          7,
+                        );
+                        final endBoundary = DateTime(
+                          currentTime.year,
+                          currentTime.month,
+                          currentTime.day,
+                          22,
+                        );
+
+                        print('Start Boundary: $startBoundary');
+                        print('End Boundary: $endBoundary');
+                        print('Current Time: $currentTime');
+
+                        if (currentTime.isAfter(endBoundary) ||
+                            currentTime.isBefore(startBoundary)) {
+                          return const SizedBox.shrink();
+                        }
+
                         return Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: EstimatedTimeSelector(
@@ -173,9 +200,9 @@ class AdressSlot extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: const Text(
+                          child: Text(
                             "Proceed To Checkout",
-                            style: TextStyle(
+                            style: GoogleFonts.poppins(
                               fontSize: 18.0,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -209,6 +236,7 @@ class AdressSlot extends ConsumerWidget {
     return {
       'etaTime': etaTime,
       'distance': distance,
+      'currentTime': currentTime,
     };
   }
 }

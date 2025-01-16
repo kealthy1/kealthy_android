@@ -5,7 +5,6 @@ import '../../MenuPage/menu_item.dart';
 
 class ProductSuggestion {
   final String name;
-  final String id;
   final double price;
   final String category;
   final String time;
@@ -16,16 +15,42 @@ class ProductSuggestion {
   final double kcal;
   final double fat;
   final double rating;
-  final String imageUrl;
-  final String nutrients;
+  final List<String> imageUrls;
+  final String whatIsIt;
+  final String whatIsItUsedFor;
+  final double soh;
+  final List<String> macros;
+  final List<String> micros;
+  final List<String> ingredients;
+  final String addedSugars;
+  final String additivesPreservatives;
+  final String artificialSweetenersColors;
+  final String brandName;
+  final String hsn;
+  final String dietaryFiber;
+  final String ecoFriendly;
+  final String energy;
+  final String glutenFree;
+  final String kealthyScore;
+  final String ketoFriendly;
+  final String lowGi;
+  final String lowSugar;
+  final String productCode;
+  final String qty;
+  final String recyclablePackaging;
+  final String saturatedFat;
+  final String subcategory;
+  final String sugars;
+  final String totalCarbohydrates;
+  final String totalFat;
+  final String transFat;
+  final String unsaturatedFat;
+  final String veganFriendly;
+  final String vendorName;
   final double SOH;
-  final Map<String, String> macros;
-  final Map<String, String> micros;
-  final Map<String, String> ingredients;
 
   ProductSuggestion({
     required this.name,
-    required this.id,
     required this.price,
     required this.category,
     required this.time,
@@ -36,18 +61,46 @@ class ProductSuggestion {
     required this.kcal,
     required this.fat,
     required this.rating,
-    required this.imageUrl,
-    required this.nutrients,
-    required this.SOH,
+    required this.imageUrls,
+    required this.soh,
     required this.macros,
     required this.micros,
     required this.ingredients,
+    required this.whatIsIt,
+    required this.whatIsItUsedFor,
+    required this.addedSugars,
+    required this.additivesPreservatives,
+    required this.artificialSweetenersColors,
+    required this.brandName,
+    required this.hsn,
+    required this.dietaryFiber,
+    required this.ecoFriendly,
+    required this.energy,
+    required this.glutenFree,
+    required this.kealthyScore,
+    required this.ketoFriendly,
+    required this.lowGi,
+    required this.lowSugar,
+    required this.productCode,
+    required this.qty,
+    required this.recyclablePackaging,
+    required this.saturatedFat,
+    required this.subcategory,
+    required this.sugars,
+    required this.totalCarbohydrates,
+    required this.totalFat,
+    required this.transFat,
+    required this.unsaturatedFat,
+    required this.veganFriendly,
+    required this.vendorName,
+    required this.SOH,
   });
 
   factory ProductSuggestion.fromFirestore(Map<String, dynamic> data) {
     return ProductSuggestion(
       name: data['Name'] ?? '',
       price: _parseDouble(data['Price']),
+      SOH: _parseDouble(data['Price']),
       category: data['Category'] ?? '',
       time: data['Time'] ?? '',
       delivery: data['Delivery'] ?? '',
@@ -57,13 +110,48 @@ class ProductSuggestion {
       kcal: _parseDouble(data['Kcal']),
       fat: _parseDouble(data['Fat']),
       rating: _parseDouble(data['Rating']),
-      imageUrl: data['ImageUrl'] ?? '',
-      nutrients: data['nutrients'] ?? '',
-      id: data['Name'],
-      SOH: _parseDouble(data['SOH']),
-      macros: Map<String, String>.from(data['Macros'] ?? {}),
-      micros: Map<String, String>.from(data['Micros'] ?? {}),
-      ingredients: Map<String, String>.from(data['Ingredients'] ?? {}),
+      imageUrls: List<String>.from(data['ImageUrl'] ?? []),
+      soh: _parseDouble(data['SOH']),
+      macros: [
+        'Protein: ${data['Protein (g)'] ?? 'Not Applicable'}',
+        'Total Fat: ${data['Total Fat (g)'] ?? 'Not Applicable'}',
+        'Carbohydrates: ${data['Total Carbohydrates (g)'] ?? 'Not Applicable'}',
+        'Sugars: ${data['Sugars (g)'] ?? 'Not Applicable'}',
+        'Cholesterol: ${data['Cholesterol (mg)'] ?? 'Not Applicable'}',
+        'Added Sugars: ${data['Added Sugars (g)'] ?? 'Not Applicable'}',
+      ],
+      micros: List<String>.from(data['Micronutrients'] ?? []),
+      ingredients: List<String>.from(data['Ingredients'] ?? []),
+      whatIsIt: data['What is it?'] ?? '',
+      whatIsItUsedFor: data['What is it used for?'] ?? '',
+      addedSugars: data['Added Sugars (g)'] ?? 'Not Applicable',
+      additivesPreservatives:
+          data['Additives/Preservatives'] ?? 'Not Applicable',
+      artificialSweetenersColors:
+          data['Artificial Sweeteners?Colors'] ?? 'Not Applicable',
+      brandName: data['Brand Name'] ?? '',
+      hsn: data['HSN'] ?? '',
+      dietaryFiber: data['Dietary Fiber (g)'] ?? 'Not Applicable',
+      ecoFriendly: data['Eco-Friendly'] ?? '',
+      energy: data['Energy (kcal)'] ?? 'Not Applicable',
+      glutenFree: data['Gluten-free'] ?? 'Not Applicable',
+      kealthyScore: data['Kealthy Score'] ?? '',
+      ketoFriendly: data['Keto Friendly'] ?? 'Not Applicable',
+      lowGi: data['Low GI'] ?? 'Not Applicable',
+      lowSugar:
+          data['Low Sugar (less than 5g per serving)'] ?? 'Not Applicable',
+      productCode: data['Product code'] ?? '',
+      qty: data['Qty'] ?? '',
+      recyclablePackaging: data['Recyclable Packaging'] ?? '',
+      saturatedFat: data['Saturated Fat (g)'] ?? 'Not Applicable',
+      subcategory: data['Subcategory'] ?? '',
+      sugars: data['Sugars (g)'] ?? 'Not Applicable',
+      totalCarbohydrates: data['Total Carbohydrates (g)'] ?? 'Not Applicable',
+      totalFat: data['Total Fat (g)'] ?? 'Not Applicable',
+      transFat: data['Trans Fat (g)'] ?? 'Not Applicable',
+      unsaturatedFat: data['Unsaturated Fat (g)'] ?? 'Not Applicable',
+      veganFriendly: data['Vegan-Friendly'] ?? '',
+      vendorName: data['Vendor Name'] ?? '',
     );
   }
 
@@ -94,12 +182,39 @@ class ProductSuggestion {
       kcal: kcal,
       fat: fat,
       rating: rating,
-      imageUrl: imageUrl,
-      nutrients: nutrients,
+      imageUrls: imageUrls,
       macros: macros,
       ingredients: ingredients,
       micros: micros,
       SOH: SOH,
+      whatIsIt: whatIsIt,
+      whatIsItUsedFor: whatIsItUsedFor,
+      soh: price,
+      addedSugars: addedSugars,
+      additivesPreservatives: additivesPreservatives,
+      artificialSweetenersColors: artificialSweetenersColors,
+      brandName: brandName,
+      hsn: hsn,
+      dietaryFiber: dietaryFiber,
+      ecoFriendly: ecoFriendly,
+      energy: energy,
+      glutenFree: glutenFree,
+      kealthyScore: kealthyScore,
+      ketoFriendly: ketoFriendly,
+      lowGi: lowGi,
+      lowSugar: lowSugar,
+      productCode: productCode,
+      qty: qty,
+      recyclablePackaging: recyclablePackaging,
+      saturatedFat: saturatedFat,
+      subcategory: subcategory,
+      sugars: sugars,
+      totalCarbohydrates: totalCarbohydrates,
+      totalFat: totalFat,
+      transFat: transFat,
+      unsaturatedFat: unsaturatedFat,
+      veganFriendly: veganFriendly,
+      vendorName: vendorName,
     );
   }
 }
@@ -139,10 +254,8 @@ class ProductSuggestionsNotifier
     final normalizedQuery = query.trim().toLowerCase();
 
     try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('Products')
-          .where("SOH", isNotEqualTo: 0)
-          .get();
+      final snapshot =
+          await FirebaseFirestore.instance.collection('Products').get();
 
       final uniqueProducts = <String, ProductSuggestion>{};
 
@@ -150,8 +263,9 @@ class ProductSuggestionsNotifier
         final product = ProductSuggestion.fromFirestore(doc.data());
 
         if (product.name.toLowerCase().contains(normalizedQuery) ||
-            product.category.toLowerCase().contains(normalizedQuery)) {
-          uniqueProducts[product.id] = product;
+            product.category.toLowerCase().contains(normalizedQuery) ||
+            (product.vendorName.toLowerCase().contains(normalizedQuery))) {
+          uniqueProducts[product.name] = product;
         }
       }
 

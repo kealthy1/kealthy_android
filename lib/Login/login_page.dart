@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:kealthy/Login/otp_screen.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -60,7 +61,7 @@ class _LoginFieldsState extends ConsumerState<LoginFields> {
         final data = jsonDecode(response.body);
         final verificationId = data['verificationId'];
         print('OTP sent successfully! Response: ${response.body}');
-
+        FocusScope.of(context).unfocus();
         Navigator.pushReplacement(
           context,
           CupertinoPageRoute(
@@ -119,13 +120,13 @@ class _LoginFieldsState extends ConsumerState<LoginFields> {
                         text: 'YOUR JOURNEY TO WELLNESS',
                         duration: const Duration(seconds: 1),
                         color: Colors.green,
-                        fontSize: MediaQuery.of(context).size.width * 0.07,
+                        fontSize: MediaQuery.of(context).size.width * 0.05,
                       ),
                       FadeInText(
                         text: 'STARTS HERE.',
                         duration: const Duration(seconds: 1),
                         color: Colors.white,
-                        fontSize: MediaQuery.of(context).size.width * 0.18,
+                        fontSize: MediaQuery.of(context).size.width * 0.10,
                       ),
                       const SizedBox(height: 50),
                       const FadeInText(
@@ -145,7 +146,7 @@ class _LoginFieldsState extends ConsumerState<LoginFields> {
                         decoration: InputDecoration(
                           prefixIcon: const Icon(CupertinoIcons.phone),
                           hintText: 'Enter Phone Number',
-                          hintStyle: const TextStyle(color: Colors.black54),
+                          hintStyle: GoogleFonts.poppins(color: Colors.black54),
                           enabledBorder: OutlineInputBorder(
                             borderSide: const BorderSide(color: Colors.white),
                             borderRadius: BorderRadius.circular(10),
@@ -157,7 +158,7 @@ class _LoginFieldsState extends ConsumerState<LoginFields> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        style: const TextStyle(color: Colors.black),
+                        style: GoogleFonts.poppins(color: Colors.black),
                       ),
                       const SizedBox(height: 20),
                       Center(
@@ -182,9 +183,9 @@ class _LoginFieldsState extends ConsumerState<LoginFields> {
                                     color: Colors.white,
                                     size: 20,
                                   )
-                                : const Text(
+                                : Text(
                                     'Continue',
-                                    style: TextStyle(
+                                    style: GoogleFonts.poppins(
                                         color: Colors.white,
                                         fontSize: 18,
                                         fontWeight: FontWeight.w900),

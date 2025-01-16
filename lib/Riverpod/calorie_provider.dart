@@ -27,7 +27,6 @@ class CalorieState {
     }
   }
 
-  // Ensure this method takes a 'double' for activityLevel
   double calculateCalories(double activityLevel) {
     return calculateBMR() * activityLevel;
   }

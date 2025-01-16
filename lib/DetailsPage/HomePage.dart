@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kealthy/DetailsPage/ProductInfo.dart';
+import 'package:kealthy/DetailsPage/Suggetions.dart';
 import '../LandingPage/Cart_Container.dart';
 import '../MenuPage/menu_item.dart';
 import '../Services/FirestoreCart.dart';
@@ -27,6 +29,7 @@ class HomePage extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 ImageHeader(menuItem: menuItem),
+                SizedBox(height: screenHeight * 0.03),
                 Transform.translate(
                   offset: Offset(0, -screenHeight * 0.05),
                   child: Padding(
@@ -36,25 +39,36 @@ class HomePage extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(30.0),
-                          topRight: Radius.circular(30.0),
+                          topLeft: Radius.circular(20.0),
+                          topRight: Radius.circular(20.0),
                         ),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 15),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            SizedBox(
-                              height: 25,
-                            ),
                             RedNutritionSection(menuItem: menuItem),
                             SizedBox(height: screenHeight * 0.02),
                             Divider(
+                              thickness: 2,
                               color: Colors.grey,
                             ),
                             SizedBox(height: screenHeight * 0.02),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Suggestions(
+                                  nameFilter: menuItem.name,
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: screenHeight * 0.02),
                             AddToCart(menuItem: menuItem),
+                            SizedBox(height: screenHeight * 0.02),
+                            ProductInfoContainer(menuItem: menuItem),
+                            SizedBox(height: screenHeight * 0.02),
                           ],
                         ),
                       ),

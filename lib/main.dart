@@ -1,36 +1,51 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/Login/SplashScreen.dart';
+import 'package:kealthy/MenuPage/MenuPage.dart';
+import 'package:kealthy/Services/Blogs/Blog.dart';
 import 'package:kealthy/Services/Connection.dart';
 import 'package:kealthy/Services/NotificationHandler.dart';
+import 'LandingPage/Widgets/Carousel.dart';
+import 'LandingPage/Widgets/searchprovider.dart';
 import 'Maps/SelectAdress.dart';
+import 'Maps/fluttermap.dart';
 import 'Payment/SavedAdress.dart';
 import 'Services/Fcm.dart';
 import 'Services/Location_Permission.dart';
+import 'Services/adresslisten.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
-
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await Firebase.initializeApp();
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+  );
   await NotificationService.instance.initialize();
-
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
   final container = ProviderContainer();
+
   try {
     container.read(addressesProvider);
-    container.read(selectedAddressProviders);
-    print("Addresses prefetched successfully.");
+    container.read(showAddressProviders);
+    container.read(selectedAddressProvider);
+    container.read(updateAddressProvider);
+    container.read(veganDietProvider);
+    container.read(selectedPositionProvider);
+    container.read(currentlocationProviders);
+    container.read(productProvider);
+    container.read(carouselProvider);
+    container.read(blogProvider);
+
+    print("Data prefetched successfully.");
   } catch (e) {
     print("Error prefetching addresses: $e");
   }
-     
 
   runApp(
     ProviderScope(

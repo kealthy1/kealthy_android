@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kealthy/LandingPage/Widgets/floating_bottom_navigation_bar.dart';
 import 'package:kealthy/Orders/ordersTab.dart';
 import 'package:kealthy/Services/Order_Completed.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -50,7 +52,7 @@ class _RazorPayState extends ConsumerState<RazorPay> {
         onRedirect: () {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
+            CupertinoModalPopupRoute(
               builder: (context) => const OrdersTabScreen(),
             ),
           );
@@ -76,7 +78,11 @@ class _RazorPayState extends ConsumerState<RazorPay> {
       message: "Payment Failed! Returning to the cart",
       imagePath: "assets/Animation - 1731995566846.json",
       onRedirect: () {
-        Navigator.pop(context);
+        Navigator.pushReplacement(
+            context,
+            CupertinoModalPopupRoute(
+              builder: (context) => CustomBottomNavigationBar(),
+            ));
       },
     ).show();
   }
@@ -155,7 +161,6 @@ class _RazorPayState extends ConsumerState<RazorPay> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                fontFamily: "poppins",
                 color: Color(0xFF273847),
               ),
             ),

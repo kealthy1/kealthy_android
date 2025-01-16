@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ntp/ntp.dart';
@@ -70,9 +71,9 @@ class SlotSelectionContainer extends ConsumerWidget {
                     selectedSlot != null
                         ? 'Slot: ${DateFormat('h:mm a').format(selectedSlot)}'
                         : 'Preferred Delivery Time',
-                    style: const TextStyle(
+                    style: GoogleFonts.poppins(
+                      color: Colors.black,
                       fontSize: 16,
-                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   Icon(
@@ -91,79 +92,89 @@ class SlotSelectionContainer extends ConsumerWidget {
 
                   return etaTimeAsync.when(
                     data: (etaTime) {
-                      final nextFullHourAfterBreak = etaTime
-                          .add(const Duration(minutes: 45))
-                          .add(Duration(hours: 1) -
-                              Duration(minutes: etaTime.minute));
-
                       final generator = AvailableSlotsGenerator(
                         slotDurationMinutes: 60,
                         minGapMinutes: 30,
-                        startTime: nextFullHourAfterBreak,
-                        endTime: DateTime(
-                          etaTime.year,
-                          etaTime.month,
-                          etaTime.day + 1,
-                          0,
-                          0,
-                        ),
                       );
 
-                      final availableSlots =
-                          generator.getAvailableSlots(etaTime, 0);
+                      final result = generator.getSlots(etaTime, 0);
+                      final availableSlots = result["slots"] as List<DateTime>;
+                      final message = result["message"] as String?;
 
-                      return SingleChildScrollView(
-                        child: Wrap(
-                          spacing: 5,
-                          runSpacing: 10,
-                          children: availableSlots.map((slot) {
-                            final formattedTime =
-                                DateFormat('h:mm a').format(slot);
-                            return GestureDetector(
-                              onTap: () async {
-                                print('Selected Slot: $formattedTime');
-                                ref.read(selectedSlotProvider.notifier).state =
-                                    slot;
-                                ref.read(isExpandedProvider.notifier).state =
-                                    false;
-
-                                final prefs =
-                                    await SharedPreferences.getInstance();
-                                final success = await prefs.setString(
-                                    'selectedSlot', formattedTime);
-
-                                if (success) {
-                                  print('Saved Slot: $formattedTime');
-                                } else {
-                                  print('Failed to save slot');
-                                }
-                              },
-                              child: Container(
-                                width: MediaQuery.of(context).size.width * 0.26,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: selectedSlot == slot
-                                      ? const Color.fromARGB(255, 223, 240, 224)
-                                      : Colors.white,
-                                  borderRadius: BorderRadius.circular(5),
-                                  border: Border.all(color: Colors.black12),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    formattedTime,
-                                    style: TextStyle(
-                                      color: selectedSlot == slot
-                                          ? Colors.black
-                                          : Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (message != null)
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                message,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red,
                                 ),
                               ),
-                            );
-                          }).toList(),
-                        ),
+                            ),
+                          SingleChildScrollView(
+                            child: Wrap(
+                              spacing: 5,
+                              runSpacing: 10,
+                              children: availableSlots.map((slot) {
+                                final formattedTime =
+                                    DateFormat('h:mm a').format(slot);
+                                return GestureDetector(
+                                  onTap: () async {
+                                    print('Selected Slot: $formattedTime');
+                                    ref
+                                        .read(selectedSlotProvider.notifier)
+                                        .state = slot;
+                                    ref
+                                        .read(isExpandedProvider.notifier)
+                                        .state = false;
+
+                                    final prefs =
+                                        await SharedPreferences.getInstance();
+                                    final success = await prefs.setString(
+                                        'selectedSlot',
+                                        "Slot Delivery 📦 $formattedTime");
+
+                                    if (success) {
+                                      print('Saved Slot: $formattedTime');
+                                    } else {
+                                      print('Failed to save slot');
+                                    }
+                                  },
+                                  child: Container(
+                                    width: MediaQuery.of(context).size.width *
+                                        0.26,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: selectedSlot == slot
+                                          ? const Color.fromARGB(
+                                              255, 223, 240, 224)
+                                          : Colors.white,
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(color: Colors.black12),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        formattedTime,
+                                        style: TextStyle(
+                                          color: selectedSlot == slot
+                                              ? Colors.black
+                                              : Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ],
                       );
                     },
                     loading: () => const Center(

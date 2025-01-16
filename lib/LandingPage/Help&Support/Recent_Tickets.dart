@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,7 +37,9 @@ class RecentTicketsPage extends ConsumerWidget {
               ),
               Text(
                 "No solved Tickets Found",
-                style: TextStyle(color: Colors.black, fontFamily: "poppins"),
+                style: GoogleFonts.poppins(
+                  color: Colors.black,
+                ),
               )
             ],
           );
@@ -51,6 +54,7 @@ class RecentTicketsPage extends ConsumerWidget {
             final dateTime = timestamp?.toDate();
 
             return Card(
+              color: Colors.white,
               margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               child: ListTile(
                 leading: Container(
@@ -73,12 +77,12 @@ class RecentTicketsPage extends ConsumerWidget {
                     children: [
                       Text(
                         DateFormat('dd').format(dateTime ?? DateTime.now()),
-                        style: const TextStyle(
+                        style: GoogleFonts.poppins(
                             fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       Text(
                         DateFormat('MMM').format(dateTime ?? DateTime.now()),
-                        style: const TextStyle(
+                        style: GoogleFonts.poppins(
                             color: Colors.black54, fontSize: 14),
                       ),
                     ],
@@ -89,21 +93,22 @@ class RecentTicketsPage extends ConsumerWidget {
                   children: [
                     Text(
                       "Ticket ID ${data['ticketId'] ?? 'No ID'}",
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontFamily: "poppins"),
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
                       "Solved",
-                      style: TextStyle(
-                          color: Colors.green,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: "poppins"),
+                      style: GoogleFonts.poppins(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
                 subtitle: Text(
                   data['subCategory'] ?? "No Description",
-                  style: TextStyle(fontFamily: "poppins"),
+                  style: GoogleFonts.poppins(),
                 ),
               ),
             );

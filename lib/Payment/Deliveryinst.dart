@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DeliveryInstructionNotifier extends StateNotifier<Set<String>> {
@@ -116,11 +117,10 @@ class _DeliveryInstructionsSectionState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Instructions',
-            style: TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: 20,
-              fontFamily: "poppins",
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -131,7 +131,7 @@ class _DeliveryInstructionsSectionState
             maxLines: 4,
             decoration: InputDecoration(
               hintText: "Cooking Instructions",
-              hintStyle: const TextStyle(fontFamily: "Poppins"),
+              hintStyle: GoogleFonts.poppins(),
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(
@@ -240,8 +240,7 @@ Widget _buildInstructionTile({
           Text(
             label,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: "poppins",
+            style: GoogleFonts.poppins(
               color: isSelected ? Colors.white : Colors.black,
               fontSize: 10,
             ),

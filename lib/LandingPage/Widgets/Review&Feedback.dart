@@ -169,7 +169,7 @@ class FeedbackPage extends ConsumerWidget {
           backgroundColor: Colors.white,
           title: const Text(
             'Share Your Feedback',
-            style: TextStyle(color: Colors.black, fontFamily: "poppins"),
+            style: TextStyle(color: Colors.black, ),
           ),
           centerTitle: true,
         ),
@@ -184,7 +184,6 @@ class FeedbackPage extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    fontFamily: "poppins",
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -213,7 +212,6 @@ class FeedbackPage extends ConsumerWidget {
                       style: TextStyle(
                         color: Colors.red,
                         fontSize: 12,
-                        fontFamily: "poppins",
                       ),
                     ),
                   ),
@@ -225,7 +223,6 @@ class FeedbackPage extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    fontFamily: "poppins",
                   ),
                 ),
                 Row(
@@ -253,7 +250,7 @@ class FeedbackPage extends ConsumerWidget {
                       style: TextStyle(
                         color: Colors.red,
                         fontSize: 12,
-                        fontFamily: "poppins",
+
                       ),
                     ),
                   ),
@@ -265,7 +262,7 @@ class FeedbackPage extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    fontFamily: "poppins",
+
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -307,7 +304,7 @@ class FeedbackPage extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              fontFamily: "poppins",
+
                               color: smiley['color'] as Color,
                             ),
                           ),
@@ -338,7 +335,7 @@ class FeedbackPage extends ConsumerWidget {
                       style: TextStyle(
                         color: Colors.red,
                         fontSize: 12,
-                        fontFamily: "poppins",
+
                       ),
                     ),
                   ),
@@ -350,7 +347,6 @@ class FeedbackPage extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    fontFamily: "poppins",
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -372,7 +368,7 @@ class FeedbackPage extends ConsumerWidget {
                     ),
                     border: const OutlineInputBorder(),
                     hintText: "Type your feedback here...",
-                    hintStyle: const TextStyle(fontFamily: "poppins"),
+                    hintStyle: const TextStyle(),
                     errorText: feedbackState.showAdditionalFeedbackError
                         ? "This field cannot be empty"
                         : null,
@@ -423,7 +419,6 @@ class FeedbackPage extends ConsumerWidget {
                             child: const Text(
                               'Submit',
                               style: TextStyle(
-                                fontFamily: "poppins",
                                 fontSize: 16,
                                 color: Colors.white,
                               ),

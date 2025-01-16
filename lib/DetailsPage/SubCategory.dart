@@ -2,8 +2,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/MenuPage/MenuPage.dart';
-import 'package:kealthy/Services/Loading.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class FoodCategoriesScreen extends StatelessWidget {
   final String category;
@@ -22,29 +24,31 @@ class FoodCategoriesScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 16),
-            Text(
-              category,
-              style: const TextStyle(
-                  color: Colors.black, fontSize: 20, fontFamily: "poppins"),
-            ),
+            Text(category,
+                style: GoogleFonts.alatsi(
+                  color: Colors.black,
+                  fontSize: 20,
+                )),
             const SizedBox(height: 10),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('SubCategory')
-                    .where('Subcategory', isEqualTo: category)
+                    .where('Category', isEqualTo: category)
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                        child: LoadingWidget(
-                      message: "",
+                    return Center(
+                        child: LoadingAnimationWidget.inkDrop(
+                      size: 60,
+                      color: Color(0xFF273847),
                     ));
                   }
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    print(category);
                     return const Center(child: Text("No categories available"));
                   }
 
@@ -56,9 +60,9 @@ class FoodCategoriesScreen extends StatelessWidget {
                       final subcategory = subcategories[index];
                       return CategoryCard(
                         color: Colors.white,
-                        imageUrl: subcategory['imageurl'],
-                        title: subcategory['Category'] ?? 'No Title',
-                        description: subcategory['title'] ?? 'No Description',
+                        imageUrl: subcategory['ImageUrl'],
+                        title: subcategory['Subcategory'] ?? 'No Title',
+                        description: subcategory['Title'] ?? 'No Description',
                       );
                     },
                   );
@@ -98,76 +102,78 @@ class CategoryCard extends StatelessWidget {
           ),
         );
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
-          ],
-          color: color,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: screenWidth * 0.20,
-              height: screenWidth * 0.20,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 5),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  fit: BoxFit.fill,
+            ],
+            color: color,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: screenWidth * 0.20,
+                height: screenWidth * 0.20,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: CachedNetworkImage(
+                    cacheManager: DefaultCacheManager(),
+                    imageUrl: imageUrl,
+                    fit: BoxFit.fill,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.poppins(
+                        color: Colors.black,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: false,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      description,
+                      style: GoogleFonts.poppins(
+                        color: Colors.black,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Color(0xFF273847),
-                      fontWeight: FontWeight.bold,
-                      fontFamily: "poppins",
-                      fontSize: 16,
-                    ),
+                  Icon(
+                    Icons.arrow_forward_ios_outlined,
+                    color: Colors.white,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    description,
-                    style: const TextStyle(
-                      color: Color(0xFF273847),
-                      fontFamily: "poppins",
-                      fontSize: 12,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
                 ],
               ),
-            ),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Icon(
-                  Icons.arrow_forward_ios_outlined,
-                  color: Colors.white,
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

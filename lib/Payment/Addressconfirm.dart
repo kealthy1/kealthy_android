@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final savedAddressProvider = FutureProvider<Map<String, dynamic>>((ref) async {
@@ -62,10 +63,10 @@ class ConfirmOrder extends ConsumerWidget {
                         children: [
                           Text(
                             '${savedAddress['type'] ?? 'N/A'}',
-                            style: const TextStyle(
-                                fontSize: 20,
-                                color: Colors.black,
-                                fontFamily: "poppins"),
+                            style: GoogleFonts.poppins(
+                              color: Colors.black,
+                              fontSize: 20,
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(width: 4),
@@ -79,10 +80,9 @@ class ConfirmOrder extends ConsumerWidget {
                       const SizedBox(height: 4),
                       Text(
                         savedAddress['road'] ?? 'N/A',
-                        style: const TextStyle(
-                          fontSize: 14,
+                        style: GoogleFonts.poppins(
                           color: Colors.black,
-                          fontFamily: "poppins",
+                          fontSize: 14,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -90,7 +90,6 @@ class ConfirmOrder extends ConsumerWidget {
                         savedAddress['selectedSlot'] ?? 'N/A',
                         style: const TextStyle(
                           fontSize: 14,
-                          fontFamily: "poppins",
                           color: Colors.black,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -101,7 +100,6 @@ class ConfirmOrder extends ConsumerWidget {
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.black,
-                          fontFamily: "poppins",
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),

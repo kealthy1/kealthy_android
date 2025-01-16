@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 final opacityProvider = StateProvider<double>((ref) => 0.0);
 
@@ -26,11 +27,10 @@ class FadeInText extends ConsumerWidget {
       duration: duration,
       child: Text(
         text,
-        style: TextStyle(
+        style: GoogleFonts.abrilFatface(
           color: color,
           fontSize: fontSize,
           fontWeight: FontWeight.w900,
-          fontFamily: "Schyler",
         ),
       ),
     );

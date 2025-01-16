@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../Riverpod/Texanimation.dart';
 import 'login_page.dart';
 
@@ -162,13 +161,13 @@ class _IntroPage1State extends ConsumerState<IntroPage1> {
                     text: 'FUEL YOUR DAY WITH',
                     duration: Duration(seconds: 1),
                     color: Colors.white,
-                    fontSize: 30.0,
+                    fontSize: 20,
                   ),
                   FadeInText(
-                    text: 'FRESHNESS.',
+                    text: 'FRESHNESS',
                     duration: Duration(seconds: 1),
                     color: Colors.greenAccent,
-                    fontSize: 100.0,
+                    fontSize: 60,
                   ),
                 ],
               ),
@@ -240,7 +239,7 @@ class _IntroPage2State extends ConsumerState<IntroPage2> {
                     text: 'GUILT FREE.',
                     duration: Duration(seconds: 1),
                     color: Colors.yellowAccent,
-                    fontSize: 100.0,
+                    fontSize: 80.0,
                   ),
                 ],
               ),

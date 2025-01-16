@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,7 +37,9 @@ class OngoingTicketsPage extends ConsumerWidget {
               ),
               Text(
                 "No Active Tickets Found",
-                style: TextStyle(color: Colors.black, fontFamily: "poppins"),
+                style: GoogleFonts.poppins(
+                  color: Colors.black,
+                ),
               )
             ],
           );
@@ -52,6 +55,7 @@ class OngoingTicketsPage extends ConsumerWidget {
             final dateTime = timestamp?.toDate();
 
             return Card(
+              color: Colors.white,
               margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               child: ListTile(
                 leading: Container(
@@ -74,12 +78,12 @@ class OngoingTicketsPage extends ConsumerWidget {
                     children: [
                       Text(
                         DateFormat('dd').format(dateTime ?? DateTime.now()),
-                        style: const TextStyle(
+                        style: GoogleFonts.poppins(
                             fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       Text(
                         DateFormat('MMM').format(dateTime ?? DateTime.now()),
-                        style: const TextStyle(
+                        style: GoogleFonts.poppins(
                             color: Colors.black54, fontSize: 14),
                       ),
                     ],
@@ -90,15 +94,16 @@ class OngoingTicketsPage extends ConsumerWidget {
                   children: [
                     Text(
                       "Ticket ID ${data['ticketId'] ?? 'No ID'}",
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontFamily: "poppins"),
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
                       "Active",
-                      style: TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: "poppins"),
+                      style: GoogleFonts.poppins(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
@@ -107,7 +112,7 @@ class OngoingTicketsPage extends ConsumerWidget {
                   children: [
                     Text(
                       data['description'] ?? "No Description",
-                      style: TextStyle(fontFamily: "poppins"),
+                      style: GoogleFonts.poppins(),
                     ),
                     const SizedBox(height: 10),
                     // GestureDetector(
@@ -131,10 +136,9 @@ class OngoingTicketsPage extends ConsumerWidget {
                     //       ),
                     //       Text(
                     //         "Chat with Support",
-                    //         style: TextStyle(
+                    //         style: GoogleFonts.poppins(
                     //           color: Colors.green,
                     //           fontSize: 14,
-                    //           fontFamily: "poppins",
                     //           fontWeight: FontWeight.bold,
                     //         ),
                     //       ),
@@ -175,6 +179,7 @@ class AlertLog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      backgroundColor: Colors.white,
       title: Center(
         child: Column(
           children: [
@@ -188,9 +193,8 @@ class AlertLog extends StatelessWidget {
             ),
             Text(
               title,
-              style: const TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 18,
-                fontFamily: "poppins",
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -199,8 +203,7 @@ class AlertLog extends StatelessWidget {
       ),
       content: Text(
         message,
-        style: const TextStyle(
-          fontFamily: "poppins",
+        style: GoogleFonts.poppins(
           fontSize: 12,
         ),
       ),

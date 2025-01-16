@@ -141,7 +141,6 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                         Text(
                           'No orders found',
                           style: TextStyle(
-                            fontFamily: "poppins",
                             color: Color(0xFF273847),
                           ),
                         ),
@@ -211,7 +210,6 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                                           Text(
                                             'Order ID: $orderId',
                                             style: TextStyle(
-                                                fontFamily: "poppins",
                                                 overflow:
                                                     TextOverflow.ellipsis),
                                           ),
@@ -230,7 +228,6 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                                     child: Text(
                                       status,
                                       style: const TextStyle(
-                                        fontFamily: "poppins",
                                         overflow: TextOverflow.ellipsis,
                                         fontSize: 14,
                                         color: Colors.green,
@@ -273,7 +270,6 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                                                   child: Text(
                                                     'Delivery Partner: $DA',
                                                     style: const TextStyle(
-                                                      fontFamily: "poppins",
                                                       overflow:
                                                           TextOverflow.ellipsis,
                                                     ),
@@ -313,7 +309,6 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                                             child: Text(
                                               'Delivery Time: $selectedSlot',
                                               style: const TextStyle(
-                                                fontFamily: "poppins",
                                               ),
                                             ),
                                           ),
@@ -332,14 +327,13 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                                           title: Text(
                                             item['item_name'],
                                             style: const TextStyle(
-                                                fontFamily: "poppins",
                                                 color: Colors.black,
                                                 fontSize: 12),
                                           ),
                                           trailing: Text(
                                             'Qty: ${item['item_quantity']}',
                                             style: TextStyle(
-                                              fontFamily: "poppins",
+
                                             ),
                                           ),
                                         );

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
@@ -44,9 +45,11 @@ class OtpNotifier extends StateNotifier<OtpState> {
         if (onSuccess != null) {
           onSuccess();
         }
+        FocusScope.of(context).unfocus();
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const CustomBottomNavigationBar()),
+          CupertinoModalPopupRoute(
+              builder: (context) => const CustomBottomNavigationBar()),
         );
       } else {
         state = OtpState(error: 'Inavalid OTP');
@@ -56,34 +59,32 @@ class OtpNotifier extends StateNotifier<OtpState> {
     }
   }
 
-Future<void> resendOtp(String phoneNumber, Function(String newVerificationId)? onVerificationIdUpdated) async {
-  const url = 'https://api-jfnhkjk4nq-uc.a.run.app/send-otp';
-  state = OtpState(isLoading: true);
+  Future<void> resendOtp(String phoneNumber,
+      Function(String newVerificationId)? onVerificationIdUpdated) async {
+    const url = 'https://api-jfnhkjk4nq-uc.a.run.app/send-otp';
+    state = OtpState(isLoading: true);
 
-  try {
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'phoneNumber': phoneNumber}),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'phoneNumber': phoneNumber}),
+      );
 
-    if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      if (responseData['verificationId'] != null && onVerificationIdUpdated != null) {
-        onVerificationIdUpdated(responseData['verificationId']);
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        if (responseData['verificationId'] != null &&
+            onVerificationIdUpdated != null) {
+          onVerificationIdUpdated(responseData['verificationId']);
+        }
+        state = OtpState();
+      } else {
+        state = OtpState(error: 'Failed to resend OTP');
       }
-      state = OtpState();
-    } else {
-      state = OtpState(error: 'Failed to resend OTP');
+    } catch (e) {
+      state = OtpState(error: 'An error occurred while resending OTP');
     }
-  } catch (e) {
-    state = OtpState(error: 'An error occurred while resending OTP');
   }
-}
-
-
-
-
 }
 
 final otpProvider = StateNotifierProvider<OtpNotifier, OtpState>(

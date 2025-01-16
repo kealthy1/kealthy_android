@@ -3,12 +3,11 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/LandingPage/Help&Support/Help&Support_Tab.dart';
-import 'package:kealthy/Orders/ordersTab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Maps/functions/Delivery_detailslocationprovider.dart';
 import '../../Maps/SelectAdress.dart';
-import '../../Services/Navigation.dart';
 
 class SelectedRoadNotifier extends StateNotifier<String?> {
   SelectedRoadNotifier() : super(null) {
@@ -70,6 +69,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
     }
 
     return AppBar(
+      surfaceTintColor: Colors.white,
       automaticallyImplyLeading: false,
       backgroundColor: Colors.white,
       title: GestureDetector(
@@ -77,7 +77,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
           final notifier = ref.read(selectedRoadProvider.notifier);
           final updatedRoad = await Navigator.push(
             context,
-            MaterialPageRoute(
+            CupertinoModalPopupRoute(
               builder: (context) => const SelectAdress(totalPrice: 0),
             ),
           );
@@ -108,11 +108,10 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
                                 }
                                 return Text(
                                   type,
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontFamily: "poppins",
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.bold,
                                     fontSize: 20,
-                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black,
                                   ),
                                 );
                               },
@@ -122,22 +121,23 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
                             typeAsyncValue.when(
                               data: (type) => Text(
                                 selectedRoad ?? mainLocation,
-                                style: TextStyle(
+                                style: GoogleFonts.poppins(
                                   color:
                                       type == null ? Colors.black : Colors.grey,
                                   fontSize: type == null ? 20 : 12,
                                   fontWeight: FontWeight.bold,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
+                                overflow: TextOverflow.ellipsis,
+                                softWrap: false,
                               ),
                               loading: () => const SizedBox.shrink(),
                               error: (error, _) => Text(
+                                overflow: TextOverflow.ellipsis,
                                 selectedRoad ?? mainLocation,
-                                style: const TextStyle(
+                                style: GoogleFonts.poppins(
                                   color: Colors.grey,
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ),
@@ -153,10 +153,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
-        const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: MovableButton(),
-        ),
+        
         Help(),
       ],
     );
@@ -190,7 +187,7 @@ class MovableButtonNotifier extends StateNotifier<bool> {
           bool orderExists = orders.any((order) {
             final data = order.value as Map<dynamic, dynamic>?;
 
-            return data != null && data['assignedto'] != 'NotAssigned';
+            return data != null && data['assignedto'] != 'none';
           });
 
           state = orderExists;
@@ -207,59 +204,6 @@ final movableButtonProvider =
   return MovableButtonNotifier();
 });
 
-class MovableButton extends ConsumerWidget {
-  const MovableButton({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final buttonVisible = ref.watch(movableButtonProvider);
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          SeamlessRevealRoute(
-            page: const OrdersTabScreen(),
-          ),
-        );
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        transform: Matrix4.translationValues(0, buttonVisible ? 0 : 60, 0),
-        child: buttonVisible
-            ? Stack(
-                children: [
-                  const CircleAvatar(
-                    radius: 25,
-                    backgroundImage: AssetImage("assets/Delivery Boy (1).gif"),
-                  ),
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        'Live',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            : const SizedBox.shrink(),
-      ),
-    );
-  }
-}
 
 class Help extends ConsumerWidget {
   const Help({super.key});
@@ -271,11 +215,10 @@ class Help extends ConsumerWidget {
     return GestureDetector(
         onTap: () {
           Navigator.push(
-            context,
-            SeamlessRevealRoute(
-              page: const SupportDeskScreen(),
-            ),
-          );
+              context,
+              CupertinoModalPopupRoute(
+                builder: (context) => SupportDeskScreen(),
+              ));
         },
         child: Stack(
           children: [
@@ -284,7 +227,10 @@ class Help extends ConsumerWidget {
                   backgroundColor: Colors.grey.shade300),
               onPressed: () {
                 Navigator.push(
-                    context, SeamlessRevealRoute(page: SupportDeskScreen()));
+                    context,
+                    CupertinoModalPopupRoute(
+                      builder: (context) => SupportDeskScreen(),
+                    ));
               },
               icon: Icon(
                 CupertinoIcons.chat_bubble_text,
@@ -292,22 +238,17 @@ class Help extends ConsumerWidget {
                 color: Color(0xFF273847),
               ),
             ),
-            Positioned(
-              top: 0,
-              left: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Color(0xFF273847),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  'Help',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Color(0xFF273847),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Help',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 12,
                 ),
               ),
             ),

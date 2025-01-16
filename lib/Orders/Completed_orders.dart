@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:kealthy/Services/Loading.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -139,7 +139,6 @@ class OrderCard extends ConsumerWidget {
                   Text(
                     'No orders found',
                     style: TextStyle(
-                      fontFamily: "poppins",
                       color: Color(0xFF273847),
                     ),
                   ),
@@ -186,7 +185,6 @@ class OrderCard extends ConsumerWidget {
                                 style: const TextStyle(
                                     color: Colors.black,
                                     fontSize: 20,
-                                    fontFamily: "poppins",
                                     overflow: TextOverflow.ellipsis),
                               ),
                               SizedBox(
@@ -205,7 +203,6 @@ class OrderCard extends ConsumerWidget {
                                 orderData.date,
                                 style: const TextStyle(
                                     color: Colors.black,
-                                    fontFamily: "poppins",
                                     overflow: TextOverflow.ellipsis),
                               ),
                               Text(
@@ -214,7 +211,6 @@ class OrderCard extends ConsumerWidget {
                                 ),
                                 style: const TextStyle(
                                   color: Colors.black,
-                                  fontFamily: "poppins",
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               )
@@ -226,7 +222,6 @@ class OrderCard extends ConsumerWidget {
                       Text(
                         "Total Amount  ₹${orderData.totalAmountToPay.toStringAsFixed(0)}/-",
                         style: TextStyle(
-                            fontFamily: "poppins",
                             overflow: TextOverflow.ellipsis),
                       ),
                       const Divider(
@@ -239,13 +234,12 @@ class OrderCard extends ConsumerWidget {
                             "Items:",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontFamily: "poppins",
                                 overflow: TextOverflow.ellipsis),
                           ),
                           Text(
                             "Delivered",
                             style: TextStyle(
-                                fontFamily: "poppins",
+
                                 color: Colors.green,
                                 overflow: TextOverflow.ellipsis),
                           ),
@@ -262,13 +256,11 @@ class OrderCard extends ConsumerWidget {
                               title: Text(
                                 item.itemName,
                                 style: TextStyle(
-                                    fontFamily: "poppins",
                                     overflow: TextOverflow.ellipsis),
                               ),
                               subtitle: Text(
                                 "Quantity: ${item.itemQuantity} | Price: ₹${item.itemPrice.toStringAsFixed(0)}/-",
                                 style: TextStyle(
-                                    fontFamily: "poppins",
                                     overflow: TextOverflow.ellipsis),
                               ),
                             );
@@ -282,9 +274,10 @@ class OrderCard extends ConsumerWidget {
             },
           );
         },
-        loading: () => const Center(
-            child: LoadingWidget(
-          message: "Pleasw Wait",
+        loading: () => Center(
+            child: LoadingAnimationWidget.inkDrop(
+          size: 60,
+          color: Color(0xFF273847),
         )),
         error: (err, stack) => Center(child: Text("Error: $err")),
       ),

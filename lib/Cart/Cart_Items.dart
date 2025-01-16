@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/Cart/SlotsBooking.dart';
 import 'package:kealthy/Cart/adress&slot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,12 +41,15 @@ class ShowCart extends ConsumerWidget {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
+          surfaceTintColor: Colors.white,
           automaticallyImplyLeading: false,
           backgroundColor: Colors.white,
-          title: const Center(
+          title: Center(
             child: Text(
               'Cart',
-              style: TextStyle(color: Colors.black, fontFamily: "poppins"),
+              style: GoogleFonts.poppins(
+                color: Colors.black,
+              ),
             ),
           ),
           elevation: 0.5,
@@ -262,7 +266,7 @@ class ShowCart extends ConsumerWidget {
 
                                 return Text(
                                   buttonText,
-                                  style: const TextStyle(
+                                  style: GoogleFonts.poppins(
                                     fontSize: 18.0,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
@@ -292,13 +296,12 @@ class ShowCart extends ConsumerWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
-          children: const [
+          children: [
             Text(
               'Total Bill',
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 20.0,
                 color: Colors.black,
-                fontFamily: "poppins",
               ),
             ),
             SizedBox(width: 5),
@@ -310,11 +313,10 @@ class ShowCart extends ConsumerWidget {
           ],
         ),
         Text(
-          '₹${total.toStringAsFixed(2)}',
-          style: const TextStyle(
+          '₹${total.toStringAsFixed(0)}/-',
+          style: GoogleFonts.poppins(
             fontSize: 20.0,
             color: Colors.black,
-            fontFamily: "poppins",
           ),
         ),
       ],

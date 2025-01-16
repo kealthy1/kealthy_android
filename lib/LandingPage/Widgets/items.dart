@@ -1,7 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../DetailsPage/HomePage.dart';
 import '../../MenuPage/Search_provider.dart';
@@ -46,7 +48,7 @@ class _ItemCardState extends ConsumerState<ItemCard> {
     final relatedItems = allItems
         .where((item) =>
             item.category == widget.menuItem.category &&
-            item.id != widget.menuItem.name)
+            item.name != widget.menuItem.name)
         .map((item) => item.toMenuItem())
         .toSet()
         .toList();
@@ -68,7 +70,7 @@ class _ItemCardState extends ConsumerState<ItemCard> {
             centerTitle: true,
             title: Text(
               widget.menuItem.category,
-              style: const TextStyle(fontFamily: "Poppins"),
+              style: const TextStyle(),
             ),
             automaticallyImplyLeading: false,
             backgroundColor: Colors.white),
@@ -183,11 +185,19 @@ class _ItemCardState extends ConsumerState<ItemCard> {
             children: [
               Expanded(
                 flex: 3,
-                child: CachedNetworkImage(
-                  imageUrl: item.imageUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => _buildShimmerItem(),
-                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(15),
+                      topRight: Radius.circular(15)),
+                  child: CachedNetworkImage(
+                    cacheManager: DefaultCacheManager(),
+                    imageUrl:
+                        item.imageUrls.isNotEmpty ? item.imageUrls[0] : '',
+                    fit: BoxFit.fill,
+                    placeholder: (context, url) => _buildShimmerItem(),
+                    errorWidget: (context, url, error) =>
+                        const Icon(Icons.error),
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
@@ -198,33 +208,31 @@ class _ItemCardState extends ConsumerState<ItemCard> {
                   children: [
                     Text(
                       item.name,
-                      style: const TextStyle(
+                      style: GoogleFonts.poppins(
                         fontSize: 14,
-                        fontFamily: "Poppins",
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '🔥 ${item.kcal.toStringAsFixed(0)} Calories',
-                      style: const TextStyle(
+                      item.subcategory,
+                      style: GoogleFonts.poppins(
                         fontSize: 12,
-                        fontFamily: "Poppins",
                         color: Colors.grey,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       ' ₹ ${item.price.toStringAsFixed(0)} /-',
-                      style: const TextStyle(
+                      style: GoogleFonts.poppins(
                         fontSize: 14,
-                        fontFamily: "Poppins",
                         color: Colors.green,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    const SizedBox(height: 4),
                   ],
                 ),
               ),

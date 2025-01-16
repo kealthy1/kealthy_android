@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../MenuPage/menu_item.dart';
+import 'Percentindicator.dart';
 
-class RedNutritionSection extends StatelessWidget {
+class RedNutritionSection extends StatefulWidget {
   final MenuItem menuItem;
 
   const RedNutritionSection({
@@ -10,6 +12,11 @@ class RedNutritionSection extends StatelessWidget {
   });
 
   @override
+  State<RedNutritionSection> createState() => _RedNutritionSectionState();
+}
+
+class _RedNutritionSectionState extends State<RedNutritionSection> {
+  @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -17,51 +24,64 @@ class RedNutritionSection extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15.0),
-          child: Text(
-            menuItem.name,
-            style: const TextStyle(
-                color: Colors.black, fontFamily: "poppins", fontSize: 24.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(widget.menuItem.name,
+                    style: GoogleFonts.poppins(
+                      color: Colors.black,
+                      fontSize: 24,
+                    )),
+              ),
+              CircularProgressIndicatorWidget(
+                kealthyScore: double.parse(widget.menuItem.kealthyScore),
+              )
+            ],
           ),
         ),
         const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            Expanded(
-              child: _buildDataContainer(
-                color: Colors.blue.shade50,
-                context,
-                'Macros',
-                menuItem.macros.entries
-                    .map((entry) => '${entry.key}: ${entry.value}')
-                    .toList(),
-                icon: Icons.energy_savings_leaf,
+            if (widget.menuItem.macros.isNotEmpty &&
+                widget.menuItem.macros.any((macro) => macro != 'Not Applicable'))
+              Expanded(
+                child: _buildDataContainer(
+                  color: Colors.blue.shade50,
+                  context,
+                  'Macros',
+                  widget.menuItem.macros
+                      .where((macro) => macro != 'Not Applicable')
+                      .toList(),
+                  icon: Icons.energy_savings_leaf,
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _buildDataContainer(
-                color: Colors.green.shade50,
-                context,
-                'Micros',
-                menuItem.micros.entries
-                    .map((entry) => '${entry.key}: ${entry.value}')
-                    .toList(),
-                icon: Icons.vaccines,
+            const SizedBox(width: 5),
+            if (widget.menuItem.micros.isNotEmpty &&
+                widget.menuItem.micros.any((micro) => micro != 'Not Applicable'))
+              Expanded(
+                child: _buildDataContainer(
+                  color: Colors.green.shade50,
+                  context,
+                  'Micros',
+                  widget.menuItem.micros
+                      .where((micro) => micro != 'Not Applicable')
+                      .toList(),
+                  icon: Icons.vaccines,
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _buildDataContainer(
-                color: Colors.yellow.shade50,
-                context,
-                'Ingredients',
-                menuItem.ingredients.entries
-                    .map((entry) => '${entry.key}: ${entry.value}')
-                    .toList(),
-                icon: Icons.restaurant_menu,
+            const SizedBox(width: 5),
+            if (widget.menuItem.ingredients.isNotEmpty)
+              Expanded(
+                child: _buildDataContainer(
+                  color: Colors.yellow.shade50,
+                  context,
+                  'Ingredients',
+                  widget.menuItem.ingredients.map((ingredient) => ingredient).toList(),
+                  icon: Icons.restaurant_menu,
+                ),
               ),
-            ),
           ],
         ),
         const SizedBox(height: 20),
@@ -82,13 +102,6 @@ class RedNutritionSection extends StatelessWidget {
           color: color,
           borderRadius: BorderRadius.circular(10.0),
           border: Border.all(color: Colors.grey.shade300),
-          boxShadow: [
-            const BoxShadow(
-              color: Color(0xFF273847),
-              blurRadius: 4.0,
-              offset: Offset(0, 2),
-            ),
-          ],
         ),
         child: Column(
           children: [
@@ -114,13 +127,13 @@ class RedNutritionSection extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-            fontFamily: "poppins",
-            overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.poppins(
             color: Color(0xFF273847),
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
           ),
+          overflow: TextOverflow.ellipsis,
+          softWrap: false,
         ),
         const SizedBox(height: 5),
         Text(
@@ -128,17 +141,19 @@ class RedNutritionSection extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: GoogleFonts.poppins(
             fontSize: 12,
-            fontFamily: "poppins",
             color: Color(0xFF273847),
           ),
         ),
         const SizedBox(height: 5),
-        const Text(
+        Text(
           'More',
-          style: TextStyle(
-              fontSize: 12, color: Colors.green, fontFamily: "poppins"),
+          style: GoogleFonts.poppins(
+            color: Colors.black,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );
@@ -153,52 +168,54 @@ class RedNutritionSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
           backgroundColor: Colors.white,
-          title: Center(child: Text(title)),
+          title: Center(
+            child: Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           content: SingleChildScrollView(
-            child: Wrap(
-              spacing: 8.0,
-              runSpacing: 8.0,
-              children: data
-                  .map(
-                    (item) => Container(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 8.0, horizontal: 12.0),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF273847),
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.3),
-                            blurRadius: 4.0,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        item,
-                        style: const TextStyle(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: data.map((item) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '• ',
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFF273847),
                           fontSize: 14,
-                          color: Colors.white,
-                          fontFamily: "Poppins",
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                  )
-                  .toList(),
+                      Expanded(
+                        child: Text(
+                          item,
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF273847),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
             ),
           ),
           actions: [
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF273847),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  )),
+            TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
                 'Close',
-                style: TextStyle(
-                  color: Colors.white,
+                style: GoogleFonts.poppins(
+                  color: Colors.black,
                 ),
               ),
             ),

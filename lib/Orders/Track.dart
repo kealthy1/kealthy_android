@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/Orders/Appbar.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -152,7 +153,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                         );
                       },
                       loading: () => Center(
-                        child: LoadingAnimationWidget.discreteCircle(
+                        child: LoadingAnimationWidget.inkDrop(
                           color: Color(0xFF273847),
                           size: 50,
                         ),
@@ -162,7 +163,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                     );
                   },
                   loading: () => Center(
-                    child: LoadingAnimationWidget.discreteCircle(
+                    child: LoadingAnimationWidget.inkDrop(
                       color: Color(0xFF273847),
                       size: 50,
                     ),
@@ -171,7 +172,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                 );
               },
               loading: () => Center(
-                child: LoadingAnimationWidget.discreteCircle(
+                child: LoadingAnimationWidget.inkDrop(
                   color: Color(0xFF273847),
                   size: 50,
                 ),
@@ -220,12 +221,10 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
+                                    Text(
                                       "Out for Delivery",
-                                      style: TextStyle(
-                                        fontFamily: "poppins",
+                                      style: GoogleFonts.poppins(
                                         fontSize: 26,
-                                        fontWeight: FontWeight.bold,
                                         color: Colors.black,
                                       ),
                                       maxLines: 2,
@@ -233,9 +232,8 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                                     const SizedBox(height: 4),
                                     Text(
                                       widget.Address,
-                                      style: const TextStyle(
+                                      style: GoogleFonts.poppins(
                                         fontSize: 14,
-                                        fontFamily: "poppins",
                                         color: Colors.grey,
                                       ),
                                     ),
@@ -256,15 +254,15 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                                               ? 1
                                               : etaInMinutes.ceil())
                                           .toString(),
-                                      style: const TextStyle(
+                                      style: GoogleFonts.poppins(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white,
                                       ),
                                     ),
-                                    const Text(
+                                    Text(
                                       "mins",
-                                      style: TextStyle(
+                                      style: GoogleFonts.poppins(
                                         fontSize: 12,
                                         color: Colors.white,
                                       ),
@@ -276,7 +274,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                           );
                         },
                         loading: () => Center(
-                          child: LoadingAnimationWidget.discreteCircle(
+                          child: LoadingAnimationWidget.inkDrop(
                             color: Color(0xFF273847),
                             size: 50,
                           ),
@@ -286,7 +284,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                       );
                     },
                     loading: () => Center(
-                      child: LoadingAnimationWidget.discreteCircle(
+                      child: LoadingAnimationWidget.inkDrop(
                         color: Color(0xFF273847),
                         size: 50,
                       ),
@@ -312,7 +310,7 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                             widget.DeliveryBoy.isNotEmpty
                                 ? widget.DeliveryBoy[0]
                                 : '',
-                            style: TextStyle(
+                            style: GoogleFonts.poppins(
                               fontSize: screenWidth * 0.07,
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -323,12 +321,12 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                       const SizedBox(width: 5),
                       Expanded(
                         child: Text(
+                          overflow: TextOverflow.ellipsis,
                           widget.DeliveryBoy,
-                          style: TextStyle(
-                              fontSize: screenWidth * 0.05,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              overflow: TextOverflow.ellipsis),
+                          style: GoogleFonts.poppins(
+                            fontSize: screenWidth * 0.05,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
                       const Spacer(),
@@ -350,25 +348,24 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                                   borderRadius: BorderRadius.circular(5),
                                 ),
                                 backgroundColor: Colors.grey[300],
-                                title: const Text(
+                                title: Text(
+                                  overflow: TextOverflow.ellipsis,
                                   "Confirm Call",
-                                  style: TextStyle(
-                                      fontFamily: "poppins",
-                                      overflow: TextOverflow.ellipsis),
+                                  style: GoogleFonts.poppins(),
                                 ),
                                 content: Text(
+                                  overflow: TextOverflow.ellipsis,
                                   "Do you want to call ${widget.DeliveryBoy} ?",
-                                  style: TextStyle(
-                                      fontFamily: "poppins",
-                                      overflow: TextOverflow.ellipsis),
+                                  style: GoogleFonts.poppins(),
                                 ),
                                 actions: [
                                   TextButton(
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                     },
-                                    child: const Text("Cancel",
-                                        style: TextStyle(color: Colors.black)),
+                                    child: Text("Cancel",
+                                        style: GoogleFonts.poppins(
+                                            color: Colors.black)),
                                   ),
                                   ElevatedButton(
                                     style: ElevatedButton.styleFrom(
@@ -379,9 +376,10 @@ class _OrderTrackingPageState extends ConsumerState<OrderTrackingPage> {
                                       await FlutterPhoneDirectCaller.callNumber(
                                           phoneNumber);
                                     },
-                                    child: const Text(
+                                    child: Text(
                                       "Call Now",
-                                      style: TextStyle(color: Colors.white),
+                                      style: GoogleFonts.poppins(
+                                          color: Colors.white),
                                     ),
                                   ),
                                 ],

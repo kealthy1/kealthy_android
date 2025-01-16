@@ -1,15 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import 'package:telephony/telephony.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-
-import '../Services/Loading.dart';
 import '../Riverpod/otp.dart';
 
 class OtpScreenNotifier extends StateNotifier<OtpScreenState> {
@@ -21,7 +18,7 @@ class OtpScreenNotifier extends StateNotifier<OtpScreenState> {
   }
 
   void startTimer() {
-    cancelTimer(); // Ensure no existing timers are running
+    cancelTimer();
     state = state.copyWith(
       timer: Timer.periodic(const Duration(seconds: 1), (timer) {
         if (state.start == 0) {
@@ -34,8 +31,8 @@ class OtpScreenNotifier extends StateNotifier<OtpScreenState> {
   }
 
   void resetTimer() {
-    cancelTimer(); // Cancel the existing timer before restarting
-    state = state.copyWith(start: 30); // Reset timer to 30 seconds
+    cancelTimer();
+    state = state.copyWith(start: 30);
     startTimer();
   }
 
@@ -130,72 +127,51 @@ class OTPScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final otpState = ref.watch(otpProvider);
     final otpScreenState = ref.watch(otpScreenProvider(verificationId));
-    void extractAndFillOtp(String message, WidgetRef ref) {
-      final RegExp otpRegExp =
-          RegExp(r'Dear User Your OTP Code for login in Kealthy is (\d{4})');
-      final match = otpRegExp.firstMatch(message);
-
-      if (match != null) {
-        final extractedOtp = match.group(1);
-        if (extractedOtp != null) {
-          ref
-              .read(otpScreenProvider(verificationId).notifier)
-              .setReceivedText(extractedOtp);
-          ref.read(otpScreenProvider(verificationId).notifier).state =
-              otpScreenState.copyWith(otpControllerText: extractedOtp);
-          if (extractedOtp.length == 4) {
-            ref.read(otpProvider.notifier).verifyOtp(
-                  otpScreenState.verificationId,
-                  extractedOtp,
-                  context,
-                  onSuccess: () => _savePhoneNumber(ref),
-                );
-          }
-        }
-      } else {
-        debugPrint("No OTP found in the message.");
-      }
-    }
-
-    void startListeningForSms() {
-      final telephony = Telephony.instance;
-      telephony.listenIncomingSms(
-        onNewMessage: (SmsMessage message) {
-          debugPrint("Received SMS: \${message.body}");
-          if (message.body != null &&
-              message.body!.contains("Your OTP Code for login in Kealthy is")) {
-            extractAndFillOtp(message.body!, ref);
-          }
-        },
-        listenInBackground: false,
-      );
-    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      startListeningForSms();
       ref.read(otpScreenProvider(verificationId).notifier).startTimer();
     });
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        centerTitle: true,
+        backgroundColor: Color(0xFF273847),
         automaticallyImplyLeading: false,
-        title: const Text('Enter OTP'),
+        title: Text('Enter OTP',
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+            )),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
             children: [
-              Text('OTP sent to $phoneNumber'),
+              Text('OTP Verficication',
+                  style: GoogleFonts.poppins(
+                      color: Colors.black,
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold)),
+              SizedBox(height: 10),
+              Text('Enter OTP sent to $phoneNumber',
+                  style: GoogleFonts.poppins(
+                      color: Colors.black,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400)),
               const SizedBox(height: 50),
               Form(
                 child: PinCodeTextField(
+                  animationDuration: Duration.zero,
+                  cursorColor: Color(0xFF273847),
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   controller: TextEditingController(
                     text: otpScreenState.otpControllerText,
                   ),
                   appContext: context,
                   length: 4,
                   onChanged: (value) {
+                    // ignore: invalid_use_of_protected_member
                     ref.read(otpScreenProvider(verificationId).notifier).state =
                         otpScreenState.copyWith(otpControllerText: value);
                   },
@@ -214,9 +190,19 @@ class OTPScreen extends ConsumerWidget {
                     shape: PinCodeFieldShape.box,
                     borderRadius: BorderRadius.circular(5),
                     fieldHeight: 50,
-                    fieldWidth: 40,
+                    fieldWidth: 50,
+                    activeBoxShadow: [
+                      BoxShadow(
+                        color: Color(0xFF273847).withOpacity(0.2),
+                      ),
+                    ],
+                    inActiveBoxShadow: [
+                      BoxShadow(
+                        color: Color(0xFF273847).withOpacity(0.2),
+                      ),
+                    ],
                     activeColor: const Color(0xFF273847),
-                    inactiveColor: Colors.grey,
+                    inactiveColor: Color(0xFF273847),
                     selectedColor: const Color(0xFF273847),
                   ),
                   keyboardType: TextInputType.number,
@@ -226,7 +212,7 @@ class OTPScreen extends ConsumerWidget {
                 const SizedBox(height: 10),
                 Text(
                   otpState.error!,
-                  style: const TextStyle(color: Colors.red),
+                  style: GoogleFonts.poppins(color: Colors.red),
                 ),
               ],
               const SizedBox(height: 20),
@@ -257,9 +243,9 @@ class OTPScreen extends ConsumerWidget {
                           horizontal: 30.0,
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Continue',
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontSize: 18,
                         ),
@@ -280,9 +266,9 @@ class OTPScreen extends ConsumerWidget {
                     },
                   );
                 },
-                child: const Text(
+                child: Text(
                   'Resend',
-                  style: TextStyle(
+                  style: GoogleFonts.poppins(
                     color: Colors.black,
                     fontSize: 18,
                   ),

@@ -20,12 +20,13 @@ class AdressPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 218, 214, 214),
       appBar: AppBar(
+        surfaceTintColor: Colors.white,
         backgroundColor: const Color.fromARGB(255, 218, 214, 214),
         automaticallyImplyLeading: false,
         centerTitle: true,
         title: const Text(
           'Confirm Address',
-          style: TextStyle(fontFamily: "poppins"),
+          style: TextStyle(),
         ),
       ),
       body: Column(

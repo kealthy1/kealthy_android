@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -11,8 +12,7 @@ final selectedSlotProviders = FutureProvider<String?>((ref) async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getString('selectedSlot') ?? 'No slot selected';
 });
-final selectedAddressProviders =
-    FutureProvider<Map<String, dynamic>?>((ref) async {
+final showAddressProviders = FutureProvider<Map<String, dynamic>?>((ref) async {
   const String apiUrl =
       "https://api-jfnhkjk4nq-uc.a.run.app/getSelectedAddress";
 
@@ -48,7 +48,7 @@ class SavedAddress extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final addressAsyncValue = ref.watch(selectedAddressProviders);
+    final addressAsyncValue = ref.watch(showAddressProviders);
     ref.watch(selectedSlotProviders);
 
     return addressAsyncValue.when(
@@ -96,11 +96,11 @@ class SavedAddress extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Delivery',
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
+                        color: Colors.black,
                         fontSize: 22,
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     GestureDetector(
@@ -113,12 +113,11 @@ class SavedAddress extends ConsumerWidget {
                           ),
                         ).then((_) {});
                       },
-                      child: const Text(
+                      child: Text(
                         'Change',
-                        style: TextStyle(
-                          fontSize: 15,
+                        style: GoogleFonts.poppins(
                           color: Colors.grey,
-                          fontFamily: "poppins",
+                          fontSize: 15,
                         ),
                       ),
                     ),
@@ -135,10 +134,9 @@ class SavedAddress extends ConsumerWidget {
                     const SizedBox(width: 8),
                     Text(
                       addressType ?? '',
-                      style: const TextStyle(
+                      style: GoogleFonts.poppins(
+                        color: Colors.black,
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: "poppins",
                       ),
                     ),
                   ],
@@ -146,17 +144,17 @@ class SavedAddress extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Text(
                   '$name, $road',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
+                  style: GoogleFonts.poppins(
+                    color: Colors.black,
                     fontSize: 16,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   distance,
-                  style: const TextStyle(
+                  style: GoogleFonts.poppins(
                     color: Colors.black,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
                   ),
                 ),
                 if (directions != null && directions.isNotEmpty)
@@ -164,10 +162,9 @@ class SavedAddress extends ConsumerWidget {
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(
                       "Directions: $directions",
-                      style: const TextStyle(
-                        fontFamily: "poppins",
+                      style: GoogleFonts.poppins(
                         color: Colors.black,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
                       ),
                     ),
                   ),
@@ -176,9 +173,9 @@ class SavedAddress extends ConsumerWidget {
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(
                       "Landmark: $landmark",
-                      style: const TextStyle(
+                      style: GoogleFonts.poppins(
                         color: Colors.black,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
                       ),
                     ),
                   )

@@ -55,7 +55,7 @@ class LocationNotifier extends StateNotifier<String> {
         state = "No placemarks found";
       }
     } catch (e) {
-      state = "Error fetching location: $e";
+      state = "...";
     }
   }
 }

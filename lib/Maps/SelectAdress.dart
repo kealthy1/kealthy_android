@@ -1,11 +1,11 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:kealthy/LandingPage/Widgets/Appbar.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../Payment/Addressconfirm.dart';
 import '../Payment/Bill.dart';
@@ -14,43 +14,49 @@ import '../Riverpod/distance.dart';
 import '../Services/adresslisten.dart';
 import 'fluttermap.dart';
 import 'functions/Location_Permission.dart';
-import 'package:http/http.dart' as http;
 
 final loadingProvider = StateProvider<bool>((ref) => false);
 final selectedAddressProvider = StateProvider<Address?>((ref) => null);
 final loadingAddressProvider = StateProvider<String?>((ref) => null);
- final addressesProvider = FutureProvider<List<Address>>((ref) async {
-    const String apiUrl = "https://api-jfnhkjk4nq-uc.a.run.app/getalladdresses";
 
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final phoneNumber = prefs.getString('phoneNumber');
+final dio = Dio(BaseOptions(baseUrl: "https://api-jfnhkjk4nq-uc.a.run.app"));
+final addressesProvider = FutureProvider<List<Address>>((ref) async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final phoneNumber = prefs.getString('phoneNumber');
 
-      if (phoneNumber == null || phoneNumber.isEmpty) {
-        throw Exception("Phone number not found in SharedPreferences.");
-      }
-
-      print("Using phoneNumber: $phoneNumber");
-
-      final response = await http.get(
-        Uri.parse("$apiUrl?phoneNumber=$phoneNumber"),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
-        return (jsonResponse['data'] as List)
-            .map((data) => Address.fromJson(data))
-            .toList();
-      } else {
-        throw Exception(
-            "Failed to fetch addresses. Status Code: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("Error fetching addresses: $e");
-      throw Exception("Error fetching addresses");
+    if (phoneNumber == null || phoneNumber.isEmpty) {
+      print("Phone number not found in SharedPreferences.");
+      return [];
     }
-  });
+
+    print("Using phoneNumber: $phoneNumber");
+
+    final response = await dio.get(
+      "/getalladdresses",
+      queryParameters: {'phoneNumber': phoneNumber},
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResponse = response.data;
+      return (jsonResponse['data'] as List)
+          .map((data) => Address.fromJson(data))
+          .toList();
+    } else {
+      print(
+          "Failed to fetch addresses. Status Code: ${response.statusCode}, Response: ${response.data}");
+      return [];
+    }
+  } catch (e) {
+    if (e is DioException) {
+      print("Dio error fetching addresses: ${e.response?.data ?? e.message}");
+    } else {
+      print("Error fetching addresses: $e");
+    }
+    return [];
+  }
+});
+
 class SelectAdress extends ConsumerStatefulWidget {
   final double totalPrice;
 
@@ -69,8 +75,6 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
       ref.refresh(addressesProvider);
     });
   }
-
- 
 
   Future<void> deleteAddressFromAPI(Address address, WidgetRef ref) async {
     const String apiUrl = "https://api-jfnhkjk4nq-uc.a.run.app/deleteAddress";
@@ -94,9 +98,15 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
         return;
       }
 
-      final response = await http.delete(
-        Uri.parse("$apiUrl?phoneNumber=$phoneNumber&type=${address.type}"),
-        headers: {'Content-Type': 'application/json'},
+      final dio = Dio();
+      dio.options.headers = {'Content-Type': 'application/json'};
+
+      final response = await dio.delete(
+        apiUrl,
+        queryParameters: {
+          'phoneNumber': phoneNumber,
+          'type': address.type,
+        },
       );
 
       if (response.statusCode == 200) {
@@ -145,17 +155,16 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
     return WillPopScope(
       onWillPop: () async {
         // ignore: unused_result
-        ref.refresh(selectedAddressProviders);
+        ref.refresh(showAddressProviders);
         // ignore: unused_result
         ref.refresh(selectedSlotProviders);
         // ignore: unused_result
-        ref.refresh(savedAddressProvider); 
+        ref.refresh(savedAddressProvider);
         // ignore: unused_result
         ref.refresh(totalDistanceProvider);
         // ignore: unused_result
-        ref.refresh(selectedRoadProvider); 
-        // ignore: unused_result
-        ref.refresh(typeProvider);
+      
+     
 
         return true;
       },
@@ -164,9 +173,12 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
         appBar: AppBar(
           centerTitle: true,
           automaticallyImplyLeading: false,
-          title: const Text(
+          title: Text(
             'Confirm delivery location',
-            style: TextStyle(fontFamily: "poppins"),
+            style: GoogleFonts.poppins(
+              color: Colors.black,
+              fontSize: 22,
+            ),
           ),
           backgroundColor: Colors.white,
         ),
@@ -209,17 +221,17 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
                     ],
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  child: const Padding(
-                    padding: EdgeInsets.only(left: 10, right: 10),
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 10, right: 10),
                     child: Row(
                       children: [
-                        Icon(Icons.add, color: Color(0xFF273847)),
-                        SizedBox(width: 12.0),
+                        const Icon(Icons.add, color: Color(0xFF273847)),
+                        const SizedBox(width: 12.0),
                         Text(
                           'Add address',
-                          style: TextStyle(
+                          style: GoogleFonts.poppins(
                             color: Color(0xFF273847),
-                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
                           ),
                         ),
                       ],
@@ -237,8 +249,11 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
                       return Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.location_on_outlined,
-                              size: 50, color: Colors.red),
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 50,
+                            color: Color(0xFF273847),
+                          ),
                           Text(
                             'No saved addresses found.',
                             style: TextStyle(fontFamily: "poppins"),
@@ -248,6 +263,7 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
                     }
 
                     return RefreshIndicator(
+                      backgroundColor: Colors.white,
                       color: Color(0xFF273847),
                       onRefresh: () async {
                         // ignore: unused_result
@@ -282,31 +298,37 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
                               final double drivingDistance =
                                   snapshot.data ?? calculatedDistance;
 
-                              return AddressCard(
-                                address: address,
-                                isSelected: selectedAddress == address,
-                                restaurantLatitude: restaurantLatitude,
-                                restaurantLongitude: restaurantLongitude,
-                                distance: drivingDistance,
-                                onSelected: () async {
-                                  final prefs =
-                                      await SharedPreferences.getInstance();
-                                  final phoneNumber =
-                                      prefs.getString('phoneNumber');
-                                  await prefs.setDouble(
-                                      'selectedDistance', drivingDistance);
-                                  await ref
-                                      .read(updateAddressProvider.notifier)
-                                      .updateSelectedAddress(
-                                          phoneNumber!, address.type);
-
-                                  ref
-                                      .read(selectedAddressProvider.notifier)
-                                      .state = address;
-                                },
-                                onDelete: () async {
-                                  await deleteAddressFromAPI(address, ref);
-                                },
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: AddressCard(
+                                  address: address,
+                                  isSelected: selectedAddress == address,
+                                  restaurantLatitude: restaurantLatitude,
+                                  restaurantLongitude: restaurantLongitude,
+                                  distance: drivingDistance,
+                                  onSelected: () async {
+                                    final prefs =
+                                        await SharedPreferences.getInstance();
+                                    final phoneNumber =
+                                        prefs.getString('phoneNumber');
+                                    await prefs.setDouble(
+                                        'selectedDistance', drivingDistance);
+                                    await ref
+                                        .read(updateAddressProvider.notifier)
+                                        .updateSelectedAddress(
+                                            phoneNumber!, address.type);
+                                    if (mounted) {
+                                      ref
+                                          .read(
+                                              selectedAddressProvider.notifier)
+                                          .state = address;
+                                    }
+                                  },
+                                  onDelete: () async {
+                                    await deleteAddressFromAPI(address, ref);
+                                  },
+                                ),
                               );
                             },
                           );
@@ -338,25 +360,23 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
           Expanded(
             child: Container(
               height: 1,
-              color: Colors.grey.shade300,
+              color: Colors.grey,
             ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Text(
               title,
-              style: const TextStyle(
-                fontFamily: "Poppins",
+              style: GoogleFonts.poppins(
+                color: Color(0xFF273847),
                 fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: Colors.black38,
               ),
             ),
           ),
           Expanded(
             child: Container(
               height: 1,
-              color: Colors.grey.shade300,
+              color: Colors.grey,
             ),
           ),
         ],
@@ -423,7 +443,7 @@ class Address {
   }
 }
 
-class AddressCard extends ConsumerWidget {
+class AddressCard extends ConsumerStatefulWidget {
   final Address address;
   final bool isSelected;
   final VoidCallback onSelected;
@@ -442,11 +462,15 @@ class AddressCard extends ConsumerWidget {
     required this.restaurantLongitude,
     required this.distance,
   });
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AddressCard> createState() => _AddressCardState();
+}
+
+class _AddressCardState extends ConsumerState<AddressCard> {
+  @override
+  Widget build(BuildContext context) {
     final loadingAddress = ref.watch(loadingAddressProvider);
-    final isLoading = loadingAddress == address.type;
+    final isLoading = loadingAddress == widget.address.type;
 
     IconData getIconBasedOnType(String type) {
       switch (type.toLowerCase()) {
@@ -461,31 +485,33 @@ class AddressCard extends ConsumerWidget {
 
     return GestureDetector(
       onTap: () async {
-        ref.read(loadingAddressProvider.notifier).state = address.type;
+        ref.read(loadingAddressProvider.notifier).state = widget.address.type;
         final prefs = await SharedPreferences.getInstance();
         final phoneNumber = prefs.getString('phoneNumber');
 
         if (phoneNumber != null) {
           final success = await ref
               .read(updateAddressProvider.notifier)
-              .updateSelectedAddress(phoneNumber, address.type);
+              .updateSelectedAddress(phoneNumber, widget.address.type);
+          if (!mounted) return;
           if (Navigator.canPop(context)) {
             if (success) {
-              await prefs.setString('selectedRoad', address.road);
+              await prefs.setString('selectedRoad', widget.address.road);
 
-              await prefs.setString('type', address.type);
-              await prefs.setString('name', address.name);
-              await prefs.setString('selectedAddressMessage', address.road);
+              await prefs.setString('type', widget.address.type);
+              await prefs.setString('name', widget.address.name);
+              await prefs.setString(
+                  'selectedAddressMessage', widget.address.road);
 
               Fluttertoast.showToast(
-                msg: "Address ${address.type} Selected ✔️",
+                msg: "Address ${widget.address.type} Selected ✔️",
                 backgroundColor: Colors.green,
                 textColor: Colors.white,
               );
 
               ref.invalidate(selectedAddressProvider);
               ref.invalidate(selectedSlotProviders);
-              onSelected();
+              widget.onSelected();
             } else {
               Fluttertoast.showToast(
                 msg: "Failed to select address. Try again.",
@@ -502,7 +528,9 @@ class AddressCard extends ConsumerWidget {
           );
         }
 
-        ref.read(loadingAddressProvider.notifier).state = null;
+        if (mounted) {
+          ref.read(loadingAddressProvider.notifier).state = null;
+        }
       },
       child: isLoading
           ? Center(
@@ -515,15 +543,16 @@ class AddressCard extends ConsumerWidget {
               ),
             )
           : Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    blurRadius: 5,
+                    color: Colors.grey.withOpacity(0.4),
+                    spreadRadius: 2,
+                    blurRadius: 2,
                     offset: const Offset(0, 3),
                   ),
                 ],
@@ -532,13 +561,15 @@ class AddressCard extends ConsumerWidget {
                 children: [
                   Column(
                     children: [
-                      Icon(getIconBasedOnType(address.type),
+                      Icon(getIconBasedOnType(widget.address.type),
                           color: const Color(0xFF273847)),
                       const SizedBox(height: 8),
                       Text(
-                        '${distance.toStringAsFixed(2)} km',
-                        style: const TextStyle(
-                            color: Colors.black54, fontSize: 10),
+                        '${widget.distance.toStringAsFixed(2)} km',
+                        style: GoogleFonts.poppins(
+                          color: Colors.black54,
+                          fontSize: 10,
+                        ),
                       ),
                     ],
                   ),
@@ -548,24 +579,26 @@ class AddressCard extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          address.type,
-                          style: const TextStyle(
+                          widget.address.type,
+                          style: GoogleFonts.poppins(
+                              color: Colors.black,
                               fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black54),
+                              fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          '${address.name}, ${address.road}',
-                          style: const TextStyle(
-                              fontSize: 15, color: Colors.black54),
+                          '${widget.address.name}, ${widget.address.road}',
+                          style: GoogleFonts.poppins(
+                            color: Colors.black54,
+                            fontSize: 15,
+                          ),
                         ),
-                        if (address.landmark.isNotEmpty)
+                        if (widget.address.landmark.isNotEmpty)
                           Text(
-                            'Landmark: ${address.landmark}',
+                            'Landmark: ${widget.address.landmark}',
                             style: const TextStyle(color: Colors.black54),
                           ),
                         Text(
-                          'Directions: ${address.directions}',
+                          'Directions: ${widget.address.directions}',
                           style: const TextStyle(color: Colors.black54),
                         ),
                       ],
@@ -579,16 +612,16 @@ class AddressCard extends ConsumerWidget {
                           context,
                           CupertinoModalPopupRoute(
                             builder: (context) => SelectLocationPage(
-                              name: address.name,
-                              selectedRoad: address.road,
-                              landmark: address.landmark,
-                              type: address.type,
-                              directions: address.directions,
+                              name: widget.address.name,
+                              selectedRoad: widget.address.road,
+                              landmark: widget.address.landmark,
+                              type: widget.address.type,
+                              directions: widget.address.directions,
                             ),
                           ),
                         );
                       } else if (choice == 'Delete') {
-                        onDelete();
+                        widget.onDelete();
                       }
                     },
                     itemBuilder: (BuildContext context) => [

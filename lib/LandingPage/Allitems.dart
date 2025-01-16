@@ -1,8 +1,14 @@
+import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/LandingPage/Widgets/Recent_Search.dart';
 import 'package:kealthy/LandingPage/Widgets/floating_bottom_navigation_bar.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:shimmer/shimmer.dart';
 import '../MenuPage/Search_provider.dart';
 import '../MenuPage/menu_item.dart';
 import 'Widgets/Search All.dart';
@@ -45,12 +51,16 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
           child: Scaffold(
             backgroundColor: Colors.white,
             appBar: AppBar(
+              surfaceTintColor: Colors.white,
               backgroundColor: Colors.white,
               centerTitle: true,
               automaticallyImplyLeading: false,
-              title: const Text(
-                'Search Healthy Recipes',
-                style: TextStyle(color: Colors.black, fontFamily: "poppins"),
+              title: Text(
+                'Search Healthy Products',
+                style: GoogleFonts.poppins(
+                  color: Colors.black,
+                  fontSize: 20,
+                ),
               ),
             ),
             body: NotificationListener<ScrollNotification>(
@@ -78,17 +88,16 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Recent',
-                            style: TextStyle(
+                          Text(
+                            'Recent Searches',
+                            style: GoogleFonts.poppins(
+                              color: Colors.black,
                               fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: "poppins",
                             ),
                           ),
                           const SizedBox(height: 15),
                           SizedBox(
-                            height: 65,
+                            height: 50,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
                               itemCount: recentSearches.length,
@@ -113,13 +122,13 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
                                     child: Container(
                                       margin: const EdgeInsets.only(right: 8.0),
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: 12.0,
-                                        vertical: 8.0,
+                                        horizontal: 8.0,
+                                        vertical: 5.0,
                                       ),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         border: Border.all(
-                                          color: Colors.black26,
+                                          color: Colors.grey.shade300,
                                         ),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
@@ -135,8 +144,10 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
                                           const SizedBox(width: 4),
                                           Text(
                                             search,
-                                            style: const TextStyle(
-                                                color: Colors.black),
+                                            style: GoogleFonts.poppins(
+                                              color: Colors.black,
+                                              fontSize: 12,
+                                            ),
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           IconButton(
@@ -152,7 +163,6 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
                                             splashColor: Colors.transparent,
                                             highlightColor: Colors.transparent,
                                             padding: EdgeInsets.zero,
-                                            alignment: Alignment.topRight,
                                           ),
                                         ],
                                       ),
@@ -182,18 +192,23 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
                             final suggestion = productSuggestions[index];
                             return GestureDetector(
                               onTap: () async {
-                                await ref
-                                    .read(recentSearchesProvider.notifier)
-                                    .addSearch(suggestion.name);
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ItemCard(
-                                      menuItem: suggestion.toMenuItem(),
-                                      Search: suggestion.name,
+                                final recentSearchesNotifier =
+                                    ref.read(recentSearchesProvider.notifier);
+                                final name = suggestion.name;
+
+                                await recentSearchesNotifier.addSearch(name);
+
+                                if (context.mounted) {
+                                  Navigator.push(
+                                    context,
+                                    CupertinoModalPopupRoute(
+                                      builder: (context) => ItemCard(
+                                        menuItem: suggestion.toMenuItem(),
+                                        Search: name,
+                                      ),
                                     ),
-                                  ),
-                                );
+                                  );
+                                }
                               },
                               child: Padding(
                                 padding: const EdgeInsets.all(18.0),
@@ -213,16 +228,26 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
                                           ),
                                         ],
                                       ),
-                                      child: CachedNetworkImage(
-                                        fit: BoxFit.contain,
-                                        imageUrl: suggestion.imageUrl,
-                                        placeholder: (context, url) =>
-                                            const Center(
-                                          child: CircularProgressIndicator(),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(10),
+                                        child: CachedNetworkImage(
+                                          cacheManager: DefaultCacheManager(),
+                                          fit: BoxFit.fill,
+                                          imageUrl: suggestion.imageUrls[0],
+                                          placeholder: (context, url) => Center(
+                                            child: Shimmer.fromColors(
+                                              baseColor: Colors.grey[300]!,
+                                              highlightColor: Colors.grey[100]!,
+                                              child: Container(
+                                                height: 100,
+                                                color: Colors.grey[300],
+                                              ),
+                                            ),
+                                          ),
+                                          errorWidget: (context, url, error) =>
+                                              const Icon(Icons.error,
+                                                  color: Colors.red),
                                         ),
-                                        errorWidget: (context, url, error) =>
-                                            const Icon(Icons.error,
-                                                color: Colors.red),
                                       ),
                                     ),
                                     const SizedBox(width: 20),
@@ -235,20 +260,18 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
                                         children: [
                                           Text(
                                             suggestion.name,
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontFamily: "poppins",
+                                            style: GoogleFonts.poppins(
                                               color: Colors.black,
-                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
                                             ),
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
                                             suggestion.category,
-                                            style: const TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.grey,
-                                                fontFamily: "poppins"),
+                                            style: GoogleFonts.poppins(
+                                              color: Colors.grey,
+                                              fontSize: 12,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -274,6 +297,7 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
@@ -285,9 +309,9 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
             onPressed: () {
               Navigator.pop(context);
             },
-            child: const Text(
+            child: Text(
               "Cancel",
-              style: TextStyle(color: Colors.grey),
+              style: GoogleFonts.poppins(color: Colors.grey),
             ),
           ),
           ElevatedButton(
@@ -296,9 +320,9 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
               ref.read(recentSearchesProvider.notifier).removeSearch(search);
               Navigator.pop(context);
             },
-            child: const Text(
+            child: Text(
               "Delete",
-              style: TextStyle(color: Colors.white),
+              style: GoogleFonts.poppins(color: Colors.white),
             ),
           ),
         ],
@@ -307,28 +331,26 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
   }
 
   Widget buildNoSuggestionsFallback() {
-    return Consumer(
-      builder: (context, ref, child) {
-        final isLoading = ref.watch(noSuggestionsLoadingProvider);
-        Future.delayed(const Duration(seconds: 5), () {
-          if (isLoading) {
-            ref.read(noSuggestionsLoadingProvider.notifier).state = false;
-          }
-        });
+    final isLoading = ref.watch(noSuggestionsLoadingProvider);
 
-        return Center(
-          child: isLoading
-              ? const CircularProgressIndicator(color: Colors.green)
-              : const Text(
-                  'No matching options found. Try a different search!',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                    fontFamily: "poppins",
-                  ),
-                ),
-        );
-      },
+    if (isLoading) {
+      Timer(const Duration(seconds: 5), () {
+        if (mounted) {
+          ref.read(noSuggestionsLoadingProvider.notifier).state = false;
+        }
+      });
+    }
+
+    return Center(
+      child: isLoading
+          ? LoadingAnimationWidget.inkDrop(color: Color(0xFF273847), size: 50)
+          : Text(
+              'No matching options found. Try a different search!',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+            ),
     );
   }
 }

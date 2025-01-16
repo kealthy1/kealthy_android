@@ -1,8 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../MenuPage/menu_item.dart';
 import '../../DetailsPage/HomePage.dart';
@@ -26,7 +28,7 @@ class FoodMenuNotifier extends StateNotifier<List<DocumentSnapshot>> {
           .collection('Products')
           .orderBy('Name')
           .limit(_initialLimit)
-          .where("SOH", isGreaterThan: 0)
+          // .where("SOH", isGreaterThan: 0)
           .get();
 
       state = snapshot.docs;
@@ -47,7 +49,7 @@ class FoodMenuNotifier extends StateNotifier<List<DocumentSnapshot>> {
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('Products')
           .orderBy('Name')
-          .where("SOH", isGreaterThan: 0)
+          // .where("SOH", isGreaterThan: 0)
           .get();
 
       state = snapshot.docs;
@@ -85,56 +87,57 @@ class _FoodMenuPagesState extends ConsumerState<FoodMenuPages> {
           Expanded(
             child: menuItems.isEmpty
                 ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    itemCount: menuItems.length + 1,
+                : GridView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: 0.75, // Adjust to control height
+                    ),
+                    itemCount:
+                        menuItems.length + (notifier.showLoadAllButton ? 1 : 0),
                     itemBuilder: (context, index) {
-                      if (index == menuItems.length) {
-                        return notifier.showLoadAllButton
-                            ? Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: InkWell(
-                                  splashColor: Colors.transparent,
-                                  highlightColor: Colors.transparent,
-                                  onTap: notifier._isFetching
-                                      ? null
-                                      : () {
-                                          notifier.fetchAllMenuItems();
-                                        },
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        notifier._isFetching
-                                            ? "Loading..."
-                                            : "See all",
-                                        style: const TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.grey,
-                                            fontFamily: "poppins"),
-                                      ),
-                                      SizedBox(
-                                        width: 5,
-                                      ),
-                                      Icon(
-                                        notifier._isFetching
-                                            ? Icons.hourglass_empty
-                                            : Icons.arrow_forward_ios,
-                                        color: Colors.grey,
-                                      ),
-                                      if (notifier._isFetching)
-                                        const SizedBox(
-                                          height: 16,
-                                          width: 16,
-                                          child: CircularProgressIndicator(
-                                            color: Colors.black,
-                                            strokeWidth: 2,
-                                          ),
-                                        ),
-                                    ],
+                      if (index == menuItems.length &&
+                          notifier.showLoadAllButton) {
+                        return InkWell(
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          onTap: notifier._isFetching
+                              ? null
+                              : () {
+                                  notifier.fetchAllMenuItems();
+                                },
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                notifier._isFetching ? "Loading..." : "See all",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              Icon(
+                                notifier._isFetching
+                                    ? Icons.hourglass_empty
+                                    : Icons.arrow_forward_ios,
+                                color: Colors.grey,
+                              ),
+                              if (notifier._isFetching)
+                                const SizedBox(
+                                  height: 16,
+                                  width: 16,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.black,
+                                    strokeWidth: 2,
                                   ),
                                 ),
-                              )
-                            : const SizedBox.shrink();
+                            ],
+                          ),
+                        );
                       }
 
                       final menuItemDoc = menuItems[index];
@@ -151,81 +154,124 @@ class _FoodMenuPagesState extends ConsumerState<FoodMenuPages> {
                             ),
                           );
                         },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0, vertical: 8.0),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: Colors.grey.shade300),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(15),
-                                    topRight: Radius.circular(15),
-                                  ),
-                                  child: CachedNetworkImage(
-                                    height: 100,
-                                    imageUrl: menuItem.imageUrl,
-                                    width: double.infinity,
-                                    placeholder: (context, url) => Center(
-                                      child: Shimmer.fromColors(
-                                        baseColor: Colors.grey[300]!,
-                                        highlightColor: Colors.grey[100]!,
-                                        child: Container(
-                                          color: Colors.grey[300],
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(15),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  // Adjusted AspectRatio for image
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(15),
+                                      topRight: Radius.circular(15),
+                                    ),
+                                    child: AspectRatio(
+                                      aspectRatio: 1.0,
+                                      child: CachedNetworkImage(
+                                        cacheManager: DefaultCacheManager(),
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                        imageUrl: menuItem.imageUrls[0],
+                                        placeholder: (context, url) =>
+                                            Shimmer.fromColors(
+                                          baseColor: Colors.grey[300]!,
+                                          highlightColor: Colors.grey[100]!,
+                                          child: Container(
+                                            color: Colors.grey[300],
+                                          ),
                                         ),
+                                        errorWidget: (context, url, error) =>
+                                            const Icon(Icons.error),
                                       ),
                                     ),
-                                    errorWidget: (context, url, error) =>
-                                        const Icon(Icons.error),
                                   ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        menuItem.name,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontFamily: "Poppins",
-                                          fontWeight: FontWeight.bold,
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0, vertical: 8.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          overflow: TextOverflow.ellipsis,
+                                          menuItem.name,
+                                          style: GoogleFonts.poppins(
+                                            color: Colors.black,
+                                            fontSize: 14,
+                                          ),
+                                          maxLines: 1,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '₹ ${menuItem.price.toStringAsFixed(0)}/-',
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.radioCanada(
+                                            color: Colors.black,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment.topRight,
+                              child: menuItem.SOH < 4
+                                  ? Transform.translate(
+                                      offset: const Offset(-1, -1),
+                                      child: ClipRRect(
+                                        borderRadius: const BorderRadius.only(
+                                          topRight: Radius.circular(10),
+                                        ),
+                                        child: Container(
+                                          height: 55,
+                                          width: 45,
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0, vertical: 4.0),
+                                          decoration: BoxDecoration(
+                                            color: const Color.fromARGB(
+                                                255, 201, 82, 74),
+                                          ),
+                                          alignment: Alignment.center,
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                "Only",
+                                                style: GoogleFonts.poppins(
+                                                    fontSize: 10,
+                                                    color: Colors.white),
+                                              ),
+                                              Text(
+                                                menuItem.SOH.toStringAsFixed(0),
+                                                style: GoogleFonts.poppins(
+                                                    fontSize: 10,
+                                                    color: Colors.white),
+                                              ),
+                                              Text(
+                                                "Left",
+                                                style: GoogleFonts.poppins(
+                                                    fontSize: 10,
+                                                    color: Colors.white),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '₹ ${menuItem.price.toStringAsFixed(0)}/-',
-                                        style: const TextStyle(
-                                            fontSize: 18,
-                                            fontFamily: "Poppins"),
-                                      ),
-                                      Row(
-                                        children: [
-                                          const Icon(
-                                              Icons.energy_savings_leaf_rounded,
-                                              size: 18,
-                                              color: Colors.green),
-                                          const SizedBox(width: 4),
-                                          Text(menuItem.nutrients,
-                                              style: const TextStyle(
-                                                  fontSize: 13,
-                                                  fontFamily: "Poppins")),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                                    )
+                                  : const SizedBox(),
+                            )
+                          ],
                         ),
                       );
                     },

@@ -1,10 +1,10 @@
-import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:kealthy/LandingPage/Widgets/floating_bottom_navigation_bar.dart';
-import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Cart/SlotsBooking.dart';
@@ -59,6 +59,10 @@ class _AddressFormState extends ConsumerState<AddressForm> {
         widget.directions.isNotEmpty ? widget.directions : '';
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.type.isNotEmpty) {
+        ref.read(savedValueProvider.notifier).state = widget.type;
+        ref.read(buttonPressedProvider.notifier).state = widget.type;
+      }
       ref.read(buttonPressedProvider.notifier).state = widget.type;
       final address = ref.read(addressProvider);
       if (address!.isNotEmpty) {
@@ -94,11 +98,11 @@ class _AddressFormState extends ConsumerState<AddressForm> {
             height: 10,
           ),
           Center(
-            child: const Text(
+            child: Text(
               'Complete Address Details',
-              style: TextStyle(
+              style: GoogleFonts.poppins(
+                color: Colors.black,
                 fontSize: 18,
-                fontFamily: 'Poppins',
               ),
             ),
           ),
@@ -107,23 +111,6 @@ class _AddressFormState extends ConsumerState<AddressForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Text(
-                  'Save the adress as',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.grey),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(child: _buildSaveButton(Icons.home, 'Home')),
-                    const SizedBox(width: 4),
-                    Expanded(child: _buildSaveButton(Icons.work, 'Work')),
-                    const SizedBox(width: 4),
-                    Expanded(
-                        child: _buildSaveButton(Icons.more_horiz, 'Other')),
-                  ],
-                ),
                 const SizedBox(
                   height: 10,
                 ),
@@ -250,6 +237,30 @@ class _AddressFormState extends ConsumerState<AddressForm> {
                 SizedBox(
                   height: 10,
                 ),
+                Text(
+                  'Save the address as',
+                  style: GoogleFonts.poppins(
+                    color: Colors.grey,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: _buildSaveButton(Icons.home, 'Home')),
+                    const SizedBox(width: 4),
+                    Expanded(
+                        child: _buildSaveButton(
+                            Icons.work_outline_rounded, 'Work')),
+                    const SizedBox(width: 4),
+                    Expanded(
+                        child: _buildSaveButton(Icons.more_horiz, 'Other')),
+                  ],
+                ),
+                SizedBox(
+                  height: 20,
+                ),
                 issaved
                     ? const Center(
                         child: SizedBox(
@@ -271,6 +282,10 @@ class _AddressFormState extends ConsumerState<AddressForm> {
                                 76.38426666931349;
                             await _calculateDrivingDistanceAndSave(
                                 ref, restaurantLatitude, restaurantLongitude);
+                            // ignore: unused_result
+                            ref.refresh(etaTimeProvider);
+                            // ignore: unused_result
+                            ref.refresh(distanceProvider);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF273847),
@@ -279,11 +294,10 @@ class _AddressFormState extends ConsumerState<AddressForm> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text(
+                          child: Text(
                             'SAVE AND PROCEED',
-                            style: TextStyle(
+                            style: GoogleFonts.poppins(
                               color: Colors.white,
-                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
@@ -385,12 +399,15 @@ class _AddressFormState extends ConsumerState<AddressForm> {
     final landmark = LandMarkController.text.trim();
     final combinedRoad = '$road, ${addressController.text.trim()}';
 
-    if (name.isEmpty ||
-        road.isEmpty ||
-        directions.isEmpty ||
-        savedValue.isEmpty) {
+    List<String> emptyFields = [];
+    if (name.isEmpty) emptyFields.add('Name');
+    if (road.isEmpty) emptyFields.add('Flat/Room/Area');
+    if (directions.isEmpty) emptyFields.add('Directions');
+    if (savedValue.isEmpty) emptyFields.add('Type');
+
+    if (emptyFields.isNotEmpty) {
       Fluttertoast.showToast(
-        msg: "All fields are required",
+        msg: "${emptyFields.join(', ')} is required.",
         backgroundColor: Colors.red,
         textColor: Colors.white,
       );
@@ -444,17 +461,20 @@ class _AddressFormState extends ConsumerState<AddressForm> {
       print('New Address Data: $newAddressData');
       const String apiUrl =
           "https://api-jfnhkjk4nq-uc.a.run.app/addselectAddress";
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(newAddressData),
+      Dio dio = Dio();
+      final response = await dio.post(
+        apiUrl,
+        options: Options(
+          headers: {'Content-Type': 'application/json'},
+        ),
+        data: newAddressData,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = jsonDecode(response.body);
+        final responseData = response.data;
         if (responseData['success'] == true) {
           // ignore: unused_result
-          ref.refresh(selectedAddressProviders);
+          ref.refresh(showAddressProviders);
           // ignore: unused_result
           ref.refresh(distanceProvider);
           // ignore: unused_result
@@ -514,10 +534,12 @@ class _AddressFormState extends ConsumerState<AddressForm> {
         "https://maps.googleapis.com/maps/api/directions/json?origin=$startLatitude,$startLongitude&destination=$endLatitude,$endLongitude&mode=walking&key=$apiKey";
 
     try {
-      final response = await http.get(Uri.parse(url));
+      final dio = Dio();
+
+      final response = await dio.get(url);
 
       if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
+        final jsonResponse = response.data;
         final routes = jsonResponse['routes'] as List;
 
         if (routes.isNotEmpty) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../Services/FirestoreCart.dart';
 
 class CategoryContainer extends ConsumerWidget {
@@ -19,10 +20,10 @@ class CategoryContainer extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         cartItems.isEmpty
-            ? const Center(
+            ? Center(
                 child: Text(
                   'No items in Cart',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                  style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey),
                 ),
               )
             : ListView.builder(
@@ -99,7 +100,7 @@ class CartItemWidget extends StatelessWidget {
                 ),
                 Text(
                   item.name,
-                  style: const TextStyle(
+                  style: GoogleFonts.poppins(
                     color: Color(0xFF273847),
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -108,7 +109,7 @@ class CartItemWidget extends StatelessWidget {
                 SizedBox(height: screenHeight * 0.015),
                 Text(
                   '₹${item.price.toStringAsFixed(0)} /-',
-                  style: const TextStyle(
+                  style: GoogleFonts.poppins(
                     color: Color(0xFF273847),
                     fontSize: 14,
                   ),
@@ -123,9 +124,10 @@ class CartItemWidget extends StatelessWidget {
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(5.0),
                     ),
-                    child: const Text(
+                    child: Text(
                       "Remove",
-                      style: TextStyle(fontSize: 12, color: Colors.black),
+                      style: GoogleFonts.poppins(
+                          fontSize: 12, color: Colors.black),
                     ),
                   ),
                 ),
@@ -156,7 +158,7 @@ class CartItemWidget extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
                       child: Text(
                         '${item.quantity}',
-                        style: const TextStyle(fontSize: 16),
+                        style: GoogleFonts.poppins(fontSize: 16),
                       ),
                     ),
                     IconButton(
@@ -171,7 +173,7 @@ class CartItemWidget extends StatelessWidget {
               SizedBox(height: 20),
               Text(
                 '₹${(item.price * item.quantity).toStringAsFixed(0)} /-',
-                style: const TextStyle(
+                style: GoogleFonts.poppins(
                   color: Colors.black,
                   fontSize: 14,
                   fontWeight: FontWeight.bold,

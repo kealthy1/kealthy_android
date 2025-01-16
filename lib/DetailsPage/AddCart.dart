@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:google_fonts/google_fonts.dart';
 import '../MenuPage/menu_item.dart';
 import '../Services/FirestoreCart.dart';
 
@@ -28,7 +28,9 @@ class AddToCart extends ConsumerWidget {
           children: [
             Text(
               "₹${menuItem.price.toStringAsFixed(0)} /-",
-              style: const TextStyle(fontSize: 24, fontFamily: "Poppins"),
+              style: GoogleFonts.poppins(
+                fontSize: 24,
+              ),
             ),
             Container(
               height: 40,
@@ -53,11 +55,11 @@ class AddToCart extends ConsumerWidget {
                             cartNotifier.decreaseItemQuantity(cartItem!.id);
                           },
                         ),
-                        Text(
-                          cartItem!.quantity.toString(),
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
+                        Text(cartItem!.quantity.toString(),
+                            style: GoogleFonts.poppins(
+                              color: Colors.black,
+                              fontSize: 16,
+                            )),
                         IconButton(
                           icon: const Icon(
                             Icons.add,
@@ -76,7 +78,7 @@ class AddToCart extends ConsumerWidget {
                           price: menuItem.price,
                           quantity: 1,
                           id: menuItem.name,
-                          imageUrl: menuItem.imageUrl,
+                          imageUrl: menuItem.imageUrls[0],
                           category: menuItem.category,
                         );
                         cartNotifier.addItemToCart(newCartItem);
@@ -88,10 +90,10 @@ class AddToCart extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
                           "ADD",
-                          style: TextStyle(
+                          style: GoogleFonts.poppins(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
                           ),
@@ -105,12 +107,47 @@ class AddToCart extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 1),
           child: Text(
-            menuItem.description,
+            "What Is it?",
             textAlign: TextAlign.justify,
-            style: const TextStyle(
-              fontSize: 18.0,
+            style: GoogleFonts.poppins(
               color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 22,
             ),
+          ),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Text(
+          menuItem.whatIsIt,
+          textAlign: TextAlign.justify,
+          style: GoogleFonts.poppins(
+            color: Colors.black,
+            fontSize: 16,
+          ),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Text(
+          "What Is it used for?",
+          textAlign: TextAlign.justify,
+          style: GoogleFonts.poppins(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Text(
+          menuItem.whatIsItUsedFor,
+          textAlign: TextAlign.justify,
+          style: GoogleFonts.poppins(
+            color: Colors.black,
+            fontSize: 16,
           ),
         ),
       ],

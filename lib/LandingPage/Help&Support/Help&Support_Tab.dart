@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Myprofile/Myprofile.dart';
 import 'Providers.dart';
@@ -38,41 +39,40 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
   @override
   Widget build(BuildContext context) {
     final userProfile = ref.watch(userProfileProvider);
-
     final userName = userProfile.name;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       resizeToAvoidBottomInset: true,
       body: Column(
         children: [
           Container(
             color: const Color(0xFF273847),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 20),
-                const Center(
+                Center(
                   child: Text(
                     "Kealthy Support",
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: 24,
-                      fontFamily: "poppins",
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text.rich(
                     TextSpan(
                       children: [
-                        const TextSpan(
+                        TextSpan(
                           text: "Welcome, \n",
-                          style: TextStyle(
-                            fontFamily: "poppins",
+                          style: GoogleFonts.poppins(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.normal,
@@ -80,8 +80,7 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
                         ),
                         TextSpan(
                           text: userName,
-                          style: const TextStyle(
-                            fontFamily: "poppins",
+                          style: GoogleFonts.poppins(
                             color: Colors.white,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -91,7 +90,6 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -102,24 +100,25 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 15, vertical: 12),
+                            horizontal: 8, vertical: 4),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         "Open a Ticket",
-                        style: TextStyle(
-                            color: Color(0xFF273847),
-                            fontWeight: FontWeight.bold,
-                            fontFamily: "poppins"),
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          color: Color(0xFF273847),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     Column(
                       children: [
                         IconButton(
                           style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey.shade900),
+                              backgroundColor: Colors.white),
                           onPressed: () {
                             showAlertLog(
                               context: context,
@@ -138,9 +137,10 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
                                       onPressed: () {
                                         Navigator.of(context).pop();
                                       },
-                                      child: const Text(
+                                      child: Text(
                                         "Dismiss",
-                                        style: TextStyle(color: Colors.white),
+                                        style: GoogleFonts.poppins(
+                                            color: Colors.white),
                                       ),
                                     ),
                                     ElevatedButton(
@@ -151,9 +151,10 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
                                         FlutterPhoneDirectCaller.callNumber(
                                             "8848673425");
                                       },
-                                      child: const Text(
+                                      child: Text(
                                         "Call Now",
-                                        style: TextStyle(color: Colors.white),
+                                        style: GoogleFonts.poppins(
+                                            color: Colors.white),
                                       ),
                                     ),
                                   ],
@@ -163,33 +164,32 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
                           },
                           icon: const Icon(
                             Icons.call,
-                            color: Colors.white,
+                            color: Colors.black,
                           ),
                         ),
-                        const Text(
+                        Text(
                           "Contact Us",
-                          style: TextStyle(
-                              color: Colors.white, fontFamily: "poppins"),
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                          ),
                         ),
                       ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
                 TabBar(
                   controller: _tabController,
                   indicatorColor: Colors.white,
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.grey,
                   dividerColor: Colors.transparent,
-                  tabs: const [
+                  tabs: [
                     Tab(
                       icon: Icon(Icons.pending_actions),
                       child: Text(
                         'Active',
-                        style: TextStyle(
-                          fontFamily: "poppins",
-                          fontSize: 16,
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -198,9 +198,8 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
                       icon: Icon(Icons.check_circle_sharp),
                       child: Text(
                         'Solved',
-                        style: TextStyle(
-                          fontFamily: "poppins",
-                          fontSize: 16,
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -267,7 +266,7 @@ class CustomDropdown extends StatelessWidget {
       dropdownColor: Colors.white,
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: const TextStyle(fontFamily: "Poppins"),
+        hintStyle: GoogleFonts.poppins(),
         filled: true,
         fillColor: Colors.grey[200],
         border: OutlineInputBorder(
@@ -281,7 +280,7 @@ class CustomDropdown extends StatelessWidget {
                 value: item,
                 child: Text(
                   item,
-                  style: const TextStyle(fontFamily: "Poppins"),
+                  style: GoogleFonts.poppins(),
                 ),
               ))
           .toList(),
@@ -309,12 +308,11 @@ class OpenTicketBottomSheet extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               "Open a Ticket 💬",
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                fontFamily: "Poppins",
               ),
             ),
             const SizedBox(height: 16),
@@ -342,7 +340,7 @@ class OpenTicketBottomSheet extends ConsumerWidget {
               onChanged: (value) => formNotifier.updateDescription(value),
               decoration: InputDecoration(
                 hintText: "Enter Ticket Description",
-                hintStyle: const TextStyle(fontFamily: "Poppins"),
+                hintStyle: GoogleFonts.poppins(),
                 filled: true,
                 fillColor: Colors.grey[200],
                 border: OutlineInputBorder(
@@ -415,11 +413,10 @@ class OpenTicketBottomSheet extends ConsumerWidget {
                 ),
                 child: isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
+                    : Text(
                         "Submit",
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           color: Colors.white,
-                          fontFamily: "Poppins",
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),

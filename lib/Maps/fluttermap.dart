@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -207,9 +208,12 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'Confirm Delivery Location',
-          style: TextStyle(fontFamily: "poppins"),
+          style: GoogleFonts.poppins(
+            color: Color(0xFF273847),
+            fontSize: 20,
+          ),
         ),
         backgroundColor: Colors.white,
       ),
@@ -278,11 +282,10 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
                       children: [
                         Row(
                           children: [
-                            const Text(
+                            Text(
                               'DELIVERING YOUR ORDER TO',
-                              style: TextStyle(
+                              style: GoogleFonts.poppins(
                                 color: Colors.blue,
-                                fontFamily: 'Poppins',
                                 fontSize: 12,
                               ),
                             ),
@@ -297,32 +300,46 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
                                     side: const BorderSide(
                                         color: Color(0xFF273847))),
                                 onPressed: () async {
-                                  ref
-                                      .read(isFetchingLocationProvider.notifier)
-                                      .state = true;
-                                  await ref
-                                      .read(currentlocationProviders.notifier)
-                                      ._getCurrentLocation();
-
-                                  final currentPosition =
-                                      ref.read(currentlocationProviders);
-
-                                  if (currentPosition != null) {
+                                  try {
                                     ref
+                                        .read(
+                                            isFetchingLocationProvider.notifier)
+                                        .state = true;
+
+                                    await ref
                                         .read(currentlocationProviders.notifier)
-                                        .selectedPosition = LatLng(
-                                      currentPosition.latitude,
-                                      currentPosition.longitude,
-                                    );
-                                    _mapController.move(
-                                      LatLng(currentPosition.latitude,
-                                          currentPosition.longitude),
-                                      18.0,
-                                    );
+                                        ._getCurrentLocation();
+
+                                    final currentPosition = ref
+                                        .read(currentlocationProviders.notifier)
+                                        // ignore: invalid_use_of_protected_member
+                                        .state;
+
+                                    if (currentPosition != null) {
+                                      ref
+                                          .read(
+                                              currentlocationProviders.notifier)
+                                          .selectedPosition = LatLng(
+                                        currentPosition.latitude,
+                                        currentPosition.longitude,
+                                      );
+
+                                      _mapController.move(
+                                        LatLng(
+                                          currentPosition.latitude,
+                                          currentPosition.longitude,
+                                        ),
+                                        18.0,
+                                      );
+                                    }
+                                  } catch (e) {
+                                    print('Error fetching location: $e');
+                                  } finally {
+                                    ref
+                                        .read(
+                                            isFetchingLocationProvider.notifier)
+                                        .state = false;
                                   }
-                                  ref
-                                      .read(isFetchingLocationProvider.notifier)
-                                      .state = false;
                                 },
                                 child: isFetchingLoaction
                                     ? const SizedBox(
@@ -350,9 +367,8 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
                                   Expanded(
                                     child: Text(
                                       address,
-                                      style: const TextStyle(
+                                      style: GoogleFonts.poppins(
                                         color: Colors.black,
-                                        fontFamily: 'Poppins',
                                         fontSize: 20,
                                       ),
                                     ),
@@ -414,11 +430,10 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
                                   borderRadius: BorderRadius.circular(5),
                                 ),
                               ),
-                              child: const Text(
+                              child: Text(
                                 'Add more address details',
-                                style: TextStyle(
+                                style: GoogleFonts.poppins(
                                   color: Colors.white,
-                                  fontFamily: 'Poppins',
                                   fontSize: 18,
                                 ),
                               ),

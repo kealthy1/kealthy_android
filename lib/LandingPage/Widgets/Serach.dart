@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../Riverpod/Searchbar.dart';
 import '../../Services/Navigation.dart';
 import '../Allitems.dart';
@@ -44,11 +45,14 @@ class SearchInput extends ConsumerWidget {
                     );
                   },
                   controller: searchController,
-                  style: const TextStyle(
+                  style: GoogleFonts.poppins(
                     color: Color(0xFF273847),
                   ),
                   decoration: InputDecoration(
-                    prefixIcon: const Icon(CupertinoIcons.search),
+                    prefixIcon: const Icon(
+                      CupertinoIcons.search,
+                      size: 22,
+                    ),
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 15),
                     border: OutlineInputBorder(
@@ -82,23 +86,20 @@ class SearchInput extends ConsumerWidget {
                         key: ValueKey<int>(hintIndex),
                         child: Row(
                           children: [
-                            const Text(
+                            Text(
                               'Search ',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontFamily: "poppins",
-                                color: Color(0xFF273847),
+                              style: GoogleFonts.poppins(
+                                fontSize: 15,
+                                color: Colors.grey[600],
                               ),
                             ),
                             Text(
                               hints.isNotEmpty
                                   ? '"${hints[hintIndex]}"'
                                   : '"Salad"',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontFamily: "poppins",
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xFF273847),
+                              style: GoogleFonts.poppins(
+                                fontSize: 15,
+                                color: Colors.grey[600],
                               ),
                             ),
                           ],

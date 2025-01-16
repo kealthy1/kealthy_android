@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/Orders/Completed_orders.dart';
 import 'MyOrders.dart';
 
@@ -14,7 +15,7 @@ class OrdersTabScreen extends StatelessWidget {
           toolbarHeight: 10,
           automaticallyImplyLeading: false,
           backgroundColor: Color(0xFF273847),
-          bottom: const TabBar(
+          bottom: TabBar(
             indicatorColor: Colors.white,
             labelColor: Colors.white,
             unselectedLabelColor: Colors.grey,
@@ -25,10 +26,8 @@ class OrdersTabScreen extends StatelessWidget {
                 ),
                 child: Text(
                   'Live Orders',
-                  style: TextStyle(
-                    fontFamily: "poppins",
+                  style: GoogleFonts.poppins(
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -38,10 +37,8 @@ class OrdersTabScreen extends StatelessWidget {
                 ),
                 child: Text(
                   'Past Orders',
-                  style: TextStyle(
-                    fontFamily: "poppins",
+                  style: GoogleFonts.poppins(
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),

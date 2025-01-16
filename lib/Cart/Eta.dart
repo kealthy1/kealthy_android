@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -75,10 +76,9 @@ class EstimatedTimeSelector extends ConsumerWidget {
             },
             title: Text(
               'Instant delivery ⚡',
-              style: const TextStyle(
+              style: GoogleFonts.poppins(
+                color: Colors.black,
                 fontSize: 18,
-                fontFamily: "poppins",
-                fontWeight: FontWeight.bold,
               ),
             ),
             subtitle: Column(
@@ -87,10 +87,9 @@ class EstimatedTimeSelector extends ConsumerWidget {
                 if (etaMinutes != null)
                   Text(
                     'Estimated Delivery Time: $formattedETA, (${etaMinutes.toStringAsFixed(0)} min)',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontFamily: "poppins",
+                    style: GoogleFonts.poppins(
                       color: Colors.black,
+                      fontSize: 12,
                     ),
                   ),
               ],

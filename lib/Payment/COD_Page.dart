@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/Payment/RazorPay.dart';
 import 'package:kealthy/Services/Navigation.dart';
 import 'package:kealthy/Services/Order_Completed.dart';
@@ -95,10 +96,11 @@ class OrderConfirmation extends ConsumerWidget {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-          title: const Text(
+          surfaceTintColor: Colors.white,
+          title: Text(
             'Select Payment Method',
-            style: TextStyle(
-              fontFamily: "poppins",
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold,
               fontSize: 18,
             ),
           ),
@@ -119,7 +121,7 @@ class OrderConfirmation extends ConsumerWidget {
                 _buildPaymentOption(context, ref, Icons.payment,
                     'Online Payment', selectedPaymentMethod),
                 const SizedBox(height: 16),
-                const SizedBox(height: 16),
+              
               ],
             ),
           ),
@@ -157,10 +159,9 @@ class OrderConfirmation extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          const Text(
+                          Text(
                             'Total Bill',
-                            style: TextStyle(
-                              fontFamily: "poppins",
+                            style: GoogleFonts.poppins(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
@@ -174,7 +175,7 @@ class OrderConfirmation extends ConsumerWidget {
                       ),
                       Text(
                         '₹${totalAmountToPay.toStringAsFixed(0)}/-',
-                        style: const TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -269,7 +270,7 @@ class OrderConfirmation extends ConsumerWidget {
                                         onRedirect: () {
                                           Navigator.pushReplacement(
                                             context,
-                                            MaterialPageRoute(
+                                            CupertinoModalPopupRoute(
                                               builder: (context) =>
                                                   const OrdersTabScreen(),
                                             ),
@@ -298,9 +299,9 @@ class OrderConfirmation extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Place Order',
-                            style: TextStyle(color: Colors.white),
+                            style: GoogleFonts.poppins(color: Colors.white),
                           ),
                         ),
                       ),
@@ -356,9 +357,7 @@ class OrderConfirmation extends ConsumerWidget {
                 children: [
                   Text(
                     value,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontFamily: "poppins",
+                    style: GoogleFonts.poppins(
                       fontSize: 15,
                       color: isSelected ? Colors.black : Colors.black,
                     ),

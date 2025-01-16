@@ -84,17 +84,6 @@ class ReturnRefundPolicyPage extends StatelessWidget {
               "You",
               "The individual accessing or using the Service, or the company, or other legal entity on behalf of which such individual is accessing or using the Service, as applicable.",
             ),
-            const SizedBox(height: 20),
-            _buildSectionTitle("Your Order Cancellation Rights"),
-            const Text(
-              "You are entitled to cancel Your Order within 7 days without giving any reason for doing so.",
-              style: TextStyle(fontSize: 14, fontFamily: 'Poppins'),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              "The deadline for cancelling an Order is 7 days from the date on which You received the Goods or on which a third party you have appointed, who is not the carrier, takes possession of the product delivered.",
-              style: TextStyle(fontSize: 14, fontFamily: 'Poppins'),
-            ),
             const SizedBox(height: 10),
             const Text(
               "In order to exercise Your right of cancellation, You must inform Us of your decision by means of a clear statement. You can inform us of your decision by:",
@@ -114,7 +103,6 @@ class ReturnRefundPolicyPage extends StatelessWidget {
               style: TextStyle(fontSize: 14, fontFamily: 'Poppins'),
             ),
             const SizedBox(height: 10),
-            _buildBulletPoint("The Goods were purchased in the last 7 days."),
             _buildBulletPoint("The Goods are in the original packaging."),
             const SizedBox(height: 10),
             const Text(
@@ -174,7 +162,7 @@ class ReturnRefundPolicyPage extends StatelessWidget {
               style: TextStyle(fontSize: 14, fontFamily: 'Poppins'),
             ),
             const SizedBox(height: 10),
-            _buildContactDetail("By email", "project@kealthy.com"),
+            _buildContactDetail("By email", "project@kealthy.com 📧"),
             const SizedBox(height: 30),
           ],
         ),
@@ -190,7 +178,7 @@ class ReturnRefundPolicyPage extends StatelessWidget {
         style: const TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          fontFamily: 'Poppins',
+          fontFamily: 'poppins',
         ),
       ),
     );
@@ -204,7 +192,7 @@ class ReturnRefundPolicyPage extends StatelessWidget {
         style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          fontFamily: 'Poppins',
+          fontFamily: 'poppins',
         ),
       ),
     );
@@ -216,7 +204,7 @@ class ReturnRefundPolicyPage extends StatelessWidget {
       child: RichText(
         text: TextSpan(
           style: const TextStyle(
-              fontSize: 14, fontFamily: 'Poppins', color: Colors.black),
+              fontSize: 14, fontFamily: 'poppins', color: Colors.black),
           children: [
             TextSpan(
               text: "$term: ",
@@ -237,12 +225,12 @@ class ReturnRefundPolicyPage extends StatelessWidget {
         children: [
           const Text(
             "• ",
-            style: TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+            style: TextStyle(fontSize: 14, fontFamily: 'poppins'),
           ),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+              style: const TextStyle(fontSize: 14, fontFamily: 'poppins'),
             ),
           ),
         ],
@@ -256,11 +244,11 @@ class ReturnRefundPolicyPage extends StatelessWidget {
         Text(
           "$method: ",
           style: const TextStyle(
-              fontWeight: FontWeight.bold, fontSize: 14, fontFamily: 'Poppins'),
+              fontWeight: FontWeight.bold, fontSize: 14, fontFamily: 'poppins'),
         ),
         Text(
           detail,
-          style: const TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+          style: const TextStyle(fontSize: 14, fontFamily: 'poppins'),
         ),
       ],
     );

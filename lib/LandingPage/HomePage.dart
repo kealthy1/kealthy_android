@@ -1,10 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/LandingPage/Myprofile/Myprofile.dart';
 import 'package:kealthy/LandingPage/Widgets/Category.dart';
-import '../MenuPage/MenuPage.dart';
-import '../MenuPage/Search_provider.dart';
 import '../Riverpod/NavBar.dart';
 import '../Services/DeliveryIn_Kakkanad.dart';
 import '../Services/FirestoreCart.dart';
@@ -22,18 +21,6 @@ class MyHomePage extends ConsumerStatefulWidget {
 }
 
 class _MyHomePageState extends ConsumerState<MyHomePage> {
-  @override
-  void initState() {
-    // ignore: unused_result
-    ref.refresh(userProfileProvider);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(refreshTriggerProvider.notifier).state =
-          !ref.read(refreshTriggerProvider);
-    });
-
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     NotificationHandler.initialize(context, ref);
@@ -80,7 +67,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
 
 Widget _buildHomePage(BuildContext context, WidgetRef ref) {
   final screenHeight = MediaQuery.of(context).size.height;
-  ref.watch(menuProvider);
 
   return SingleChildScrollView(
     scrollDirection: Axis.vertical,
@@ -117,10 +103,8 @@ Widget _buildCenteredTitle(String title) {
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Text(
             title,
-            style: const TextStyle(
-              fontFamily: "poppins",
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
+            style: GoogleFonts.poppins(
+              fontSize: 15,
               color: Colors.black,
             ),
           ),
