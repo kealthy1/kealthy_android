@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -162,10 +163,11 @@ class _MenuPageState extends ConsumerState<MenuPage> {
         automaticallyImplyLeading: false,
         centerTitle: true,
         title: Text(
-          'Menu',
+          overflow: TextOverflow.ellipsis,
+          widget.categoryName,
           style: GoogleFonts.poppins(
-            fontSize: 25,
-            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            fontWeight: FontWeight.w300,
             color: Colors.black,
           ),
         ),
@@ -189,7 +191,7 @@ class _MenuPageState extends ConsumerState<MenuPage> {
                     child: _buildBrandFilter(ref, brands)),
               ],
             ),
-            loading: () => const CircularProgressIndicator(),
+            loading: () => const Text(""),
             error: (_, __) => const Text('...'),
           ),
           SizedBox(

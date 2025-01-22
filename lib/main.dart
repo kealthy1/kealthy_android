@@ -3,16 +3,21 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kealthy/DetailsPage/Ratings/Alert.dart';
 import 'package:kealthy/Login/SplashScreen.dart';
 import 'package:kealthy/MenuPage/MenuPage.dart';
 import 'package:kealthy/Services/Blogs/Blog.dart';
 import 'package:kealthy/Services/Connection.dart';
 import 'package:kealthy/Services/NotificationHandler.dart';
+import 'DetailsPage/NutritionInfo.dart';
+import 'DetailsPage/Ratings/Providers.dart';
+import 'DetailsPage/Ratings/Show_Review.dart';
 import 'LandingPage/Widgets/Carousel.dart';
 import 'LandingPage/Widgets/searchprovider.dart';
 import 'Maps/SelectAdress.dart';
 import 'Maps/fluttermap.dart';
 import 'Payment/SavedAdress.dart';
+import 'Riverpod/order_provider.dart';
 import 'Services/Fcm.dart';
 import 'Services/Location_Permission.dart';
 import 'Services/adresslisten.dart';
@@ -27,6 +32,7 @@ void main() async {
     persistenceEnabled: true,
   );
   await NotificationService.instance.initialize();
+ await ReviewService.instance.initialize(navigatorKey);
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   final container = ProviderContainer();
 
@@ -41,7 +47,10 @@ void main() async {
     container.read(productProvider);
     container.read(carouselProvider);
     container.read(blogProvider);
-
+    container.read(orderProvider);
+    container.read(rateProductProvider);
+    container.read(averageStarsProvider(''));
+    container.read(orderStatusProvider);
     print("Data prefetched successfully.");
   } catch (e) {
     print("Error prefetching addresses: $e");

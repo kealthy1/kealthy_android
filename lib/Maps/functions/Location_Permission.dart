@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 Future<void> checkAndRequestLocation(BuildContext context) async {
@@ -33,20 +34,20 @@ Future<void> checkAndRequestLocation(BuildContext context) async {
                     width: MediaQuery.of(context).size.width * 0.4,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Location Access',
-                    style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: "poppins"),
+                    style: GoogleFonts.poppins(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Location Denied. Please enable location access to use this feature',
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                        fontFamily: "poppins"),
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
@@ -68,13 +69,12 @@ Future<void> checkAndRequestLocation(BuildContext context) async {
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'ENABLE',
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         color: Colors.white,
-                        fontFamily: "poppins",
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),

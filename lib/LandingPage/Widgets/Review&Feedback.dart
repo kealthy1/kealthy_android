@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Services/FeedbackAPI.dart';
@@ -167,9 +168,11 @@ class FeedbackPage extends ConsumerWidget {
         appBar: AppBar(
           automaticallyImplyLeading: false,
           backgroundColor: Colors.white,
-          title: const Text(
+          title: Text(
             'Share Your Feedback',
-            style: TextStyle(color: Colors.black, ),
+            style: GoogleFonts.poppins(
+              color: Colors.black,
+            ),
           ),
           centerTitle: true,
         ),
@@ -179,11 +182,11 @@ class FeedbackPage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   "How satisfied are you with the delivery process?",
-                  style: TextStyle(
+                  style: GoogleFonts.poppins(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -195,7 +198,7 @@ class FeedbackPage extends ConsumerWidget {
                         Icons.star,
                         color: feedbackState.deliveryRating > index
                             ? Colors.amber
-                            : Colors.grey,
+                            : Colors.black45,
                         size: 30,
                       ),
                       onPressed: () {
@@ -205,11 +208,11 @@ class FeedbackPage extends ConsumerWidget {
                   }),
                 ),
                 if (feedbackState.showDeliveryRatingError)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(top: 5),
                     child: Text(
                       "Please provide a delivery rating",
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         color: Colors.red,
                         fontSize: 12,
                       ),
@@ -218,11 +221,11 @@ class FeedbackPage extends ConsumerWidget {
                 const Divider(
                   thickness: 2,
                 ),
-                const Text(
+                Text(
                   "How satisfied are you with the usability of the App?",
-                  style: TextStyle(
+                  style: GoogleFonts.poppins(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 Row(
@@ -243,26 +246,24 @@ class FeedbackPage extends ConsumerWidget {
                   }),
                 ),
                 if (feedbackState.showWebsiteRatingError)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(top: 5),
                     child: Text(
                       "Please provide a website rating",
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         color: Colors.red,
                         fontSize: 12,
-
                       ),
                     ),
                   ),
                 const Divider(
                   thickness: 2,
                 ),
-                const Text(
+                Text(
                   "How would you describe your satisfaction?",
-                  style: TextStyle(
+                  style: GoogleFonts.poppins(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
-
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -301,10 +302,9 @@ class FeedbackPage extends ConsumerWidget {
                         if (feedbackState.satisfactionText == smiley['text'])
                           Text(
                             smiley['text'] as String,
-                            style: TextStyle(
+                            style: GoogleFonts.poppins(
                               fontSize: 14,
-                              fontWeight: FontWeight.bold,
-
+                              fontWeight: FontWeight.w600,
                               color: smiley['color'] as Color,
                             ),
                           ),
@@ -328,25 +328,24 @@ class FeedbackPage extends ConsumerWidget {
                   }).toList(),
                 ),
                 if (feedbackState.showSatisfactionTextError)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(top: 5),
                     child: Text(
                       "Please select a satisfaction level",
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         color: Colors.red,
                         fontSize: 12,
-
                       ),
                     ),
                   ),
                 const Divider(
                   thickness: 2,
                 ),
-                const Text(
+                Text(
                   "Do you have any thoughts you'd like to share?",
-                  style: TextStyle(
+                  style: GoogleFonts.poppins(
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -368,7 +367,7 @@ class FeedbackPage extends ConsumerWidget {
                     ),
                     border: const OutlineInputBorder(),
                     hintText: "Type your feedback here...",
-                    hintStyle: const TextStyle(),
+                    hintStyle: GoogleFonts.poppins(),
                     errorText: feedbackState.showAdditionalFeedbackError
                         ? "This field cannot be empty"
                         : null,
@@ -388,6 +387,8 @@ class FeedbackPage extends ConsumerWidget {
                           )
                         : ElevatedButton(
                             style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
                               backgroundColor: const Color(0xFF273847),
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 30, vertical: 15),
@@ -416,9 +417,9 @@ class FeedbackPage extends ConsumerWidget {
                               prefs.remove('Rate');
                               prefs.remove('RateTimestamp');
                             },
-                            child: const Text(
+                            child: Text(
                               'Submit',
-                              style: TextStyle(
+                              style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 color: Colors.white,
                               ),

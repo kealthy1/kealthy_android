@@ -2,20 +2,26 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import '../DetailsPage/HomePage.dart';
+import '../DetailsPage/NutritionInfo.dart';
+import '../DetailsPage/Product_Rating.dart';
 import 'menu_item.dart';
 
-class MenuItemCard extends StatelessWidget {
+class MenuItemCard extends ConsumerWidget {
   final MenuItem menuItem;
 
   const MenuItemCard(this.menuItem, {super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final averageStarsAsync = ref.watch(averageStarsProvider(menuItem.name));
     return GestureDetector(
       onTap: () {
+        // ignore: unused_result
+        ref.refresh(productRatingProvider(menuItem.name));
         FocusScope.of(context).unfocus();
         Navigator.push(
           context,
@@ -80,6 +86,42 @@ class MenuItemCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
+                      ),
+                      averageStarsAsync.when(
+                        data: (averageStars) => Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            ...List.generate(5, (index) {
+                              if (index < averageStars.floor()) {
+                                return Icon(Icons.star_outlined,
+                                    color: Colors.amber, size: 12);
+                              } else if (index == averageStars.floor() &&
+                                  averageStars % 1 != 0) {
+                                return const Icon(Icons.star_half,
+                                    color: Colors.amber, size: 12);
+                              } else {
+                                return const Icon(
+                                    Icons.star_border_purple500_rounded,
+                                    color: Colors.amber,
+                                    size: 12);
+                              }
+                            }),
+                            SizedBox(
+                              width: 3,
+                            ),
+                            Expanded(
+                              child: Text(
+                                '${averageStars.toStringAsFixed(1)} Ratings',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.black87,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        loading: () => const SizedBox.shrink(),
+                        error: (error, stack) => const SizedBox.shrink(),
                       ),
                       const SizedBox(height: 2),
                       Flexible(

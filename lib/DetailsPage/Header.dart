@@ -40,10 +40,6 @@ class _ImageHeaderState extends ConsumerState<ImageHeader> {
       child: Stack(
         children: [
           PhotoViewGallery.builder(
-            enableRotation: false,
-            allowImplicitScrolling: true,
-            gaplessPlayback: true,
-            pageSnapping: true,
             backgroundDecoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
             ),

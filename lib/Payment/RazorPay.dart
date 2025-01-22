@@ -8,8 +8,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Services/PaymentHandler.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+
 
 class RazorPay extends ConsumerStatefulWidget {
   final double totalAmountToPay;
@@ -88,47 +87,30 @@ class _RazorPayState extends ConsumerState<RazorPay> {
   }
 
   void openCheckout() async {
-    String backendUrl = 'https://api-jfnhkjk4nq-uc.a.run.app';
-
     try {
       final prefs = await SharedPreferences.getInstance();
-      final Name = prefs.getString('Name');
-      final response = await http.post(
-        Uri.parse('$backendUrl/create-order'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'amount': widget.totalAmountToPay,
-          'currency': 'INR',
-          'receipt': 'receipt_${DateTime.now().millisecondsSinceEpoch}',
-        }),
-      );
+      final name = prefs.getString('Name');
+      final storedOrderId = prefs.getString('RazorpayorderId');
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        String orderId = data['orderId'];
+      final options = {
+        'key': 'rzp_live_jA2MRdwkkUcT9v',
+        'amount': (widget.totalAmountToPay * 100).toString(),
+        'currency': 'INR',
+        'name': 'Kealthy',
+        'description': 'Kealthy',
+        'image':
+            'https://firebasestorage.googleapis.com/v0/b/kealthy-90c55.appspot.com/o/final-image-removebg-preview.png?alt=media&token=3184c1f9-2162-45e2-9bea-95519ef1519b',
+        if (storedOrderId != null) 'order_id': storedOrderId,
+        'prefill': {
+          'contact': '+918848673425',
+          'email': name,
+        },
+        'external': {
+          'wallets': ['paytm', 'googlepay'],
+        },
+      };
 
-        var options = {
-          'key': 'rzp_live_jA2MRdwkkUcT9v',
-          'amount': (widget.totalAmountToPay * 100).toString(),
-          'currency': 'INR',
-          'name': 'Kealthy',
-          'description': 'Kealthy',
-          'image':
-              'https://firebasestorage.googleapis.com/v0/b/kealthy-90c55.appspot.com/o/final-image-removebg-preview.png?alt=media&token=3184c1f9-2162-45e2-9bea-95519ef1519b',
-          'order_id': orderId,
-          'prefill': {
-            'contact': '+918848673425',
-            'email': Name,
-          },
-          'external': {
-            'wallets': ['paytm', 'googlepay'],
-          }
-        };
-
-        _razorpay.open(options);
-      } else {
-        throw Exception('Failed to create order: ${response.body}');
-      }
+      _razorpay.open(options);
     } catch (e) {
       print('Error: $e');
     }

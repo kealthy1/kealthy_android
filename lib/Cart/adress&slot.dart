@@ -9,6 +9,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import '../Payment/Addressconfirm.dart';
 import '../Payment/Adress.dart';
 import '../Payment/SavedAdress.dart';
+import '../Riverpod/order_provider.dart';
 import 'Cart_Items.dart';
 import 'Eta.dart';
 import 'SlotsBooking.dart';
@@ -153,6 +154,11 @@ class AdressSlot extends ConsumerWidget {
                               ? null
                               : () async {
                                   // ignore: unused_result
+                                  ref.refresh(orderProvider);
+                                  final prefs =
+                                      await SharedPreferences.getInstance();
+                                  await prefs.remove("RazorpayorderId");
+                                  // ignore: unused_result
                                   ref.refresh(savedAddressProvider);
                                   ref
                                       .read(checkoutLoadingProvider.notifier)
@@ -204,7 +210,6 @@ class AdressSlot extends ConsumerWidget {
                             "Proceed To Checkout",
                             style: GoogleFonts.poppins(
                               fontSize: 18.0,
-                              fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
                           ),

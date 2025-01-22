@@ -159,14 +159,14 @@ class _CalorieIntakePageState extends ConsumerState<CalorieIntakePage> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    fixedSize: const Size(150, 50),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10))),
                     backgroundColor: const Color(0xFF273847),
                   ),
                   child: Text(
                     'Calculate BMI',
-                    style: GoogleFonts.poppins(color: Colors.white),
+                    style:
+                        GoogleFonts.poppins(color: Colors.white, fontSize: 12),
                   ),
                 ),
               ),

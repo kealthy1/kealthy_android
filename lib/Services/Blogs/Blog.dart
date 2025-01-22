@@ -4,7 +4,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
+import 'package:kealthy/Services/Blogs/BlogList.dart';
 
 final blogProvider = FutureProvider<List<Blog>>((ref) async {
   final firestore = FirebaseFirestore.instance;
@@ -42,96 +42,37 @@ class Blog {
   }
 }
 
-class BlogPage extends ConsumerWidget {
-  const BlogPage({super.key});
+class BlogDetailsPage extends ConsumerWidget {
+  final Blog blog;
+
+  const BlogDetailsPage({super.key, required this.blog});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final blogState = ref.watch(blogProvider);
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        surfaceTintColor: Colors.white,
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        title: Text(
-          'Blogs For You',
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: const Color(0xFF273847),
-      ),
-      body: blogState.when(
-        data: (blogs) {
-          final today = DateTime.now();
-          final todayBlogs = blogs
-              .where((blog) =>
-                  blog.createdAt.year == today.year &&
-                  blog.createdAt.month == today.month &&
-                  blog.createdAt.day == today.day)
-              .toList();
-          final otherBlogs = blogs
-              .where((blog) => !todayBlogs.contains(blog))
-              .toList()
-            ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
-
-          return SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (todayBlogs.isNotEmpty)
-                  _buildSection("Today's Blogs", todayBlogs),
-                if (otherBlogs.isNotEmpty) ..._buildOtherSections(otherBlogs),
-              ],
+    return WillPopScope(
+      onWillPop: () async {
+        // ignore: unused_result
+        ref.refresh(filteredBlogsProvider);
+        // ignore: unused_result
+        ref.refresh(blogProvider);
+        return true;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+            titleSpacing: 18,
+            surfaceTintColor: Colors.white,
+            automaticallyImplyLeading: false,
+            title: Text(
+              'Blogs For You',
+              style: GoogleFonts.poppins(
+                color: Colors.black,
+              ),
             ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => Center(
-          child: Text('Error: $error'),
-        ),
+            backgroundColor: Colors.white),
+        body: BlogCard(blog: blog),
       ),
     );
-  }
-
-  Widget _buildSection(String title, List<Blog> blogs) {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Column(
-            children: blogs.map((blog) => BlogCard(blog: blog)).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<Widget> _buildOtherSections(List<Blog> blogs) {
-    final groupedBlogs = <String, List<Blog>>{};
-    final dateFormatter = DateFormat('EEEE, MMM d');
-
-    for (var blog in blogs) {
-      final formattedDate = dateFormatter.format(blog.createdAt);
-      groupedBlogs.putIfAbsent(formattedDate, () => []).add(blog);
-    }
-
-    return groupedBlogs.entries.map((entry) {
-      return _buildSection(entry.key, entry.value);
-    }).toList();
   }
 }
 
@@ -245,7 +186,7 @@ class BlogCard extends StatelessWidget {
                   "By Kealthy",
                   style: GoogleFonts.poppins(
                     fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                     color: Colors.black,
                   ),
                 ),

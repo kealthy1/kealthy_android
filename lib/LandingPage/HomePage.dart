@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/LandingPage/Myprofile/Myprofile.dart';
 import 'package:kealthy/LandingPage/Widgets/Category.dart';
+import 'package:kealthy/LandingPage/Widgets/Kealthy_Bottom.dart';
 import '../Riverpod/NavBar.dart';
 import '../Services/DeliveryIn_Kakkanad.dart';
 import '../Services/FirestoreCart.dart';
@@ -83,6 +84,9 @@ Widget _buildHomePage(BuildContext context, WidgetRef ref) {
         SizedBox(height: screenHeight * 0.03),
         const CategoryGrid(),
         SizedBox(height: screenHeight * 0.03),
+     
+        KealthyPage(),
+        SizedBox(height: screenHeight * 0.03),
       ],
     ),
   );
@@ -104,6 +108,7 @@ Widget _buildCenteredTitle(String title) {
           child: Text(
             title,
             style: GoogleFonts.poppins(
+              letterSpacing: 2,
               fontSize: 15,
               color: Colors.black,
             ),

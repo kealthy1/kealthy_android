@@ -148,8 +148,7 @@ class CategoryCard extends StatelessWidget {
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      softWrap: false,
+                     
                     ),
                     const SizedBox(height: 8),
                     Text(

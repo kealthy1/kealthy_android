@@ -71,7 +71,7 @@ class ProfilePage extends ConsumerWidget {
     await prefs.clear();
     Navigator.pushReplacement(
       context,
-      CupertinoModalPopupRoute(builder: (context) => const IntroScreen()),
+      CupertinoModalPopupRoute(builder: (context) => const IntroPage2()),
     );
   }
 
@@ -180,7 +180,7 @@ class ProfilePage extends ConsumerWidget {
                         children: [
                           Icon(
                             CupertinoIcons.person_alt_circle,
-                            color: Colors.black,
+                            color: Colors.grey.shade500,
                             size: 60,
                           ),
                           const SizedBox(width: 16),

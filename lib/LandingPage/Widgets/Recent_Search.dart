@@ -94,7 +94,7 @@ class _FoodMenuPagesState extends ConsumerState<FoodMenuPages> {
                       crossAxisCount: 2,
                       crossAxisSpacing: 10,
                       mainAxisSpacing: 10,
-                      childAspectRatio: 0.75, // Adjust to control height
+                      childAspectRatio: 0.70,
                     ),
                     itemCount:
                         menuItems.length + (notifier.showLoadAllButton ? 1 : 0),
@@ -114,12 +114,11 @@ class _FoodMenuPagesState extends ConsumerState<FoodMenuPages> {
                             children: [
                               Text(
                                 notifier._isFetching ? "Loading..." : "See all",
-                                style: const TextStyle(
+                                style: GoogleFonts.poppins(
                                   fontSize: 16,
                                   color: Colors.grey,
                                 ),
                               ),
-                              const SizedBox(height: 5),
                               Icon(
                                 notifier._isFetching
                                     ? Icons.hourglass_empty
@@ -166,7 +165,6 @@ class _FoodMenuPagesState extends ConsumerState<FoodMenuPages> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  // Adjusted AspectRatio for image
                                   ClipRRect(
                                     borderRadius: const BorderRadius.only(
                                       topLeft: Radius.circular(15),
@@ -202,7 +200,7 @@ class _FoodMenuPagesState extends ConsumerState<FoodMenuPages> {
                                         Text(
                                           overflow: TextOverflow.ellipsis,
                                           menuItem.name,
-                                          style: GoogleFonts.poppins(
+                                          style: GoogleFonts.montserrat(
                                             color: Colors.black,
                                             fontSize: 14,
                                           ),
@@ -212,7 +210,7 @@ class _FoodMenuPagesState extends ConsumerState<FoodMenuPages> {
                                         Text(
                                           '₹ ${menuItem.price.toStringAsFixed(0)}/-',
                                           overflow: TextOverflow.ellipsis,
-                                          style: GoogleFonts.radioCanada(
+                                          style: GoogleFonts.montserrat(
                                             color: Colors.black,
                                             fontSize: 14,
                                           ),

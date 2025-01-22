@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -128,17 +129,18 @@ class OrderCard extends ConsumerWidget {
         data: (orders) {
           if (orders == null || orders.isEmpty) {
             return Center(
-              child: const Column(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.shopping_cart_outlined,
-                    size: 100,
+                    CupertinoIcons.cart,
+                    size: 50,
                     color: Color(0xFF273847),
                   ),
                   Text(
                     'No orders found',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
                       color: Color(0xFF273847),
                     ),
                   ),
@@ -146,7 +148,7 @@ class OrderCard extends ConsumerWidget {
               ),
             );
           }
-
+          orders.sort((a, b) => b.date.compareTo(a.date));
           return ListView.builder(
             itemCount: orders.length,
             itemBuilder: (context, index) {
@@ -181,11 +183,12 @@ class OrderCard extends ConsumerWidget {
                           Row(
                             children: [
                               Text(
+                                overflow: TextOverflow.ellipsis,
                                 "Order ${orderData.orderId.length > 10 ? orderData.orderId.substring(orderData.orderId.length - 10) : orderData.orderId}",
-                                style: const TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 20,
-                                    overflow: TextOverflow.ellipsis),
+                                style: GoogleFonts.poppins(
+                                  color: Colors.black,
+                                  fontSize: 20,
+                                ),
                               ),
                               SizedBox(
                                 width: 5,
@@ -200,18 +203,19 @@ class OrderCard extends ConsumerWidget {
                           Column(
                             children: [
                               Text(
+                                overflow: TextOverflow.ellipsis,
                                 orderData.date,
-                                style: const TextStyle(
-                                    color: Colors.black,
-                                    overflow: TextOverflow.ellipsis),
+                                style: GoogleFonts.poppins(
+                                  color: Colors.black,
+                                ),
                               ),
                               Text(
+                                overflow: TextOverflow.ellipsis,
                                 DateFormat('h:mm a').format(
                                   DateFormat('HH:mm:ss').parse(orderData.time),
                                 ),
-                                style: const TextStyle(
+                                style: GoogleFonts.poppins(
                                   color: Colors.black,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                               )
                             ],
@@ -220,28 +224,29 @@ class OrderCard extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
+                        overflow: TextOverflow.ellipsis,
                         "Total Amount  ₹${orderData.totalAmountToPay.toStringAsFixed(0)}/-",
-                        style: TextStyle(
-                            overflow: TextOverflow.ellipsis),
+                        style: GoogleFonts.poppins(),
                       ),
                       const Divider(
                         thickness: 1.5,
                       ),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             "Items:",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                overflow: TextOverflow.ellipsis),
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           Text(
+                            overflow: TextOverflow.ellipsis,
                             "Delivered",
-                            style: TextStyle(
-
-                                color: Colors.green,
-                                overflow: TextOverflow.ellipsis),
+                            style: GoogleFonts.poppins(
+                              color: Colors.green,
+                            ),
                           ),
                         ],
                       ),
@@ -254,16 +259,48 @@ class OrderCard extends ConsumerWidget {
                             final item = orderData.orderItems[itemIndex];
                             return ListTile(
                               title: Text(
+                                overflow: TextOverflow.ellipsis,
                                 item.itemName,
-                                style: TextStyle(
-                                    overflow: TextOverflow.ellipsis),
+                                style: GoogleFonts.poppins(),
                               ),
                               subtitle: Text(
+                                overflow: TextOverflow.ellipsis,
                                 "Quantity: ${item.itemQuantity} | Price: ₹${item.itemPrice.toStringAsFixed(0)}/-",
-                                style: TextStyle(
-                                    overflow: TextOverflow.ellipsis),
+                                style: GoogleFonts.poppins(),
                               ),
                             );
+                          },
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: FutureBuilder<String?>(
+                          future: SharedPreferences.getInstance()
+                              .then((prefs) => prefs.getString('order_id')),
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData &&
+                                snapshot.data == orderData.orderId) {
+                              return ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  backgroundColor: const Color(0xFF273847),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 10),
+                                  textStyle: GoogleFonts.poppins(
+                                      color: Colors.white, fontSize: 10),
+                                ),
+                                onPressed: () {},
+                                child: Text(
+                                  "Share Feedback",
+                                  style:
+                                      GoogleFonts.poppins(color: Colors.white),
+                                ),
+                              );
+                            }
+                            return const SizedBox
+                                .shrink();
                           },
                         ),
                       ),

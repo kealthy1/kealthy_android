@@ -87,19 +87,23 @@ class SearchInput extends ConsumerWidget {
                         child: Row(
                           children: [
                             Text(
+                              overflow: TextOverflow.ellipsis,
                               'Search ',
                               style: GoogleFonts.poppins(
                                 fontSize: 15,
                                 color: Colors.grey[600],
                               ),
                             ),
-                            Text(
-                              hints.isNotEmpty
-                                  ? '"${hints[hintIndex]}"'
-                                  : '"Salad"',
-                              style: GoogleFonts.poppins(
-                                fontSize: 15,
-                                color: Colors.grey[600],
+                            Expanded(
+                              child: Text(
+                                overflow: TextOverflow.ellipsis,
+                                hints.isNotEmpty
+                                    ? '"${hints[hintIndex]}"'
+                                    : '"Salad"',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 15,
+                                  color: Colors.grey[600],
+                                ),
                               ),
                             ),
                           ],

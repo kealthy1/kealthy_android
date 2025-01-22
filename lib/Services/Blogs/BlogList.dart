@@ -12,6 +12,7 @@ class BlogListPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final blogState = ref.watch(blogProvider);
+    final filteredBlogs = ref.watch(filteredBlogsProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -20,22 +21,51 @@ class BlogListPage extends ConsumerWidget {
         titleSpacing: 12,
         toolbarHeight: 75,
         automaticallyImplyLeading: false,
-        title: Text(
-          'Kealthy Blogs',
-          style: GoogleFonts.poppins(
-            color: Color(0xFF273847),
-          ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Kealthy Blogs',
+              style: GoogleFonts.poppins(
+                color: Color(0xFF273847),
+              ),
+            ),
+            PopupMenuButton<String>(
+              color: Colors.white,
+              icon: Icon(
+                Icons.filter_list,
+                color: Color(0xFF273847),
+              ),
+              onSelected: (value) {
+                ref.read(filterProvider.notifier).state = value;
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'all',
+                  child: Text(
+                    'All Blogs',
+                    style: GoogleFonts.poppins(color: Colors.black),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'month',
+                  child: Text(
+                    'This Month',
+                    style: GoogleFonts.poppins(color: Colors.black),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
         backgroundColor: Colors.white,
       ),
       body: blogState.when(
         data: (blogs) {
-          blogs.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-
           return ListView.builder(
-            itemCount: blogs.length,
+            itemCount: filteredBlogs.length,
             itemBuilder: (context, index) {
-              final blog = blogs[index];
+              final blog = filteredBlogs[index];
               return BlogListTile(
                 blog: blog,
                 onTap: () {
@@ -61,27 +91,34 @@ class BlogListPage extends ConsumerWidget {
   }
 }
 
-class BlogDetailsPage extends StatelessWidget {
-  final Blog blog;
 
-  const BlogDetailsPage({super.key, required this.blog});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-          titleSpacing: 18,
-          surfaceTintColor: Colors.white,
-          automaticallyImplyLeading: false,
-          title: Text(
-            'Blogs For You',
-            style: GoogleFonts.poppins(
-              color: Colors.black,
-            ),
-          ),
-          backgroundColor: Colors.white),
-      body: BlogCard(blog: blog),
-    );
-  }
-}
+final filterProvider = StateProvider<String>((ref) => 'month');
+
+final filteredBlogsProvider = Provider<List<Blog>>((ref) {
+  final blogState = ref.watch(blogProvider);
+  final filter = ref.watch(filterProvider);
+
+  return blogState.when(
+    data: (blogs) {
+      blogs.sort((a, b) => b.createdAt.compareTo(a.createdAt)); 
+
+      final currentDate = DateTime.now();
+      if (filter == 'month') {
+        final startOfMonth = DateTime(currentDate.year, currentDate.month, 1);
+        final endOfMonth = DateTime(currentDate.year, currentDate.month + 1, 0);
+
+        return blogs
+            .where((blog) =>
+                blog.createdAt.isAfter(startOfMonth.subtract(Duration(seconds: 1))) &&
+                blog.createdAt.isBefore(endOfMonth.add(Duration(days: 1))))
+            .toList();
+      } else {
+        return blogs;
+      }
+    },
+    loading: () => [],
+    error: (error, stackTrace) => [],
+  );
+});
+

@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/LandingPage/Widgets/floating_bottom_navigation_bar.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -134,13 +135,14 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.shopping_cart_outlined,
-                          size: 100,
+                          CupertinoIcons.cart,
+                          size: 50,
                           color: Color(0xFF273847),
                         ),
                         Text(
                           'No orders found',
-                          style: TextStyle(
+                          style: GoogleFonts.poppins(
+                            fontSize: 15,
                             color: Color(0xFF273847),
                           ),
                         ),
@@ -308,8 +310,7 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                                           Flexible(
                                             child: Text(
                                               'Delivery Time: $selectedSlot',
-                                              style: const TextStyle(
-                                              ),
+                                              style: const TextStyle(),
                                             ),
                                           ),
                                         ],
@@ -332,9 +333,7 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                                           ),
                                           trailing: Text(
                                             'Qty: ${item['item_quantity']}',
-                                            style: TextStyle(
-
-                                            ),
+                                            style: TextStyle(),
                                           ),
                                         );
                                       }),

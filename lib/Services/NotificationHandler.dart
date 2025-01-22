@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kealthy/LandingPage/Widgets/floating_bottom_navigation_bar.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/Services/Navigation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
@@ -54,11 +54,12 @@ class NotificationHandler {
 
     final dialogBody = ref.read(notificationProvider).rateUsDialogBody;
     if (dialogBody != null && dialogBody.isNotEmpty && !_isDialogShown) {
-      _showRateUsDialog(context, dialogBody);
+      _showRateUsDialog(context, ref, dialogBody);
     }
   }
 
-  static void _showRateUsDialog(BuildContext context, String body) {
+  static void _showRateUsDialog(
+      BuildContext context, WidgetRef ref, String body) {
     if (_isDialogShown) return;
     _isDialogShown = true;
 
@@ -79,46 +80,57 @@ class NotificationHandler {
               height: 100,
             ),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               "Help us improve by sharing your feedback",
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: "poppins"),
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
         ),
-        actionsAlignment: MainAxisAlignment.start,
+        actionsAlignment: MainAxisAlignment.spaceAround,
         actions: [
           TextButton(
             onPressed: () async {
+              // ignore: unused_result
+              ref.refresh(notificationProvider);
               final prefs = await SharedPreferences.getInstance();
-              prefs.remove('Rate');
-              prefs.remove('RateTimestamp');
+              await prefs.remove('Rate');
+              await prefs.remove('RateTimestamp');
 
-              Navigator.push(context,
-                  SeamlessRevealRoute(page: CustomBottomNavigationBar()));
+              ref.read(notificationProvider.notifier).fetchRateUsDialogBody();
+
+              Navigator.pop(context);
             },
-            child: const Text(
+            child: Text(
               'No thanks',
-              style: TextStyle(color: Colors.grey, fontFamily: "poppins"),
+              style: GoogleFonts.poppins(
+                color: Colors.grey,
+              ),
             ),
           ),
           ElevatedButton(
-            onPressed: () async {
+            onPressed: () {
+              // ignore: unused_result
+              ref.refresh(notificationProvider);
+
               Navigator.push(
-                  context, SeamlessRevealRoute(page: FeedbackPage()));
+                context,
+                SeamlessRevealRoute(page: FeedbackPage()),
+              );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF273847),
+              backgroundColor: const Color(0xFF273847),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text(
-              'Sure, I’ll give feedback',
-              style: TextStyle(color: Colors.white, fontFamily: "poppins"),
+            child: Text(
+              'Sure',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+              ),
             ),
           ),
         ],

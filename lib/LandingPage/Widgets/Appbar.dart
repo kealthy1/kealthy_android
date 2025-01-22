@@ -153,7 +153,6 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
-        
         Help(),
       ],
     );
@@ -204,7 +203,6 @@ final movableButtonProvider =
   return MovableButtonNotifier();
 });
 
-
 class Help extends ConsumerWidget {
   const Help({super.key});
 
@@ -239,7 +237,7 @@ class Help extends ConsumerWidget {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
               decoration: BoxDecoration(
                 color: Color(0xFF273847),
                 borderRadius: BorderRadius.circular(12),
@@ -248,7 +246,7 @@ class Help extends ConsumerWidget {
                 'Help',
                 style: GoogleFonts.poppins(
                   color: Colors.white,
-                  fontSize: 12,
+                  fontSize: 10,
                 ),
               ),
             ),

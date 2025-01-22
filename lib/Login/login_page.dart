@@ -8,7 +8,6 @@ import 'package:http/http.dart' as http;
 import 'package:kealthy/Login/otp_screen.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../Riverpod/LoadingproviderLoginpage.dart';
-import '../Riverpod/Texanimation.dart';
 
 class LoginFields extends ConsumerStatefulWidget {
   const LoginFields({super.key});
@@ -20,24 +19,6 @@ class LoginFields extends ConsumerStatefulWidget {
 class _LoginFieldsState extends ConsumerState<LoginFields> {
   final _phoneController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-
-  @override
-  void initState() {
-    super.initState();
-
-    _startAnimation();
-  }
-
-  void _startAnimation() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(opacityProvider.notifier).state = 0.0;
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          ref.read(opacityProvider.notifier).state = 1.0;
-        }
-      });
-    });
-  }
 
   @override
   void dispose() {
@@ -116,25 +97,21 @@ class _LoginFieldsState extends ConsumerState<LoginFields> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      FadeInText(
-                        text: 'YOUR JOURNEY TO WELLNESS',
-                        duration: const Duration(seconds: 1),
-                        color: Colors.green,
-                        fontSize: MediaQuery.of(context).size.width * 0.05,
+                      Text(
+                        'YOUR JOURNEY TO WELLNESS',
+                        style: GoogleFonts.montserrat(
+                          color: Colors.green,
+                          fontSize: MediaQuery.of(context).size.width * 0.08,
+                        ),
                       ),
-                      FadeInText(
-                        text: 'STARTS HERE.',
-                        duration: const Duration(seconds: 1),
-                        color: Colors.white,
-                        fontSize: MediaQuery.of(context).size.width * 0.10,
+                      Text(
+                        'STARTS HERE',
+                        style: GoogleFonts.montserrat(
+                          color: Colors.white,
+                          fontSize: MediaQuery.of(context).size.width * 0.08,
+                        ),
                       ),
-                      const SizedBox(height: 50),
-                      const FadeInText(
-                        text: 'Phone no.',
-                        color: Colors.white,
-                        fontSize: 20.0,
-                      ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 100),
                       TextFormField(
                         enableInteractiveSelection: false,
                         controller: _phoneController,
@@ -187,8 +164,8 @@ class _LoginFieldsState extends ConsumerState<LoginFields> {
                                     'Continue',
                                     style: GoogleFonts.poppins(
                                         color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w900),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w300),
                                   ),
                           ),
                         ),

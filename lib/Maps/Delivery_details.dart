@@ -286,6 +286,7 @@ class _AddressFormState extends ConsumerState<AddressForm> {
                             ref.refresh(etaTimeProvider);
                             // ignore: unused_result
                             ref.refresh(distanceProvider);
+                            FocusScope.of(context).unfocus();
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF273847),

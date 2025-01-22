@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:kealthy/LandingPage/Widgets/Appbar.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -163,8 +164,9 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
         // ignore: unused_result
         ref.refresh(totalDistanceProvider);
         // ignore: unused_result
-      
-     
+        ref.refresh(selectedRoadProvider);
+        // ignore: unused_result
+        ref.refresh(typeProvider);
 
         return true;
       },

@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:kealthy/LandingPage/Widgets/floating_bottom_navigation_bar.dart';
 import 'package:kealthy/Login/introscreen.dart';
+import 'package:kealthy/Services/Navigation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -20,16 +21,16 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> navigateAfterDelay() async {
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(seconds: 4));
 
     final hasPhoneNumber = await _checkPhoneNumber();
     if (mounted) {
       Navigator.pushReplacement(
         context,
-        CupertinoPageRoute(
-          builder: (context) => hasPhoneNumber
+        SeamlessRevealRoute(
+          page: hasPhoneNumber
               ? const CustomBottomNavigationBar()
-              : const IntroScreen(),
+              : const IntroPage2(),
         ),
       );
     }
@@ -40,16 +41,23 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/splashscreen.JPG',
-              width: 200,
-              height: 200,
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/splash.gif'),
+              fit: BoxFit.fill,
             ),
-            const SizedBox(height: 20),
-          ],
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
         ),
       ),
     );

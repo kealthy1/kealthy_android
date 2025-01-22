@@ -36,88 +36,86 @@ class CartContainer extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 3.0),
-      child: Container(
-        height: 80,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-            color: Color(0xFF273847),
-            borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(10), topRight: Radius.circular(10))),
-        child: Row(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Cart',
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    color: Colors.white,
-                  ),
-                ),
-                Text(
-                  '$totalItems item(s) selected',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-            const Spacer(),
-            ElevatedButton(
-              onPressed: () async {
-                final prefs = await SharedPreferences.getInstance();
-                // ignore: unused_result
-                ref.refresh(etaTimeProvider);
-                // ignore: unused_result
-                ref.refresh(distanceProvider);
-
-                await prefs.remove('selectedSlot');
-                // ignore: unused_result
-                ref.refresh(selectedETAProvider);
-                // ignore: unused_result
-                ref.refresh(totalDistanceProvider);
-
-                Navigator.push(
-                  context,
-                  CupertinoModalPopupRoute(
-                    builder: (context) => const ShowCart(),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFF4F4F5),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      height: 80,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+          color: Color(0xFF273847),
+          borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(15), topRight: Radius.circular(15))),
+      child: Row(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Cart',
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  color: Colors.white,
                 ),
               ),
-              child: Text(
-                'Go to Cart',
+              Text(
+                '$totalItems item(s) selected',
                 style: GoogleFonts.poppins(
                   fontSize: 12,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
-            ),
-            IconButton(
-              icon: const Icon(
-                size: 15,
-                CupertinoIcons.delete,
-                color: Colors.white,
+            ],
+          ),
+          const Spacer(),
+          ElevatedButton(
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              // ignore: unused_result
+              ref.refresh(etaTimeProvider);
+              // ignore: unused_result
+              ref.refresh(distanceProvider);
+
+              await prefs.remove('selectedSlot');
+              // ignore: unused_result
+              ref.refresh(selectedETAProvider);
+              // ignore: unused_result
+              ref.refresh(totalDistanceProvider);
+
+              Navigator.push(
+                context,
+                CupertinoModalPopupRoute(
+                  builder: (context) => const ShowCart(),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFF4F4F5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
               ),
-              onPressed: () {
-                final cartItems = ref.read(sharedPreferencesCartProvider);
-                if (cartItems.isNotEmpty) {
-                  ref.read(sharedPreferencesCartProvider.notifier).clearCart();
-                }
-              },
             ),
-          ],
-        ),
+            child: Text(
+              'Go to Cart',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: Colors.black,
+                fontWeight: FontWeight.w300,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(
+              size: 15,
+              CupertinoIcons.delete,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              final cartItems = ref.read(sharedPreferencesCartProvider);
+              if (cartItems.isNotEmpty) {
+                ref.read(sharedPreferencesCartProvider.notifier).clearCart();
+              }
+            },
+          ),
+        ],
       ),
     );
   }

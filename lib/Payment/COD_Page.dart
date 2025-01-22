@@ -6,6 +6,7 @@ import 'package:kealthy/Payment/RazorPay.dart';
 import 'package:kealthy/Services/Navigation.dart';
 import 'package:kealthy/Services/Order_Completed.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../DetailsPage/Ratings/Providers.dart';
 import '../MenuPage/MenuPage.dart';
 import '../MenuPage/Search_provider.dart';
 import '../Orders/ordersTab.dart';
@@ -89,6 +90,10 @@ class OrderConfirmation extends ConsumerWidget {
     return WillPopScope(
       onWillPop: () async {
         // ignore: unused_result
+        ref.refresh(rateProductProvider);
+        // ignore: unused_result
+        ref.refresh(productReviewProvider);
+        // ignore: unused_result
         ref.refresh(CODloadingProvider);
         ref.read(CODloadingProvider.notifier).state = false;
         return true;
@@ -100,7 +105,7 @@ class OrderConfirmation extends ConsumerWidget {
           title: Text(
             'Select Payment Method',
             style: GoogleFonts.poppins(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w300,
               fontSize: 18,
             ),
           ),
@@ -121,7 +126,6 @@ class OrderConfirmation extends ConsumerWidget {
                 _buildPaymentOption(context, ref, Icons.payment,
                     'Online Payment', selectedPaymentMethod),
                 const SizedBox(height: 16),
-              
               ],
             ),
           ),
@@ -163,7 +167,7 @@ class OrderConfirmation extends ConsumerWidget {
                             'Total Bill',
                             style: GoogleFonts.poppins(
                               fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w300,
                             ),
                           ),
                           SizedBox(
@@ -177,7 +181,7 @@ class OrderConfirmation extends ConsumerWidget {
                         '₹${totalAmountToPay.toStringAsFixed(0)}/-',
                         style: GoogleFonts.poppins(
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -200,6 +204,10 @@ class OrderConfirmation extends ConsumerWidget {
                           onPressed: isLoading
                               ? null
                               : () async {
+                                  // ignore: unused_result
+                                  ref.refresh(rateProductProvider);
+                                  // ignore: unused_result
+                                  ref.refresh(productReviewProvider);
                                   // ignore: unused_result
                                   ref.refresh(searchQueryProvider);
                                   ref
@@ -331,7 +339,7 @@ class OrderConfirmation extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         margin: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFF4F4F5) : Colors.white,
+          color: isSelected ? const Color.fromARGB(255, 230, 230, 236) : Colors.white,
           border: Border.all(
               color: isSelected ? Color(0xFF273847) : Colors.grey.shade400,
               width: 1.5),

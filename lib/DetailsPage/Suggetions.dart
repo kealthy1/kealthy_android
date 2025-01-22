@@ -1,12 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:kealthy/Services/Navigation.dart';
 import 'package:shimmer/shimmer.dart';
-
 import '../MenuPage/menu_item.dart';
 import 'HomePage.dart';
 
@@ -32,7 +31,7 @@ class FirestoreData {
       qty: data?['Qty'] ?? '',
       imageUrl: data?['ImageUrl'] is List<dynamic> &&
               (data?['ImageUrl'] as List).isNotEmpty
-          ? (data?['ImageUrl'] as List<dynamic>)[0] // Get the first image URL
+          ? (data?['ImageUrl'] as List<dynamic>)[0]
           : '',
     );
   }
@@ -57,8 +56,8 @@ class Suggestions extends ConsumerWidget {
 
     return menuItemsAsync.when(
       data: (menuItems) => _buildSuggestions(context, menuItems, ref),
-      loading: () => Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => Center(child: Text('Error: $error')),
+      loading: () => Center(child: SizedBox.shrink()),
+      error: (error, stackTrace) => SizedBox.shrink(),
     );
   }
 
@@ -96,8 +95,8 @@ class Suggestions extends ConsumerWidget {
         ref.refresh(menuItemsProvider);
         Navigator.pushReplacement(
             context,
-            SeamlessRevealRoute(
-              page: HomePage(menuItem: item),
+            CupertinoModalPopupRoute(
+              builder: (context) => HomePage(menuItem: item),
             ));
       },
       child: Column(

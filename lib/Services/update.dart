@@ -35,7 +35,7 @@ class UpdateService {
       if (localVersion != playStoreVersion) {
         final bool shouldShowDialog = await shouldShowUpdateDialog();
         if (shouldShowDialog) {
-          showUpdateDialog(context);
+          showUpdateDialog(context, localVersion, playStoreVersion);
         }
       }
     } catch (e) {
@@ -56,59 +56,71 @@ class UpdateService {
     return false;
   }
 
-  static void showUpdateDialog(BuildContext context) {
+  static void showUpdateDialog(
+      BuildContext context, String localVersion, String playStoreVersion) {
     showDialog(
-      barrierDismissible: false,
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(5),
+          borderRadius: BorderRadius.circular(9),
         ),
-        title: Column(
+        contentPadding: EdgeInsets.all(24),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.system_security_update_good_outlined,
-              size: 50,
-              color: Color(0xFF273847),
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Color(0xFF273847),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.notifications,
+                color: Colors.white,
+                size: 48,
+              ),
             ),
-            SizedBox(
-              height: 10,
-            ),
+            SizedBox(height: 16),
             Text(
               'Update Available',
               style: GoogleFonts.poppins(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'A new version $playStoreVersion is available!\n\nYour current version $localVersion\n\nUpdate now to enjoy the latest features and improvements.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                color: Colors.grey[600],
+                fontSize: 14,
+              ),
+            ),
+            SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                prefs.remove('selectedAddressMessage');
+                prefs.remove('selectedRoad');
+                launchUrl(Uri.parse(
+                    'https://play.google.com/store/apps/details?id=com.COTOLORE.Kealthy'));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF273847),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              ),
+              child: Text(
+                'Update',
+                style: GoogleFonts.poppins(color: Colors.white),
               ),
             ),
           ],
         ),
-        content: Text(
-          textAlign: TextAlign.center,
-          'Time for an upgrade! Please update to the latest version now',
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-          ),
-        ),
-        actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(5),
-              ),
-              backgroundColor: Color(0xFF273847),
-            ),
-            onPressed: () {
-              launchUrl(Uri.parse(
-                  'https://play.google.com/store/apps/details?id=com.COTOLORE.Kealthy'));
-            },
-            child: Text(
-              'Update Now',
-              style: GoogleFonts.poppins(color: Colors.white, fontSize: 16),
-            ),
-          ),
-        ],
       ),
     );
   }

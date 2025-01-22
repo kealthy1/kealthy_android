@@ -3,8 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../DetailsPage/Ratings/Providers.dart';
+import '../../DetailsPage/Ratings/Show_Review.dart';
 import '../../DetailsPage/SubCategory.dart';
 
 class Category {
@@ -21,7 +24,7 @@ class Category {
   }
 }
 
-class CategoryItem extends StatelessWidget {
+class CategoryItem extends ConsumerWidget {
   final String categoryName;
   final String imageUrl;
 
@@ -32,7 +35,7 @@ class CategoryItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return LayoutBuilder(
       builder: (context, constraints) {
         double imageHeight = constraints.maxWidth * 0.70;
@@ -40,6 +43,12 @@ class CategoryItem extends StatelessWidget {
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
           onTap: () {
+            // ignore: unused_result
+            ref.refresh(rateProductProvider);
+            // ignore: unused_result
+            ref.refresh(productReviewProvider);
+            // ignore: unused_result
+            ref.refresh(orderStatusProvider);
             Navigator.push(
                 context,
                 CupertinoModalPopupRoute(
@@ -92,13 +101,15 @@ class CategoryItem extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 5),
-              Text(
-                categoryName,
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  color: Colors.black,
+              Expanded(
+                child: Text(
+                  categoryName,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    color: Colors.black,
+                  ),
                 ),
               ),
             ],
@@ -148,7 +159,7 @@ class CategoryGrid extends StatelessWidget {
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
                 crossAxisSpacing: 6,
-                mainAxisSpacing: 6,
+                mainAxisSpacing: 8,
                 childAspectRatio: .95,
               ),
               itemCount: categories.length,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class TermsAndConditionsPage extends StatelessWidget {
   const TermsAndConditionsPage({super.key});
@@ -10,9 +11,9 @@ class TermsAndConditionsPage extends StatelessWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'Terms and Conditions',
-          style: TextStyle(fontFamily: "Poppins", fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Color(0xFF273847),
         foregroundColor: Colors.white,
@@ -23,30 +24,33 @@ class TermsAndConditionsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               "Terms and Conditions",
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               "Last updated: December 18, 2024",
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+              style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               "Please read these terms and conditions carefully before using Our Service.",
-              style: TextStyle(fontSize: 16, fontFamily: 'Poppins'),
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+              ),
             ),
             const SizedBox(height: 20),
             _buildSectionTitle("Interpretation and Definitions"),
             _buildSubsectionTitle("Interpretation"),
-            const Text(
+            Text(
               "The words of which the initial letter is capitalized have meanings defined under the following conditions. The following definitions shall have the same meaning regardless of whether they appear in singular or in plural.",
-              style: TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 10),
             _buildSubsectionTitle("Definitions"),
@@ -92,52 +96,70 @@ class TermsAndConditionsPage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             _buildSectionTitle("Acknowledgment"),
-            const Text(
+            Text(
               "These are the Terms and Conditions governing the use of this Service and the agreement that operates between You and the Company. These Terms and Conditions set out the rights and obligations of all users regarding the use of the Service.",
-              style: TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               "Your access to and use of the Service is conditioned on Your acceptance of and compliance with these Terms and Conditions. These Terms and Conditions apply to all visitors, users and others who access or use the Service.",
-              style: TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               "By accessing or using the Service You agree to be bound by these Terms and Conditions. If You disagree with any part of these Terms and Conditions then You may not access the Service.",
-              style: TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               "You represent that you are over the age of 18. The Company does not permit those under 18 to use the Service.",
-              style: TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               "Your access to and use of the Service is also conditioned on Your acceptance of and compliance with the Privacy Policy of the Company. Our Privacy Policy describes Our policies and procedures on the collection, use and disclosure of Your personal information when You use the Application or the Website and tells You about Your privacy rights and how the law protects You. Please read Our Privacy Policy carefully before using Our Service.",
-              style: TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 20),
             _buildSectionTitle("Termination"),
-            const Text(
+            Text(
               "We may terminate or suspend Your access immediately, without prior notice or liability, for any reason whatsoever, including without limitation if You breach these Terms and Conditions.",
-              style: TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               "Upon termination, Your right to use the Service will cease immediately.",
-              style: TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 20),
             _buildSectionTitle("Limitation of Liability"),
-            const Text(
+            Text(
               "Notwithstanding any damages that You might incur,",
-              style: TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 20),
             _buildSectionTitle("Contact Us"),
-            const Text(
+            Text(
               "Contact UsIf you have any questions about these Terms and Conditions, You can contact us By email\nproject@kealthy.com 📧",
-              style: TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 30),
           ],
@@ -165,10 +187,9 @@ class TermsAndConditionsPage extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 4.0),
       child: Text(
         title,
-        style: const TextStyle(
+        style: GoogleFonts.poppins(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          fontFamily: 'Poppins',
         ),
       ),
     );
@@ -179,12 +200,11 @@ class TermsAndConditionsPage extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: RichText(
         text: TextSpan(
-          style: const TextStyle(
-              fontSize: 14, fontFamily: 'Poppins', color: Colors.black),
+          style: GoogleFonts.poppins(fontSize: 14, color: Colors.black),
           children: [
             TextSpan(
               text: "$term: ",
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
             ),
             TextSpan(text: definition),
           ],

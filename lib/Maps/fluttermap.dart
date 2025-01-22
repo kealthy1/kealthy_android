@@ -434,7 +434,7 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
                                 'Add more address details',
                                 style: GoogleFonts.poppins(
                                   color: Colors.white,
-                                  fontSize: 18,
+                                  fontSize: 15,
                                 ),
                               ),
                             ),

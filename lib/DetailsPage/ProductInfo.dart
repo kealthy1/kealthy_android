@@ -18,14 +18,13 @@ class ProductInfoContainer extends ConsumerWidget {
     final isExpanded = ref.watch(expansionStateProvider);
 
     final String eanCode = menuItem.hsn;
-    final String sourceAndMarketedBy =
-        'Supermarket Grocery Supplies Pvt. Ltd, No. 7, Service Road, Off 100 Feet Road IndiranagarLandmark: Above HDFC BankBangalore, Karnataka 560071';
+    final String sourceAndMarketedBy = 'Coming Soon';
     final String countryOfOrigin = 'India';
-    final String bestBefore = '3 days from delivery date';
+    final String bestBefore = 'Coming Soon';
     final String disclaimer =
         'The expiry date shown here is for indicative purposes only. Please refer to the information provided on the product package received at delivery for the actual expiry date';
     final String customerService =
-        'For Queries/Feedback/Complaints, contact our customer care executive at 1860 123 1000 | Address: Innovative Retail Concepts Private Limited, Ranka Junction 4th Floor, Tin Factory Bus Stop. KR Puram, Bangalore - 560016 Email: customerservice@bigbasket.com';
+        'For Queries/Feedback/Complaints, contact our customer care executive at 8848673425 | Address: Floor No.: 1 Building No./Flat No.: 15/293 - C Name Of Premises/Building: PeringalaRoad/Street: Muriyankara-Pinarmunda Milma Road City/Town/Village: Kunnathunad District: Ernakulam State: Kerala PIN Code: 683565';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

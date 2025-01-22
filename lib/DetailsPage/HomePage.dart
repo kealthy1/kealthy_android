@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/DetailsPage/ProductInfo.dart';
+import 'package:kealthy/DetailsPage/Product_Rating.dart';
 import 'package:kealthy/DetailsPage/Suggetions.dart';
 import '../LandingPage/Cart_Container.dart';
 import '../MenuPage/menu_item.dart';
@@ -68,6 +69,8 @@ class HomePage extends ConsumerWidget {
                             AddToCart(menuItem: menuItem),
                             SizedBox(height: screenHeight * 0.02),
                             ProductInfoContainer(menuItem: menuItem),
+                            SizedBox(height: screenHeight * 0.02),
+                            RatingsPage(productName: menuItem.name),
                             SizedBox(height: screenHeight * 0.02),
                           ],
                         ),
