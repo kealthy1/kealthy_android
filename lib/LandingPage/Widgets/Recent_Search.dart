@@ -5,6 +5,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../MenuPage/menu_item.dart';
 import '../../DetailsPage/HomePage.dart';
@@ -28,7 +29,7 @@ class FoodMenuNotifier extends StateNotifier<List<DocumentSnapshot>> {
           .collection('Products')
           .orderBy('Name')
           .limit(_initialLimit)
-          // .where("SOH", isGreaterThan: 0)
+          .where("SOH", isGreaterThan: 0)
           .get();
 
       state = snapshot.docs;
@@ -49,7 +50,7 @@ class FoodMenuNotifier extends StateNotifier<List<DocumentSnapshot>> {
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('Products')
           .orderBy('Name')
-          // .where("SOH", isGreaterThan: 0)
+          .where("SOH", isGreaterThan: 0)
           .get();
 
       state = snapshot.docs;
@@ -86,7 +87,7 @@ class _FoodMenuPagesState extends ConsumerState<FoodMenuPages> {
         children: [
           Expanded(
             child: menuItems.isEmpty
-                ? const Center(child: CircularProgressIndicator())
+                ? SizedBox.shrink()
                 : GridView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     gridDelegate:
@@ -126,12 +127,12 @@ class _FoodMenuPagesState extends ConsumerState<FoodMenuPages> {
                                 color: Colors.grey,
                               ),
                               if (notifier._isFetching)
-                                const SizedBox(
+                                SizedBox(
                                   height: 16,
                                   width: 16,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.black,
-                                    strokeWidth: 2,
+                                  child: LoadingAnimationWidget.inkDrop(
+                                    color: Color(0xFF273847),
+                                    size: 30,
                                   ),
                                 ),
                             ],

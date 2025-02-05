@@ -148,17 +148,12 @@ class OTPScreen extends ConsumerWidget {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              Text('OTP Verficication',
-                  style: GoogleFonts.poppins(
-                      color: Colors.black,
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold)),
-              SizedBox(height: 10),
+              SizedBox(height: 50),
               Text('Enter OTP sent to $phoneNumber',
                   style: GoogleFonts.poppins(
                       color: Colors.black,
                       fontSize: 13,
-                      fontWeight: FontWeight.w400)),
+                      fontWeight: FontWeight.w600)),
               const SizedBox(height: 50),
               Form(
                 child: PinCodeTextField(
@@ -172,7 +167,10 @@ class OTPScreen extends ConsumerWidget {
                   length: 4,
                   onChanged: (value) {
                     // ignore: invalid_use_of_protected_member
-                    ref.read(otpScreenProvider(verificationId).notifier).state =
+                    ref
+                            .read(otpScreenProvider(verificationId).notifier)
+                            // ignore: invalid_use_of_protected_member
+                            .state =
                         otpScreenState.copyWith(otpControllerText: value);
                   },
                   onCompleted: (otp) {
@@ -193,7 +191,7 @@ class OTPScreen extends ConsumerWidget {
                     fieldWidth: 50,
                     activeBoxShadow: [
                       BoxShadow(
-                        color: Color(0xFF273847).withOpacity(0.2),
+                        color: Color(0xFF273847).withOpacity(0.1),
                       ),
                     ],
                     inActiveBoxShadow: [
@@ -201,8 +199,8 @@ class OTPScreen extends ConsumerWidget {
                         color: Color(0xFF273847).withOpacity(0.2),
                       ),
                     ],
-                    activeColor: const Color(0xFF273847),
-                    inactiveColor: Color(0xFF273847),
+                    activeColor: Colors.grey.shade500,
+                    inactiveColor: Colors.grey.shade500,
                     selectedColor: const Color(0xFF273847),
                   ),
                   keyboardType: TextInputType.number,
@@ -252,27 +250,39 @@ class OTPScreen extends ConsumerWidget {
                       ),
                     ),
               const SizedBox(height: 20),
-              TextButton(
-                onPressed: () {
-                  ref.read(otpProvider.notifier).resendOtp(
-                    phoneNumber,
-                    (newVerificationId) {
-                      ref
-                          .read(otpScreenProvider(verificationId).notifier)
-                          .updateVerificationId(newVerificationId);
-                      ref
-                          .read(otpScreenProvider(verificationId).notifier)
-                          .resetTimer();
-                    },
-                  );
-                },
-                child: Text(
-                  'Resend',
-                  style: GoogleFonts.poppins(
-                    color: Colors.black,
-                    fontSize: 18,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Didn\'t receive OTP?',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      color: Colors.black,
+                    ),
                   ),
-                ),
+                  TextButton(
+                    onPressed: () {
+                      ref.read(otpProvider.notifier).resendOtp(
+                        phoneNumber,
+                        (newVerificationId) {
+                          ref
+                              .read(otpScreenProvider(verificationId).notifier)
+                              .updateVerificationId(newVerificationId);
+                          ref
+                              .read(otpScreenProvider(verificationId).notifier)
+                              .resetTimer();
+                        },
+                      );
+                    },
+                    child: Text(
+                      'Resend it',
+                      style: GoogleFonts.poppins(
+                        color: Colors.red,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                ],
               )
             ],
           ),

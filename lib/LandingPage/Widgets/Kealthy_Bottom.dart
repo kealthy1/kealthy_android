@@ -23,7 +23,7 @@ class KealthyPage extends StatelessWidget {
               ),
               SizedBox(height: screenHeight * 0.01),
               Text(
-                "Savor The Healthier Choice",
+                "Savour The Healthier Choice",
                 style: GoogleFonts.poppins(
                   fontSize: screenWidth * 0.045,
                   color: Colors.grey[600],

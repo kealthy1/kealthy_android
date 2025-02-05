@@ -222,6 +222,8 @@ class ShowCart extends ConsumerWidget {
                                             cartItems[i];
                                         await prefs.setString(
                                             'item_name_$i', item.name);
+                                        await prefs.setString(
+                                            'item_EAN_$i', item.EAN);
                                         await prefs.setInt(
                                             'item_quantity_$i', item.quantity);
                                         await prefs.setDouble(
@@ -262,7 +264,7 @@ class ShowCart extends ConsumerWidget {
                                 final buttonText = (savedAddressId == null ||
                                         savedAddressId.isEmpty)
                                     ? 'Select Address'
-                                    : 'Confirm Address';
+                                    : 'Continue';
 
                                 return Text(
                                   buttonText,

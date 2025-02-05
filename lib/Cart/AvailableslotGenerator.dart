@@ -1,95 +1,103 @@
+import 'package:ntp/ntp.dart';
+
 class AvailableSlotsGenerator {
   final int slotDurationMinutes;
-  final int minGapMinutes;
 
   AvailableSlotsGenerator({
     required this.slotDurationMinutes,
-    required this.minGapMinutes,
   });
 
-  List<DateTime> getAvailableSlots(
+  Future<List<Map<String, DateTime>>> getAvailableSlots(
     DateTime startBoundary,
     DateTime endBoundary,
     DateTime currentTime,
     double etaMinutes,
-  ) {
-    DateTime etaAdjustedTime =
-        currentTime.add(Duration(minutes: etaMinutes.toInt()));
-    DateTime etaPlusBreak = etaAdjustedTime.add(const Duration(minutes: 30));
+  ) async {
+    DateTime etaPlusBreak = currentTime;
 
-    DateTime adjustedStartTime = etaPlusBreak.isBefore(startBoundary)
-        ? startBoundary
-        : etaPlusBreak.add(Duration(minutes: 60 - etaPlusBreak.minute));
+    DateTime adjustedStartTime = DateTime(
+      etaPlusBreak.year,
+      etaPlusBreak.month,
+      etaPlusBreak.day,
+      ((etaPlusBreak.hour ~/ 3) + 1) * 3,
+    );
 
-    List<DateTime> slots = [];
+    if (adjustedStartTime.isBefore(startBoundary)) {
+      adjustedStartTime = startBoundary;
+    }
 
-    while (adjustedStartTime.isBefore(endBoundary) ||
-        adjustedStartTime == endBoundary) {
-      if (adjustedStartTime.difference(currentTime).inMinutes >=
-          minGapMinutes) {
-        slots.add(adjustedStartTime);
+    List<Map<String, DateTime>> slots = [];
+
+    while (adjustedStartTime.isBefore(endBoundary)) {
+      DateTime slotEndTime = adjustedStartTime.add(Duration(hours: 3));
+
+      if (slotEndTime.isAfter(endBoundary)) {
+        slotEndTime = endBoundary;
       }
-      adjustedStartTime =
-          adjustedStartTime.add(Duration(minutes: slotDurationMinutes));
+
+      slots.add({"start": adjustedStartTime, "end": slotEndTime});
+
+      adjustedStartTime = slotEndTime;
     }
 
     return slots;
   }
 
-  Map<String, dynamic> getSlots(DateTime currentTime, double etaMinutes) {
-    // Today's slot boundaries (7 AM to 10 PM)
+  Future<Map<String, dynamic>> getSlots(double etaMinutes) async {
+    DateTime currentTime = await NTP.now();
+
     DateTime todayStartBoundary = DateTime(
       currentTime.year,
       currentTime.month,
       currentTime.day,
-      7,
+      6,
     );
 
     DateTime todayEndBoundary = DateTime(
       currentTime.year,
       currentTime.month,
       currentTime.day,
-      23,
+      21,
     );
-    DateTime EndBoundary =
-        DateTime(currentTime.year, currentTime.month, currentTime.day, 21, 58);
 
-    // Tomorrow's slot boundaries (7 AM to 10 PM)
+    DateTime endBoundary = DateTime(
+      currentTime.year,
+      currentTime.month,
+      currentTime.day,
+      18,
+    );
+
     DateTime tomorrowStartBoundary = DateTime(
       currentTime.year,
       currentTime.month,
       currentTime.day + 1,
-      7,
+      6,
     );
 
     DateTime tomorrowEndBoundary = DateTime(
       currentTime.year,
       currentTime.month,
       currentTime.day + 1,
-      22,
+      21,
     );
 
-    // Logic to decide which slots to show
-    if (currentTime.isAfter(EndBoundary)) {
-      // After 10 PM, show tomorrow's slots
+    if (currentTime.isAfter(endBoundary)) {
       return {
-        "slots": getAvailableSlots(tomorrowStartBoundary, tomorrowEndBoundary,
-            currentTime, etaMinutes),
-        "message": "Bookings are available for tomorrow",
+        "slots": await getAvailableSlots(tomorrowStartBoundary,
+            tomorrowEndBoundary, currentTime, etaMinutes),
+        "message": "No slots today. Book from 6 AM tomorrow!",
       };
     } else if (currentTime.isBefore(todayStartBoundary)) {
-      // Before 7 AM, show today's slots starting at 7 AM
       return {
-        "slots": getAvailableSlots(
+        "slots": await getAvailableSlots(
             todayStartBoundary, todayEndBoundary, currentTime, etaMinutes),
-        "message": "Slots available today!",
+        "message": "Available Time Slots For Today!",
       };
     } else {
-      // Between 7 AM and 10 PM, show today's slots
       return {
-        "slots": getAvailableSlots(
+        "slots": await getAvailableSlots(
             todayStartBoundary, todayEndBoundary, currentTime, etaMinutes),
-        "message": "Slots available today!",
+        "message": "Available Time Slots For Today!",
       };
     }
   }

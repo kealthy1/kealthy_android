@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../MenuPage/menu_item.dart';
 import '../Services/FirestoreCart.dart';
-import 'Percentindicator.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -95,13 +94,14 @@ class RedNutritionSection extends ConsumerWidget {
                   ],
                 ),
               ),
-              CircularProgressIndicatorWidget(
-                kealthyScore: double.parse(menuItem.kealthyScore),
-              )
+              // CircularProgressIndicatorWidget(
+              //   kealthyScore: double.parse(menuItem.kealthyScore),
+              // )
             ],
           ),
         ),
         Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 20),
             Padding(
@@ -109,11 +109,27 @@ class RedNutritionSection extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "₹${menuItem.price.toStringAsFixed(0)} /-",
-                    style: GoogleFonts.poppins(
-                      fontSize: 24,
-                    ),
+                  Row(
+                    children: [
+                      Transform.translate(
+                        offset: Offset(0, -4),
+                        child: Text(
+                          "₹",
+                          style: TextStyle(
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 2,
+                      ),
+                      Text(
+                        "${menuItem.price.toStringAsFixed(0)} /-",
+                        style: GoogleFonts.poppins(
+                          fontSize: 24,
+                        ),
+                      ),
+                    ],
                   ),
                   Container(
                     height: 40,
@@ -158,13 +174,14 @@ class RedNutritionSection extends ConsumerWidget {
                           )
                         : ElevatedButton(
                             onPressed: () {
+                              print(menuItem.macros);
                               final newCartItem = SharedPreferencesCartItem(
                                 name: menuItem.name,
                                 price: menuItem.price,
                                 quantity: 1,
                                 id: menuItem.name,
                                 imageUrl: menuItem.imageUrls[0],
-                                category: menuItem.category,
+                                EAN: menuItem.EAN,
                               );
                               cartNotifier.addItemToCart(newCartItem);
                             },
@@ -190,22 +207,25 @@ class RedNutritionSection extends ConsumerWidget {
                 ],
               ),
             ),
+            Text(
+              "(Inclusive of all taxes)",
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            if (menuItem.macros.isNotEmpty &&
-                menuItem.macros.any((macro) => macro != 'Not Applicable'))
+            if (menuItem.totalFat != 'Not Applicable')
               Expanded(
                 child: _buildDataContainer(
                   color: Colors.blue.shade50,
                   context,
                   'Macros',
-                  menuItem.macros
-                      .where((macro) => macro != 'Not Applicable')
-                      .toList(),
+                  menuItem.macros.where((macro) => macro != '').toList(),
                   icon: Icons.energy_savings_leaf,
                 ),
               ),
@@ -217,14 +237,13 @@ class RedNutritionSection extends ConsumerWidget {
                   color: Colors.green.shade50,
                   context,
                   'Micros',
-                  menuItem.micros
-                      .where((micro) => micro != 'Not Applicable')
-                      .toList(),
+                  menuItem.micros.where((micro) => micro != '').toList(),
                   icon: Icons.grain,
                 ),
               ),
             const SizedBox(width: 5),
-            if (menuItem.ingredients.isNotEmpty)
+            if (menuItem.ingredients.isNotEmpty &&
+                menuItem.ingredients.any((ingredients) => ingredients != ''))
               Expanded(
                 child: _buildDataContainer(
                   color: Colors.yellow.shade50,
@@ -324,41 +343,49 @@ class RedNutritionSection extends ConsumerWidget {
             child: Text(
               title,
               style: GoogleFonts.poppins(
-                fontSize: 20,
+                fontSize: 15,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
           content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: data.map((item) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '• ',
+            child: Table(
+              border: TableBorder.all(
+                color: Colors.grey, // Grey border for all cells
+                width: 1,
+              ),
+              columnWidths: const {
+                0: FlexColumnWidth(0.3), // Adjust column width
+                1: FlexColumnWidth(1.0),
+              },
+              children: List.generate(data.length, (index) {
+                return TableRow(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        (index + 1).toString(),
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
+                          fontSize: 12,
                           color: const Color(0xFF273847),
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Expanded(
-                        child: Text(
-                          item,
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFF273847),
-                            fontSize: 14,
-                          ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        data[index],
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: const Color(0xFF273847),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 );
-              }).toList(),
+              }),
             ),
           ),
           actions: [

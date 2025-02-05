@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'Blog.dart';
 
@@ -30,35 +31,74 @@ class BlogLikesNotifier extends StateNotifier<LikesState> {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> _fetchLikes() async {
-    final doc = await _firestore.collection('blogs').doc(blogId).get();
-    final data = doc.data();
-    final likes = data?['likes'] ?? 0;
-
-    final isLiked = false;
-
-    state = LikesState(
-      likesCount: likes > 0 ? likes : 0,
-      isLiked: isLiked,
-    );
+  Future<String?> _getPhoneNumberFromSharedPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('phoneNumber');
   }
 
-  void toggleLikeAsync(String blogId) {
+  Future<void> _fetchLikes() async {
+    try {
+      final doc = await _firestore.collection('blogs').doc(blogId).get();
+      final data = doc.data();
+      final likes = data?['likes'] ?? 0;
+
+      // Get phone number from shared preferences
+      final userPhoneNumber = await _getPhoneNumberFromSharedPrefs();
+
+      // Check if the user has already liked this blog
+      final likedBy = List<String>.from(data?['likedBy'] ?? []);
+      final isLiked =
+          userPhoneNumber != null && likedBy.contains(userPhoneNumber);
+
+      state = LikesState(
+        likesCount: likes > 0 ? likes : 0,
+        isLiked: isLiked,
+      );
+    } catch (e) {
+      print("Error fetching likes: $e");
+      state = LikesState(likesCount: 0, isLiked: false);
+    }
+  }
+
+  void toggleLikeAsync(String blogId) async {
     final currentState = state;
     final isLiked = !currentState.isLiked;
     final likesCount =
         isLiked ? currentState.likesCount + 1 : currentState.likesCount - 1;
 
+    // Update the state optimistically
     state = LikesState(likesCount: likesCount, isLiked: isLiked);
 
-    _firestore.collection('blogs').doc(blogId).update({
-      'likes': likesCount,
-    }).catchError((error) {
-      _firestore
-          .collection('blogs')
-          .doc(blogId)
-          .set({'likes': likesCount}, SetOptions(merge: true));
-    });
+    try {
+      final docRef = _firestore.collection('blogs').doc(blogId);
+
+      // Get phone number from shared preferences
+      final userPhoneNumber = await _getPhoneNumberFromSharedPrefs();
+      if (userPhoneNumber == null) {
+        throw Exception("User phone number not found");
+      }
+
+      if (isLiked) {
+        // Add the phone number to the likedBy array
+        await docRef.update({
+          'likes': likesCount,
+          'likedBy': FieldValue.arrayUnion([userPhoneNumber]),
+        });
+      } else {
+        // Remove the phone number from the likedBy array
+        await docRef.update({
+          'likes': likesCount,
+          'likedBy': FieldValue.arrayRemove([userPhoneNumber]),
+        });
+      }
+    } catch (e) {
+      print("Error toggling like: $e");
+      // Revert the state in case of an error
+      state = LikesState(
+        likesCount: isLiked ? likesCount - 1 : likesCount + 1,
+        isLiked: !isLiked,
+      );
+    }
   }
 
   String formatLikesCount(int count) {
@@ -151,7 +191,7 @@ class BlogListTile extends ConsumerWidget {
                       IconButton(
                         icon: Icon(CupertinoIcons.hand_thumbsup_fill),
                         color: likesProvider.isLiked
-                            ? Color(0xFF273847)
+                            ? const Color(0xFF273847)
                             : Colors.grey,
                         onPressed: () {
                           ref

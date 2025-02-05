@@ -14,11 +14,14 @@ class OrdersTabScreen extends StatelessWidget {
         appBar: AppBar(
           toolbarHeight: 10,
           automaticallyImplyLeading: false,
-          backgroundColor: Color(0xFF273847),
+          backgroundColor: Colors.white,
           bottom: TabBar(
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
+            indicatorColor: Color(0xFF273847),
+            splashFactory: NoSplash.splashFactory,
+            labelColor: Color(0xFF273847),
             unselectedLabelColor: Colors.grey,
+            unselectedLabelStyle:
+                GoogleFonts.poppins(fontWeight: FontWeight.w600),
             tabs: [
               Tab(
                 icon: Icon(

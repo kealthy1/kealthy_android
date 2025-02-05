@@ -10,6 +10,7 @@ import '../DetailsPage/Ratings/Providers.dart';
 import '../MenuPage/MenuPage.dart';
 import '../MenuPage/Search_provider.dart';
 import '../Orders/ordersTab.dart';
+import '../Riverpod/order_provider.dart';
 import '../Services/FirestoreCart.dart';
 import '../Services/PaymentHandler.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -72,7 +73,7 @@ class AddressNotifier extends StateNotifier<Map<String, dynamic>> {
   }
 }
 
-class OrderConfirmation extends ConsumerWidget {
+class OrderConfirmation extends ConsumerStatefulWidget {
   final List<SharedPreferencesCartItem> cartItems;
 
   const OrderConfirmation({
@@ -81,7 +82,26 @@ class OrderConfirmation extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _OrderConfirmationState createState() => _OrderConfirmationState();
+}
+
+class _OrderConfirmationState extends ConsumerState<OrderConfirmation> {
+  late double totalAmountToPay;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Fetch the total amount to pay from PaymentService
+    totalAmountToPay = PaymentService().totalToPay;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(orderProvider.notifier).createOrder(totalAmountToPay);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context,) {
     final selectedPaymentMethod = ref.watch(paymentMethodProvider);
     final isLoading = ref.watch(CODloadingProvider);
     ref.watch(codpageprovider);
@@ -92,7 +112,6 @@ class OrderConfirmation extends ConsumerWidget {
         // ignore: unused_result
         ref.refresh(rateProductProvider);
         // ignore: unused_result
-        ref.refresh(productReviewProvider);
         // ignore: unused_result
         ref.refresh(CODloadingProvider);
         ref.read(CODloadingProvider.notifier).state = false;
@@ -206,8 +225,7 @@ class OrderConfirmation extends ConsumerWidget {
                               : () async {
                                   // ignore: unused_result
                                   ref.refresh(rateProductProvider);
-                                  // ignore: unused_result
-                                  ref.refresh(productReviewProvider);
+                               
                                   // ignore: unused_result
                                   ref.refresh(searchQueryProvider);
                                   ref
@@ -339,7 +357,9 @@ class OrderConfirmation extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         margin: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color.fromARGB(255, 230, 230, 236) : Colors.white,
+          color: isSelected
+              ? const Color.fromARGB(255, 230, 230, 236)
+              : Colors.white,
           border: Border.all(
               color: isSelected ? Color(0xFF273847) : Colors.grey.shade400,
               width: 1.5),

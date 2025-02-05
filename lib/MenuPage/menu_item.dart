@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MenuItem {
   final String name;
+  final String EAN;
   final double price;
   final String category;
   final String time;
@@ -13,9 +14,9 @@ class MenuItem {
   final double fat;
   final double rating;
   final List<String> imageUrls;
+  final List<String> FSSAI;
   final String whatIsIt;
   final String whatIsItUsedFor;
-  final double soh;
   final List<String> macros;
   final List<String> micros;
   final List<String> ingredients;
@@ -23,7 +24,6 @@ class MenuItem {
   final String additivesPreservatives;
   final String artificialSweetenersColors;
   final String brandName;
-  final String hsn;
   final String dietaryFiber;
   final String ecoFriendly;
   final String energy;
@@ -45,6 +45,12 @@ class MenuItem {
   final String veganFriendly;
   final String vendorName;
   final double SOH;
+  final String Type;
+  final String Orgin;
+  final String ManufacturerAddress;
+  final String Manufactureddate;
+  final String Expiry;
+  final String ImportedMarketedBy;
 
   MenuItem({
     required this.name,
@@ -59,7 +65,6 @@ class MenuItem {
     required this.fat,
     required this.rating,
     required this.imageUrls,
-    required this.soh,
     required this.macros,
     required this.micros,
     required this.ingredients,
@@ -69,7 +74,6 @@ class MenuItem {
     required this.additivesPreservatives,
     required this.artificialSweetenersColors,
     required this.brandName,
-    required this.hsn,
     required this.dietaryFiber,
     required this.ecoFriendly,
     required this.energy,
@@ -91,13 +95,21 @@ class MenuItem {
     required this.veganFriendly,
     required this.vendorName,
     required this.SOH,
+    required this.FSSAI,
+    required this.EAN,
+    required this.Manufactureddate,
+    required this.ManufacturerAddress,
+    required this.Orgin,
+    required this.Type,
+    required this.Expiry,
+    required this.ImportedMarketedBy,
   });
 
   factory MenuItem.fromFirestore(Map<String, dynamic> data) {
     return MenuItem(
       name: data['Name'] ?? '',
       price: _parseDouble(data['Price']),
-      SOH: _parseDouble(data['Price']),
+      SOH: _parseDouble(data['SOH']),
       category: data['Category'] ?? '',
       time: data['Time'] ?? '',
       delivery: data['Delivery'] ?? '',
@@ -108,14 +120,27 @@ class MenuItem {
       fat: _parseDouble(data['Fat']),
       rating: _parseDouble(data['Rating']),
       imageUrls: List<String>.from(data['ImageUrl'] ?? []),
-      soh: _parseDouble(data['SOH']),
+      FSSAI: List<String>.from(data['FSSAI'] ?? []),
+      EAN: data['EAN'] ?? '',
       macros: [
-        'Protein: ${data['Protein (g)'] ?? 'Not Applicable'}',
-        'Total Fat: ${data['Total Fat (g)'] ?? 'Not Applicable'}',
-        'Carbohydrates: ${data['Total Carbohydrates (g)'] ?? 'Not Applicable'}',
-        'Sugars: ${data['Sugars (g)'] ?? 'Not Applicable'}',
-        'Cholesterol: ${data['Cholesterol (mg)'] ?? 'Not Applicable'}',
-        'Added Sugars: ${data['Added Sugars (g)'] ?? 'Not Applicable'}',
+        if (data['Protein (g)'] != 'Not Applicable' &&
+            data['Protein (g)'] != null)
+          'Protein: ${data['Protein (g)']}',
+        if (data['Total Fat (g)'] != 'Not Applicable' &&
+            data['Total Fat (g)'] != null)
+          'Total Fat: ${data['Total Fat (g)']}',
+        if (data['Total Carbohydrates (g)'] != 'Not Applicable' &&
+            data['Total Carbohydrates (g)'] != null)
+          'Carbohydrates: ${data['Total Carbohydrates (g)']}',
+        if (data['Sugars (g)'] != 'Not Applicable' &&
+            data['Sugars (g)'] != null)
+          'Sugars: ${data['Sugars (g)']}',
+        if (data['Cholesterol (mg)'] != 'Not Applicable' &&
+            data['Cholesterol (mg)'] != null)
+          'Cholesterol: ${data['Cholesterol (mg)']}',
+        if (data['Added Sugars (g)'] != 'Not Applicable' &&
+            data['Added Sugars (g)'] != null)
+          'Added Sugars: ${data['Added Sugars (g)']}',
       ],
       micros: List<String>.from(data['Micronutrients'] ?? []),
       ingredients: List<String>.from(data['Ingredients'] ?? []),
@@ -127,7 +152,6 @@ class MenuItem {
       artificialSweetenersColors:
           data['Artificial Sweeteners?Colors'] ?? 'Not Applicable',
       brandName: data['Brand Name'] ?? '',
-      hsn: data['HSN'] ?? '',
       dietaryFiber: data['Dietary Fiber (g)'] ?? 'Not Applicable',
       ecoFriendly: data['Eco-Friendly'] ?? '',
       energy: data['Energy (kcal)'] ?? 'Not Applicable',
@@ -149,6 +173,12 @@ class MenuItem {
       unsaturatedFat: data['Unsaturated Fat (g)'] ?? 'Not Applicable',
       veganFriendly: data['Vegan-Friendly'] ?? '',
       vendorName: data['Vendor Name'] ?? '',
+      Type: data['Type'] ?? '',
+      Orgin: data['Orgin'] ?? '',
+      ManufacturerAddress: data['Manufacturer Address'] ?? '',
+      Manufactureddate: data['Manufactured date'] ?? '',
+      Expiry: data['Expiry'] ?? '',
+      ImportedMarketedBy: data['Imported&Marketed By'] ?? '',
     );
   }
 

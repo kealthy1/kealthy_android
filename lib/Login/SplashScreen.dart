@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:kealthy/LandingPage/Widgets/floating_bottom_navigation_bar.dart';
-import 'package:kealthy/Login/introscreen.dart';
+import 'package:kealthy/Login/login_page.dart';
 import 'package:kealthy/Services/Navigation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -30,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
         SeamlessRevealRoute(
           page: hasPhoneNumber
               ? const CustomBottomNavigationBar()
-              : const IntroPage2(),
+              : const LoginFields(),
         ),
       );
     }

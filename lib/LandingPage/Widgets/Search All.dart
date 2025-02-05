@@ -73,6 +73,7 @@ class _SearchBarallState extends ConsumerState<SearchBarall> {
           child: Column(
             children: [
               TextField(
+                cursorColor: Colors.black,
                 controller: _controller,
                 focusNode: _focusNode,
                 onChanged: (value) {

@@ -77,8 +77,6 @@ class _DeliveryInstructionsSectionState
     _textController = TextEditingController();
     _loadSavedInstructions();
     _textController.addListener(_handleTextChange);
-
-    // Load saved delivery instructions
     ref.read(deliveryInstructionProvider.notifier).loadInstructions();
   }
 
@@ -121,22 +119,34 @@ class _DeliveryInstructionsSectionState
             'Instructions',
             style: GoogleFonts.poppins(
               fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 10),
-          TextField(
-            controller: _textController,
-            textAlign: TextAlign.start,
-            maxLines: 4,
-            decoration: InputDecoration(
-              hintText: "Cooking Instructions",
-              hintStyle: GoogleFonts.poppins(),
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide.none,
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.withOpacity(0.4), width: 1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: TextField(
+              controller: _textController,
+              textAlign: TextAlign.start,
+              maxLines: 2,
+              maxLength: 150,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
+              ),
+              decoration: InputDecoration(
+                hintText: "Cooking Instructions",
+                hintStyle: GoogleFonts.poppins(),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
           ),
@@ -230,7 +240,8 @@ Widget _buildInstructionTile({
       width: width,
       height: height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.withOpacity(0.3), width: 0.5),
+        borderRadius: BorderRadius.circular(8),
         color: isSelected ? const Color(0xFF273847) : Colors.grey[100],
       ),
       child: Column(

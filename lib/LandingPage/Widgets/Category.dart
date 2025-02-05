@@ -2,13 +2,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../DetailsPage/Ratings/Providers.dart';
 import '../../DetailsPage/Ratings/Show_Review.dart';
 import '../../DetailsPage/SubCategory.dart';
+import '../../Services/Cache.dart';
 
 class Category {
   final String name;
@@ -45,8 +45,7 @@ class CategoryItem extends ConsumerWidget {
           onTap: () {
             // ignore: unused_result
             ref.refresh(rateProductProvider);
-            // ignore: unused_result
-            ref.refresh(productReviewProvider);
+            
             // ignore: unused_result
             ref.refresh(orderStatusProvider);
             Navigator.push(
@@ -78,7 +77,7 @@ class CategoryItem extends ConsumerWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: CachedNetworkImage(
-                      cacheManager: DefaultCacheManager(),
+                      cacheManager: CustomCacheManager(),
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Shimmer.fromColors(

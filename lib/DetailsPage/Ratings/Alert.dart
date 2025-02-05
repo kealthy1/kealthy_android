@@ -1,12 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
-import 'package:kealthy/DetailsPage/Ratings/RatingPage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../LandingPage/Widgets/floating_bottom_navigation_bar.dart';
+
+import '../../Services/Notifications/Home.dart';
 
 class ReviewService {
   ReviewService._();
@@ -23,13 +22,14 @@ class ReviewService {
     }
 
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
-        'high_importance_channel', 'High Importance Notifications',
-        description: 'This channel is used for important notifications.',
-        importance: Importance.high,
-        playSound: true,
-        showBadge: true,
-        enableVibration: true,
-        ledColor: Colors.white);
+      'high_importance_channel',
+      'High Importance Notifications',
+      description: 'This channel is used for important notifications.',
+      importance: Importance.high,
+      playSound: true,
+      showBadge: true,
+      enableVibration: true,
+    );
 
     const InitializationSettings settings = InitializationSettings(
       android: AndroidInitializationSettings('mipmap/ic_launcher'),
@@ -43,31 +43,14 @@ class ReviewService {
     await _localNotifications.initialize(
       settings,
       onDidReceiveNotificationResponse: (NotificationResponse response) async {
-        final prefs = await SharedPreferences.getInstance();
         final String? payload = response.payload;
 
-        if (payload != null) {
-          final orderIds = prefs.getString("order_id");
-          final orderItems = prefs.getStringList("order_item_names");
-
-          if ((orderIds != null && orderIds.isNotEmpty) ||
-              (orderItems != null && orderItems.isNotEmpty)) {
-            if (payload == "review_screen") {
-              navigatorKey.currentState?.pushReplacement(
-                CupertinoModalPopupRoute(
-                  builder: (context) => const ProductReviewWidget(),
-                ),
-              );
-            }
-          } else {
-            Navigator.pushReplacement(
-              // ignore: use_build_context_synchronously
-              navigatorKey.currentState!.context,
-              CupertinoModalPopupRoute(
-                builder: (context) => CustomBottomNavigationBar(),
-              ),
-            );
-          }
+        if (payload == "review_screen") {
+          navigatorKey.currentState?.pushReplacement(
+            CupertinoModalPopupRoute(
+              builder: (context) => NotificationHome(),
+            ),
+          );
         }
       },
     );
@@ -105,16 +88,15 @@ class ReviewService {
         : null;
 
     final AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-            'high_importance_channel', 'High Importance Notifications',
-            channelDescription:
-                'This channel is used for important notifications.',
+        AndroidNotificationDetails('Alert', 'High Importance Notifications',
+            channelDescription: 'This channel is used for Alert',
             importance: Importance.high,
             priority: Priority.high,
             colorized: true,
             autoCancel: false,
             channelShowBadge: true,
             enableVibration: true,
+            largeIcon: largeIcon,
             icon: 'drawable/ic_notification',
             styleInformation: bigPictureStyle,
             color: Colors.white);

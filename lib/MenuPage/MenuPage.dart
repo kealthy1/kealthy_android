@@ -4,13 +4,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-
 import '../LandingPage/Cart_Container.dart';
+import '../Services/Cache.dart';
 import '../Services/FirestoreCart.dart';
 import 'Card.dart';
 import 'menu_item.dart';
@@ -39,7 +38,7 @@ class VeganDietNotifier extends StateNotifier<List<MenuItem>> {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('Products')
           .where('Subcategory', isEqualTo: category)
-          // .where('SOH', isNotEqualTo: 0)
+          .where('SOH', isNotEqualTo: 0)
           .get();
 
       state = querySnapshot.docs.map((doc) {
@@ -65,7 +64,7 @@ class VeganDietNotifier extends StateNotifier<List<MenuItem>> {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('Products')
           .where('Subcategory', isEqualTo: category)
-          // .where('SOH', isNotEqualTo: 0)
+          .where('SOH', isNotEqualTo: 0)
           .get();
 
       final filteredMeals = querySnapshot.docs.map((doc) {
@@ -89,7 +88,7 @@ class VeganDietNotifier extends StateNotifier<List<MenuItem>> {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('Products')
           .where('Subcategory', isEqualTo: category)
-          .where('Brand Name', isEqualTo: brandName)
+          .where('Type', isEqualTo: brandName)
           .get();
 
       state = querySnapshot.docs
@@ -110,7 +109,7 @@ class VeganDietNotifier extends StateNotifier<List<MenuItem>> {
           .get();
 
       return querySnapshot.docs
-          .map((doc) => doc.data()['Brand Name'] as String)
+          .map((doc) => doc.data()['Type'] as String)
           .toSet()
           .toList();
     } catch (e) {
@@ -182,17 +181,20 @@ class _MenuPageState extends ConsumerState<MenuPage> {
             height: 20,
           ),
           brandsAsyncValue.when(
-            data: (brands) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Align(
-                    alignment: Alignment.topLeft,
-                    child: _buildBrandFilter(ref, brands)),
-              ],
-            ),
-            loading: () => const Text(""),
-            error: (_, __) => const Text('...'),
+            data: (brands) => brands.length > 1
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Align(
+                        alignment: Alignment.topLeft,
+                        child: _buildBrandFilter(ref, brands),
+                      ),
+                    ],
+                  )
+                : SizedBox.shrink(),
+            loading: () => SizedBox.shrink(),
+            error: (_, __) => SizedBox.shrink(),
           ),
           SizedBox(
             height: 20,
@@ -229,7 +231,7 @@ class _MenuPageState extends ConsumerState<MenuPage> {
                                 style: GoogleFonts.poppins(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: Colors.black,
                                 ),
                               ),
                             ],
@@ -272,7 +274,7 @@ class _MenuPageState extends ConsumerState<MenuPage> {
           final querySnapshot = await FirebaseFirestore.instance
               .collection('Products')
               .where('Subcategory', isEqualTo: widget.categoryName)
-              // .where('SOH', isNotEqualTo: 0)
+              .where('SOH', isNotEqualTo: 0)
               .get();
           print(widget.categoryName);
           return querySnapshot.docs
@@ -306,7 +308,7 @@ class _MenuPageState extends ConsumerState<MenuPage> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: CachedNetworkImage(
-                          cacheManager: DefaultCacheManager(),
+                          cacheManager: CustomCacheManager(),
                           imageUrl: imageUrl,
                           width: double.infinity,
                           height: double.infinity,
@@ -439,7 +441,7 @@ class _MenuPageState extends ConsumerState<MenuPage> {
                     const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
                 decoration: BoxDecoration(
                   color: isSelected ? Color(0xFF273847) : Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isSelected ? Colors.white : Colors.grey,
                   ),

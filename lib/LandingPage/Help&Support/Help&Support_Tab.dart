@@ -47,24 +47,25 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
       body: Column(
         children: [
           Container(
-            color: const Color(0xFF273847),
+            color: Colors.white,
             padding: const EdgeInsets.symmetric(
               horizontal: 16,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 25),
+                const SizedBox(height: 50),
                 Center(
                   child: Text(
                     "Kealthy Support",
                     style: GoogleFonts.poppins(
-                      color: Colors.white,
+                      color: Color(0xFF273847),
                       fontSize: 24,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
+                const SizedBox(height: 10),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text.rich(
@@ -73,7 +74,7 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
                         TextSpan(
                           text: "Welcome, \n",
                           style: GoogleFonts.poppins(
-                            color: Colors.white,
+                            color: Color(0xFF273847),
                             fontSize: 16,
                             fontWeight: FontWeight.normal,
                           ),
@@ -81,7 +82,7 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
                         TextSpan(
                           text: userName,
                           style: GoogleFonts.poppins(
-                            color: Colors.white,
+                            color: Color(0xFF273847),
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -98,7 +99,7 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
                         showOpenTicketBottomSheet(context);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
+                        backgroundColor: Color(0xFF273847),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         shape: RoundedRectangleBorder(
@@ -109,8 +110,8 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
                         "Open a Ticket",
                         style: GoogleFonts.poppins(
                           fontSize: 10,
-                          color: Color(0xFF273847),
-                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -118,7 +119,8 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
                       children: [
                         IconButton(
                           style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white),
+                            backgroundColor: Color(0xFF273847),
+                          ),
                           onPressed: () {
                             showAlertLog(
                               context: context,
@@ -164,13 +166,13 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
                           },
                           icon: const Icon(
                             Icons.call,
-                            color: Colors.black,
+                            color: Colors.white,
                           ),
                         ),
                         Text(
                           "Contact Us",
                           style: GoogleFonts.poppins(
-                            color: Colors.white,
+                            color: Color(0xFF273847),
                           ),
                         ),
                       ],
@@ -179,10 +181,11 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
                 ),
                 TabBar(
                   controller: _tabController,
-                  indicatorColor: Colors.white,
-                  labelColor: Colors.white,
+                  indicatorColor: Color(0xFF273847),
+                  labelColor: Color(0xFF273847),
                   unselectedLabelColor: Colors.grey,
-                  dividerColor: Colors.transparent,
+                  dividerColor: Color(0xFF273847),
+                  dividerHeight: 0.5,
                   tabs: [
                     Tab(
                       icon: Icon(Icons.pending_actions),

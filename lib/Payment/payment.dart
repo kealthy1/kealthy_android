@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/Maps/SelectAdress.dart';
 import 'package:kealthy/Payment/COD_Page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Riverpod/order_provider.dart';
+
 
 final isLoadingProvider = StateProvider<bool>((ref) => false);
 
@@ -26,9 +26,10 @@ class PaymentSection extends ConsumerWidget {
                 padding: EdgeInsets.all(8.0),
                 child: CircularProgressIndicator(color: Color(0xFF273847)),
               ),
-            ) 
+            )
           : ElevatedButton(
-              onPressed: () async {ref.read(orderProvider.notifier).createOrder(totalAmountToPay);
+              onPressed: () async {
+                
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 final selectedRoad = prefs.getString('selectedRoad');
 

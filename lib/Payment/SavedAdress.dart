@@ -80,15 +80,8 @@ class SavedAddress extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 2,
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              border: Border.all(color: Colors.grey.withOpacity(0.4), width: 1),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,7 +93,7 @@ class SavedAddress extends ConsumerWidget {
                       'Delivery',
                       style: GoogleFonts.poppins(
                         color: Colors.black,
-                        fontSize: 22,
+                        fontSize: 20,
                       ),
                     ),
                     GestureDetector(
@@ -128,7 +121,7 @@ class SavedAddress extends ConsumerWidget {
                   children: [
                     Icon(
                       getIconForAddressType(addressType),
-                      size: 24,
+                      size: 20,
                       color: Colors.black,
                     ),
                     const SizedBox(width: 8),
@@ -146,7 +139,7 @@ class SavedAddress extends ConsumerWidget {
                   '$name, $road',
                   style: GoogleFonts.poppins(
                     color: Colors.black,
-                    fontSize: 16,
+                    fontSize: 12,
                   ),
                 ),
                 const SizedBox(height: 8),

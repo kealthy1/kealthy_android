@@ -10,13 +10,10 @@ class AddToCart extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 10),
-       
         const SizedBox(height: 20),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 1),
@@ -26,7 +23,7 @@ class AddToCart extends ConsumerWidget {
             style: GoogleFonts.poppins(
               color: Colors.black,
               fontWeight: FontWeight.bold,
-              fontSize: 22,
+              fontSize: 18,
             ),
           ),
         ),
@@ -50,7 +47,7 @@ class AddToCart extends ConsumerWidget {
           style: GoogleFonts.poppins(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontSize: 22,
+            fontSize: 18,
           ),
         ),
         SizedBox(

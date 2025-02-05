@@ -160,9 +160,11 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                       final DAMOBILE = order['DAMOBILE'] ?? 'No value';
                       final DA = order['DA'] ?? "";
                       final address = order['selectedRoad'] ?? '';
+                      final deliveryFee = order['deliveryFee'] ?? 0.0;
                       final orderItems = order['orderItems'] ?? [];
                       final selectedSlot = order['selectedSlot'] ?? '';
                       final expanded = expandedStates[index];
+                      final totalAmountToPay = order['totalAmountToPay'] ?? 0.0;
 
                       return Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -320,23 +322,152 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
                                         thickness: 1.5,
                                         color: Colors.grey,
                                       ),
-                                      ...orderItems
-                                          .take(
-                                              expanded ? orderItems.length : 2)
-                                          .map((item) {
-                                        return ListTile(
-                                          title: Text(
-                                            item['item_name'],
-                                            style: const TextStyle(
+                                      ExpansionTile(
+                                        iconColor: Colors.black,
+                                        title: Text(
+                                          'Order Details',
+                                          style: GoogleFonts.poppins(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        initiallyExpanded: true,
+                                        children: [
+                                          // 🔹 Show all order items
+                                          Column(
+                                            children:
+                                                orderItems.map<Widget>((item) {
+                                              return ListTile(
+                                                dense: true,
+                                                title: Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Container(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 6,
+                                                          vertical: 2),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors
+                                                            .grey.shade300,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(4),
+                                                        border: Border.all(
+                                                            color: Colors
+                                                                .grey.shade500),
+                                                      ),
+                                                      child: Text(
+                                                        '${item['item_quantity']}',
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                          color: Colors.black,
+                                                          fontSize: 10,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 6),
+                                                    Expanded(
+                                                      child: Text(
+                                                        '× ${item['item_name']}',
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                          color: Colors.black,
+                                                          fontSize: 12,
+                                                        ),
+                                                        softWrap: true,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                trailing: Text(
+                                                  '₹${(item['item_quantity'] * item['item_price']).toStringAsFixed(0)}',
+                                                  style: const TextStyle(
+                                                    color: Colors.black,
+                                                    fontWeight: FontWeight.w400,
+                                                  ),
+                                                ),
+                                              );
+                                            }).toList(),
+                                          ),
+
+                                          // 🔹 Show delivery and handling fees once below the items
+                                          const Divider(
+                                              thickness: 1.5,
+                                              color: Colors.grey),
+
+                                          ListTile(
+                                            dense: true,
+                                            title: Text(
+                                              'Handling Fee',
+                                              style: GoogleFonts.poppins(
                                                 color: Colors.black,
-                                                fontSize: 12),
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                            trailing: Text(
+                                              '₹5',
+                                              style: GoogleFonts.poppins(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                            ),
                                           ),
-                                          trailing: Text(
-                                            'Qty: ${item['item_quantity']}',
-                                            style: TextStyle(),
+                                          ListTile(
+                                            dense: true,
+                                            title: Text(
+                                              'Delivery Fee',
+                                              style: GoogleFonts.poppins(
+                                                color: Colors.black,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                            trailing: Text(
+                                              '₹${deliveryFee.toStringAsFixed(0)}', // Delivery fee shown only once
+                                              style: GoogleFonts.poppins(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                            ),
                                           ),
-                                        );
-                                      }),
+                                          ListTile(
+                                            dense: true,
+                                            title: Text(
+                                              'Grand Total',
+                                              style: GoogleFonts.poppins(
+                                                color: Colors.black,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            trailing: Text(
+                                              '₹${totalAmountToPay.toStringAsFixed(0)}', // Grand total
+                                              style: GoogleFonts.poppins(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+
+                                          Align(
+                                            alignment: Alignment.bottomLeft,
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Text(
+                                                'Cotolore Enterprises LLP\nFSSAI: 21324181001125',
+                                                style: GoogleFonts.aBeeZee(
+                                                  color: Colors.grey.shade700,
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                       if (deliveryPartnerName != 'NotAssigned')
                                         ElevatedButton(
                                           style: ElevatedButton.styleFrom(

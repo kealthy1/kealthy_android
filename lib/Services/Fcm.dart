@@ -32,10 +32,14 @@ class NotificationService {
 
   Future<void> initialize() async {
     await _firebaseMessaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+        alert: true,
+        badge: true,
+        sound: true,
+        carPlay: true,
+        announcement: true,
+        criticalAlert: true,
+        providesAppNotificationSettings: true,
+        provisional: true);
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final imageUrl = message.notification?.android?.imageUrl ??
@@ -59,14 +63,16 @@ class NotificationService {
 
   Future<void> setupFlutterNotifications() async {
     if (_isInitialized) return;
-
-    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    Int64List vibrationPattern = Int64List.fromList([0, 500, 1000, 500]);
+    AndroidNotificationChannel channel = AndroidNotificationChannel(
       'high_importance_channel',
       'High Importance Notifications',
       description: 'This channel is used for important notifications.',
       importance: Importance.high,
       playSound: true,
+      vibrationPattern: vibrationPattern,
       showBadge: true,
+      enableVibration: true,
     );
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
         FlutterLocalNotificationsPlugin();
@@ -87,26 +93,16 @@ class NotificationService {
     required String title,
     required String body,
     String? imageUrl,
+    bool playSoundContinuously = false,
   }) async {
     BigPictureStyleInformation? bigPictureStyle;
+    BigTextStyleInformation? bigTextStyle;
     ByteArrayAndroidBitmap? largeIcon;
-    int calculateResponsiveDimension(int baseSize, double scaleFactor) {
-      return (baseSize * scaleFactor).toInt();
-    }
 
-    int baseWidth = 400;
-    int baseHeight = 350;
-    final double devicePixelRatio =
-        WidgetsBinding.instance.window.devicePixelRatio;
-    int responsiveWidth =
-        calculateResponsiveDimension(baseWidth, devicePixelRatio);
-    int responsiveHeight =
-        calculateResponsiveDimension(baseHeight, devicePixelRatio);
-
-    if (imageUrl != null) {
-      try {
-        final imageBytes = await _downloadImage(imageUrl,
-            width: responsiveWidth, height: responsiveHeight);
+    try {
+      if (imageUrl != null && imageUrl.isNotEmpty) {
+        final imageBytes =
+            await _downloadImage(imageUrl, targetWidth: 800, targetHeight: 400);
 
         largeIcon = ByteArrayAndroidBitmap(imageBytes);
 
@@ -115,9 +111,12 @@ class NotificationService {
           contentTitle: title,
           summaryText: body,
         );
-      } catch (e) {
-        print('Error loading notification image: $e');
+      } else {
+        bigTextStyle = BigTextStyleInformation(body);
       }
+    } catch (e) {
+      print('Error loading notification image: $e');
+      bigTextStyle = BigTextStyleInformation(body);
     }
 
     Int64List vibrationPattern = Int64List.fromList([0, 500, 1000, 500]);
@@ -128,40 +127,65 @@ class NotificationService {
       body,
       NotificationDetails(
         android: AndroidNotificationDetails(
-          'high_importance_channel',
-          'High Importance Notifications',
-          channelDescription:
-              'This channel is used for important notifications.',
-          importance: Importance.high,
-          priority: Priority.high,
-          vibrationPattern: vibrationPattern,
-          styleInformation: bigPictureStyle,
-          enableVibration: true,
-          icon: 'drawable/ic_notification',
-          largeIcon: largeIcon,
-          ledColor: const Color.fromARGB(255, 246, 248, 246),
-          ledOnMs: 1000,
-          ledOffMs: 500,
-        ),
+            'high_importance_channel', 'High Importance Notifications',
+            channelDescription:
+                'This channel is used for important notifications.',
+            importance: Importance.high,
+            priority: Priority.high,
+            vibrationPattern: vibrationPattern,
+            styleInformation: imageUrl != null ? bigPictureStyle : bigTextStyle,
+            enableVibration: true,
+            icon: 'drawable/ic_notification',
+            largeIcon: largeIcon,
+            ledColor: const Color.fromARGB(255, 246, 248, 246),
+            ledOnMs: 1000,
+            ledOffMs: 500,
+            showWhen: true,
+            playSound: true,
+            onlyAlertOnce: false),
       ),
     );
   }
 
   Future<Uint8List> _downloadImage(String url,
-      {int width = 400, int height = 350}) async {
+      {int targetWidth = 400, int targetHeight = 600}) async {
     final response = await http.get(Uri.parse(url));
+
     if (response.statusCode == 200) {
-      final codec = await ui.instantiateImageCodec(
-        response.bodyBytes,
-        targetWidth: width,
-        targetHeight: height,
-      );
-
+      final Uint8List imageBytes = response.bodyBytes;
+      final codec = await ui.instantiateImageCodec(imageBytes);
       final frame = await codec.getNextFrame();
-      final resizedImage = frame.image;
+      final originalImage = frame.image;
 
-      final byteData =
-          await resizedImage.toByteData(format: ui.ImageByteFormat.png);
+      // Get original dimensions
+      final int originalWidth = originalImage.width;
+      final int originalHeight = originalImage.height;
+
+      // Maintain aspect ratio
+      double aspectRatio = originalWidth / originalHeight;
+      int newWidth = targetWidth;
+      int newHeight = (targetWidth / aspectRatio).toInt();
+
+      if (newHeight > targetHeight) {
+        newHeight = targetHeight;
+        newWidth = (targetHeight * aspectRatio).toInt();
+      }
+
+      // Resize Image
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder);
+      final paint = Paint()..filterQuality = FilterQuality.high;
+
+      final srcRect = Rect.fromLTWH(
+          0, 0, originalWidth.toDouble(), originalHeight.toDouble());
+      final dstRect =
+          Rect.fromLTWH(0, 0, newWidth.toDouble(), newHeight.toDouble());
+
+      canvas.drawImageRect(originalImage, srcRect, dstRect, paint);
+      final picture = recorder.endRecording();
+      final img = await picture.toImage(newWidth, newHeight);
+
+      final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
       return byteData!.buffer.asUint8List();
     } else {
       throw Exception('Failed to download image from $url');

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -69,114 +68,106 @@ class _LoginFieldsState extends ConsumerState<LoginFields> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(
-                    "assets/a-photo-of-a-family-sitting-at-a-table-eating-heal-WzTfpXsNT66riCX_SEJ3BA-uXSmtXOlRKa79_7mMqYIGw_11zon.png"),
-                fit: BoxFit.cover,
+      resizeToAvoidBottomInset: true,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              height: MediaQuery.of(context).size.height * 0.5,
+              decoration: BoxDecoration(
+                border:
+                    Border.all(color: Colors.grey.withOpacity(0.4), width: 0.5),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                ),
+                image: DecorationImage(
+                  image: AssetImage("assets/opening.jpg"),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
-          ),
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 1.0, sigmaY: 1.0),
-            child: Container(
-              color: Colors.black.withOpacity(0.3),
+            SizedBox(
+              height: 20,
             ),
-          ),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(
-                  left: 15, top: 100, bottom: 35, right: 15),
-              child: SingleChildScrollView(
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'YOUR JOURNEY TO WELLNESS',
-                        style: GoogleFonts.montserrat(
-                          color: Colors.green,
-                          fontSize: MediaQuery.of(context).size.width * 0.08,
-                        ),
+            Form(
+              key: _formKey,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border:
+                            Border.all(color: Colors.grey.shade400, width: 1),
                       ),
-                      Text(
-                        'STARTS HERE',
-                        style: GoogleFonts.montserrat(
-                          color: Colors.white,
-                          fontSize: MediaQuery.of(context).size.width * 0.08,
-                        ),
-                      ),
-                      const SizedBox(height: 100),
-                      TextFormField(
-                        enableInteractiveSelection: false,
+                      child: TextFormField(
                         controller: _phoneController,
-                        cursorColor: Colors.black,
                         keyboardType: TextInputType.phone,
+                        cursorColor: Colors.grey.shade500,
                         onChanged: (value) {
                           ref.read(phoneNumberProvider.notifier).state = value;
                         },
                         decoration: InputDecoration(
-                          prefixIcon: const Icon(CupertinoIcons.phone),
+                          prefixIcon: Icon(
+                            CupertinoIcons.phone,
+                            color: Colors.grey.shade500,
+                          ),
                           hintText: 'Enter Phone Number',
-                          hintStyle: GoogleFonts.poppins(color: Colors.black54),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.white),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          hintStyle: GoogleFonts.poppins(
+                              color: Colors.grey.shade500,
+                              fontWeight: FontWeight.w600),
                           filled: true,
-                          fillColor: Colors.white70,
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.white),
+                          fillColor: Colors.grey.shade300,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        style: GoogleFonts.poppins(color: Colors.grey.shade500),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                            await _sendOtp();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF273847),
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 15.0, horizontal: 25.0),
                         ),
-                        style: GoogleFonts.poppins(color: Colors.black),
-                      ),
-                      const SizedBox(height: 20),
-                      Center(
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.4,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              if (_formKey.currentState!.validate()) {
-                                await _sendOtp();
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF273847),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                        child: isLoading
+                            ? LoadingAnimationWidget.inkDrop(
+                                color: Colors.white,
+                                size: 20,
+                              )
+                            : Text(
+                                'Continue',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w300,
+                                ),
                               ),
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 15.0, horizontal: 30.0),
-                            ),
-                            child: isLoading
-                                ? LoadingAnimationWidget.inkDrop(
-                                    color: Colors.white,
-                                    size: 20,
-                                  )
-                                : Text(
-                                    'Continue',
-                                    style: GoogleFonts.poppins(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w300),
-                                  ),
-                          ),
-                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

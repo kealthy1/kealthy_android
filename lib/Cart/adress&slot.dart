@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:ntp/ntp.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../Payment/Addressconfirm.dart';
 import '../Payment/Adress.dart';
+import '../Payment/Bill.dart';
 import '../Payment/SavedAdress.dart';
 import '../Riverpod/order_provider.dart';
 import 'Cart_Items.dart';
@@ -58,18 +60,26 @@ class AdressSlot extends ConsumerWidget {
                           currentTime.year,
                           currentTime.month,
                           currentTime.day,
-                          7,
+                          6,
                         );
                         final endBoundary = DateTime(
                           currentTime.year,
                           currentTime.month,
                           currentTime.day,
-                          22,
+                          21,
                         );
 
                         print('Start Boundary: $startBoundary');
                         print('End Boundary: $endBoundary');
                         print('Current Time: $currentTime');
+                        bool showETASelector =
+                            !(currentTime.isAfter(endBoundary) ||
+                                currentTime.isBefore(startBoundary));
+
+                        if (!showETASelector) {
+                          return const SizedBox
+                              .shrink(); // Hide EstimatedTimeSelector
+                        }
 
                         if (currentTime.isAfter(endBoundary) ||
                             currentTime.isBefore(startBoundary)) {
@@ -111,19 +121,52 @@ class AdressSlot extends ConsumerWidget {
                         );
                       } else if (snapshot.connectionState ==
                           ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.black,
+                        return Center(
+                          child: LoadingAnimationWidget.inkDrop(
+                            color: Color(0xFF273847),
+                            size: 30,
                           ),
                         );
                       } else {
-                        return const Center(
-                          child: Text("Error loading ETA."),
-                        );
+                        return SizedBox.shrink();
                       }
                     },
                   ),
-                  const SizedBox(height: 20),
+                  if (ref.watch(selectedETAProvider) == null &&
+                      DateTime.now().hour >= 6 &&
+                      DateTime.now().hour < 21)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 18.0, vertical: 5),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Divider(
+                              color: Colors.grey, // Grey color divider
+                              thickness: 1,
+                            ),
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Text(
+                              "OR",
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Divider(
+                              color: Colors.grey, // Grey color divider
+                              thickness: 1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   if (ref.watch(selectedETAProvider) == null)
                     const Padding(
                       padding: EdgeInsets.all(8.0),
@@ -154,6 +197,8 @@ class AdressSlot extends ConsumerWidget {
                               ? null
                               : () async {
                                   // ignore: unused_result
+                                  ref.refresh(totalDistanceProvider);
+                                  // ignore: unused_result
                                   ref.refresh(orderProvider);
                                   final prefs =
                                       await SharedPreferences.getInstance();
@@ -165,6 +210,8 @@ class AdressSlot extends ConsumerWidget {
                                       .state = true;
 
                                   try {
+                                    // ignore: unused_result
+                                    ref.refresh(SlotProvider);
                                     final prefs =
                                         await SharedPreferences.getInstance();
                                     final selectedSlot =

@@ -2,10 +2,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/MenuPage/MenuPage.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+
+import '../Services/Cache.dart';
 
 class FoodCategoriesScreen extends StatelessWidget {
   final String category;
@@ -130,7 +131,7 @@ class CategoryCard extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: CachedNetworkImage(
-                    cacheManager: DefaultCacheManager(),
+                    cacheManager: CustomCacheManager(),
                     imageUrl: imageUrl,
                     fit: BoxFit.fill,
                   ),

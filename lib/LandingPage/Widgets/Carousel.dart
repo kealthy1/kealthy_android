@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
@@ -12,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../Riverpod/Carousel.dart';
 import '../../Services/BMI.dart';
 import '../../Services/Blogs/BlogList.dart';
+import '../../Services/Cache.dart';
 
 class CarouselItem {
   final String imageUrl;
@@ -100,7 +100,7 @@ class _CarouselSliderWidgetState extends ConsumerState<CarouselSliderWidget> {
                           child: Stack(
                             children: [
                               CachedNetworkImage(
-                                cacheManager: DefaultCacheManager(),
+                                cacheManager: CustomCacheManager(),
                                 imageUrl: item.imageUrl,
                                 placeholder: (context, url) =>
                                     Shimmer.fromColors(
@@ -129,8 +129,9 @@ class _CarouselSliderWidgetState extends ConsumerState<CarouselSliderWidget> {
                                       horizontal: 8.0, vertical: 5),
                                   child: Text(
                                     item.title,
-                                    style: GoogleFonts.poppins(
+                                    style: GoogleFonts.montserrat(
                                       fontSize: 13,
+                                      fontWeight: FontWeight.bold,
                                       color: Colors.white,
                                     ),
                                     textAlign: TextAlign.end,
@@ -180,7 +181,7 @@ class _CarouselSliderWidgetState extends ConsumerState<CarouselSliderWidget> {
     _isAutoScrollInitialized = true;
 
     int currentIndex = 0;
-    _timer = Timer.periodic(const Duration(seconds: 8), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (!mounted || !_pageController.hasClients) {
         timer.cancel();
         return;

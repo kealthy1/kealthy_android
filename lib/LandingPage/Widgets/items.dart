@@ -1,13 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../DetailsPage/HomePage.dart';
 import '../../MenuPage/Search_provider.dart';
 import '../../MenuPage/menu_item.dart';
+import '../../Services/Cache.dart';
 import '../../Services/FirestoreCart.dart';
 import '../../Services/Navigation.dart';
 import '../Allitems.dart';
@@ -67,6 +67,7 @@ class _ItemCardState extends ConsumerState<ItemCard> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
+            surfaceTintColor: Colors.white,
             centerTitle: true,
             title: Text(
               widget.menuItem.category,
@@ -190,7 +191,7 @@ class _ItemCardState extends ConsumerState<ItemCard> {
                       topLeft: Radius.circular(15),
                       topRight: Radius.circular(15)),
                   child: CachedNetworkImage(
-                    cacheManager: DefaultCacheManager(),
+                    cacheManager: CustomCacheManager(),
                     imageUrl:
                         item.imageUrls.isNotEmpty ? item.imageUrls[0] : '',
                     fit: BoxFit.fill,
@@ -208,15 +209,16 @@ class _ItemCardState extends ConsumerState<ItemCard> {
                   children: [
                     Text(
                       item.name,
+                      maxLines: 1,
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
-                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
+                      maxLines: 1,
                       item.subcategory,
                       style: GoogleFonts.poppins(
                         fontSize: 12,

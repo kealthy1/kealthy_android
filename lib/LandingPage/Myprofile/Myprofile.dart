@@ -6,7 +6,7 @@ import 'package:kealthy/LandingPage/Help&Support/Help&Support_Tab.dart';
 import 'package:kealthy/LandingPage/Myprofile/PrivacyPolicy.dart';
 import 'package:kealthy/LandingPage/Myprofile/Refund&Policy.dart';
 import 'package:kealthy/LandingPage/Myprofile/Terms&Conditions.dart';
-import 'package:kealthy/Login/introscreen.dart';
+import 'package:kealthy/Login/login_page.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -69,9 +69,10 @@ class ProfilePage extends ConsumerWidget {
   Future<void> _clearPreferencesAndNavigate(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
-    Navigator.pushReplacement(
+    Navigator.pushAndRemoveUntil(
       context,
-      CupertinoModalPopupRoute(builder: (context) => const IntroPage2()),
+      CupertinoModalPopupRoute(builder: (context) => const LoginFields()),
+      (Route<dynamic> route) => false,
     );
   }
 

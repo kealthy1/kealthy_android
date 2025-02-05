@@ -45,6 +45,7 @@ class RecentTicketsPage extends ConsumerWidget {
           );
         }
         return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 1),
           itemCount: snapshot.docs.length,
           itemBuilder: (context, index) {
             final doc = snapshot.docs[index];
@@ -55,7 +56,7 @@ class RecentTicketsPage extends ConsumerWidget {
 
             return Card(
               color: Colors.white,
-              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 1),
               child: ListTile(
                 leading: Container(
                   width: 50,
@@ -69,7 +70,7 @@ class RecentTicketsPage extends ConsumerWidget {
                         offset: const Offset(0, 3),
                       ),
                     ],
-                    color: Colors.green[200],
+                    color: Color(0xFF273847),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
@@ -78,12 +79,14 @@ class RecentTicketsPage extends ConsumerWidget {
                       Text(
                         DateFormat('dd').format(dateTime ?? DateTime.now()),
                         style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.bold, fontSize: 16),
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16),
                       ),
                       Text(
                         DateFormat('MMM').format(dateTime ?? DateTime.now()),
                         style: GoogleFonts.poppins(
-                            color: Colors.black54, fontSize: 14),
+                            color: Colors.white, fontSize: 14),
                       ),
                     ],
                   ),
@@ -101,7 +104,7 @@ class RecentTicketsPage extends ConsumerWidget {
                       "Solved",
                       style: GoogleFonts.poppins(
                         color: Colors.green,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],

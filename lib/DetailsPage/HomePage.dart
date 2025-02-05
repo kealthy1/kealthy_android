@@ -6,7 +6,7 @@ import 'package:kealthy/DetailsPage/Suggetions.dart';
 import '../LandingPage/Cart_Container.dart';
 import '../MenuPage/menu_item.dart';
 import '../Services/FirestoreCart.dart';
-import 'AddCart.dart';
+import 'Desc.dart';
 import 'Header.dart';
 import 'NutritionInfo.dart';
 
@@ -61,7 +61,7 @@ class HomePage extends ConsumerWidget {
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 Suggestions(
-                                  nameFilter: menuItem.name,
+                                  menuItem: menuItem,
                                 ),
                               ],
                             ),

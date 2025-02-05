@@ -12,7 +12,7 @@ final messagesProvider =
     if (snapshot.docs.isEmpty) return [];
     final doc = snapshot.docs.first;
     final messages =
-        doc.data().containsKey('messages') // Check if 'messages' exists
+        doc.data().containsKey('messages')
             ? doc['messages'] as List<dynamic>
             : [];
     return messages.map((message) {
@@ -33,51 +33,45 @@ class SendMessageService {
   Future<void> sendMessage(String ticketId, String text) async {
     try {
       final collection = _firestore.collection('Help');
-      final timestamp = DateTime.now(); // Use local timestamp
+      final timestamp = DateTime.now();
 
-      // Find the document with the matching ticketId
       final querySnapshot =
           await collection.where('ticketId', isEqualTo: ticketId).get();
 
       if (querySnapshot.docs.isEmpty) {
-        // Create a new document with the messages field
         await collection.add({
           'ticketId': ticketId,
           'messages': [
             {
               'text': text,
               'isUser': true,
-              'timestamp': timestamp, // Use local timestamp here
+              'timestamp': timestamp,
             }
           ],
         });
       } else {
-        // Update the existing document
         final docId = querySnapshot.docs.first.id;
 
-        // Check if the 'messages' field exists
         final docSnapshot = await collection.doc(docId).get();
         final docData = docSnapshot.data();
 
         if (docData == null || !docData.containsKey('messages')) {
-          // Initialize 'messages' field if it doesn't exist
           await collection.doc(docId).set({
             'messages': [
               {
                 'text': text,
                 'isUser': true,
-                'timestamp': timestamp, // Use local timestamp here
+                'timestamp': timestamp, 
               }
             ],
           }, SetOptions(merge: true));
         } else {
-          // Append to the existing 'messages' array
           await collection.doc(docId).update({
             'messages': FieldValue.arrayUnion([
               {
                 'text': text,
                 'isUser': true,
-                'timestamp': timestamp, // Use local timestamp here
+                'timestamp': timestamp, 
               }
             ]),
           });
@@ -85,7 +79,7 @@ class SendMessageService {
       }
     } catch (e) {
       print('Error sending message: $e');
-      throw Exception('Failed to send message.');
+      
     }
   }
 }

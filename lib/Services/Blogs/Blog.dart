@@ -1,10 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/Services/Blogs/BlogList.dart';
+
+import '../Cache.dart';
 
 final blogProvider = FutureProvider<List<Blog>>((ref) async {
   final firestore = FirebaseFirestore.instance;
@@ -107,7 +108,7 @@ class BlogCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(5),
                   child: CachedNetworkImage(
-                    cacheManager: DefaultCacheManager(),
+                    cacheManager: CustomCacheManager(),
                     imageUrl: blog.imageUrls[0],
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
@@ -136,7 +137,7 @@ class BlogCard extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(5),
                     child: CachedNetworkImage(
-                      cacheManager: DefaultCacheManager(),
+                      cacheManager: CustomCacheManager(),
                       imageUrl: blog.imageUrls[1],
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
@@ -167,7 +168,7 @@ class BlogCard extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(5),
                     child: CachedNetworkImage(
-                      cacheManager: DefaultCacheManager(),
+                      cacheManager: CustomCacheManager(),
                       imageUrl: blog.imageUrls[2],
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(

@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shimmer/shimmer.dart';
+import '../Riverpod/distance.dart';
 import '../Services/placesuggetions.dart';
 import 'Delivery_details.dart';
 import 'package:geocoding/geocoding.dart';
@@ -396,16 +397,27 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
                               onPressed: () async {
                                 final selectedPosition =
                                     ref.watch(selectedPositionProvider);
-
+                                final double restaurantLatitude =
+                                    10.010279427438405;
+                                final double restaurantLongitude =
+                                    76.38426666931349;
                                 if (selectedPosition != null) {
-                                  final distance = calculateDistance(
-                                      selectedPosition,
-                                      LatLng(10.010279427438405,
-                                          76.38426666931349));
+                                  final Future<double> drivingDistanceFuture =
+                                      calculateDrivingDistance(
+                                    apiKey:
+                                        "AIzaSyD1MUoakZ0mm8WeFv_GK9k_zAWdGk5r1hA",
+                                    startLatitude: selectedPosition.latitude,
+                                    startLongitude: selectedPosition.longitude,
+                                    endLatitude: restaurantLatitude,
+                                    endLongitude: restaurantLongitude,
+                                  );
 
-                                  if (distance > 20000) {
+                                  final drivingDistance =
+                                      await drivingDistanceFuture;
+                                  if (drivingDistance > 10) {
                                     Fluttertoast.showToast(
-                                      msg: "Location not serviceable.",
+                                      msg:
+                                          "Above 10 km Location is not serviceable.",
                                       toastLength: Toast.LENGTH_SHORT,
                                       gravity: ToastGravity.BOTTOM,
                                     );
@@ -513,6 +525,7 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
                                       width: 24.0,
                                       height: 24.0,
                                       child: CircularProgressIndicator(
+                                        color: Color(0xFF273847),
                                         strokeWidth: 2.0,
                                       ),
                                     )

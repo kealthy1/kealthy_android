@@ -18,7 +18,6 @@ class ProductSuggestion {
   final List<String> imageUrls;
   final String whatIsIt;
   final String whatIsItUsedFor;
-  final double soh;
   final List<String> macros;
   final List<String> micros;
   final List<String> ingredients;
@@ -26,7 +25,6 @@ class ProductSuggestion {
   final String additivesPreservatives;
   final String artificialSweetenersColors;
   final String brandName;
-  final String hsn;
   final String dietaryFiber;
   final String ecoFriendly;
   final String energy;
@@ -48,6 +46,14 @@ class ProductSuggestion {
   final String veganFriendly;
   final String vendorName;
   final double SOH;
+  final List<String> FSSAI;
+  final String EAN;
+  final String Orgin;
+  final String ManufacturerAddress;
+  final String Manufactureddate;
+  final String Type;
+  final String Expiry;
+  final String ImportedMarketedBy;
 
   ProductSuggestion({
     required this.name,
@@ -62,7 +68,6 @@ class ProductSuggestion {
     required this.fat,
     required this.rating,
     required this.imageUrls,
-    required this.soh,
     required this.macros,
     required this.micros,
     required this.ingredients,
@@ -72,7 +77,6 @@ class ProductSuggestion {
     required this.additivesPreservatives,
     required this.artificialSweetenersColors,
     required this.brandName,
-    required this.hsn,
     required this.dietaryFiber,
     required this.ecoFriendly,
     required this.energy,
@@ -94,14 +98,23 @@ class ProductSuggestion {
     required this.veganFriendly,
     required this.vendorName,
     required this.SOH,
+    required this.FSSAI,
+    required this.EAN,
+    required this.Manufactureddate,
+    required this.ManufacturerAddress,
+    required this.Orgin,
+    required this.Type,
+    required this.Expiry,
+    required this.ImportedMarketedBy,
   });
 
   factory ProductSuggestion.fromFirestore(Map<String, dynamic> data) {
     return ProductSuggestion(
       name: data['Name'] ?? '',
       price: _parseDouble(data['Price']),
-      SOH: _parseDouble(data['Price']),
+      SOH: _parseDouble(data['SOH']),
       category: data['Category'] ?? '',
+      EAN: data['EAN'] ?? '',
       time: data['Time'] ?? '',
       delivery: data['Delivery'] ?? '',
       description: data['Description'] ?? '',
@@ -111,7 +124,7 @@ class ProductSuggestion {
       fat: _parseDouble(data['Fat']),
       rating: _parseDouble(data['Rating']),
       imageUrls: List<String>.from(data['ImageUrl'] ?? []),
-      soh: _parseDouble(data['SOH']),
+      FSSAI: List<String>.from(data['FSSAI'] ?? []),
       macros: [
         'Protein: ${data['Protein (g)'] ?? 'Not Applicable'}',
         'Total Fat: ${data['Total Fat (g)'] ?? 'Not Applicable'}',
@@ -130,7 +143,6 @@ class ProductSuggestion {
       artificialSweetenersColors:
           data['Artificial Sweeteners?Colors'] ?? 'Not Applicable',
       brandName: data['Brand Name'] ?? '',
-      hsn: data['HSN'] ?? '',
       dietaryFiber: data['Dietary Fiber (g)'] ?? 'Not Applicable',
       ecoFriendly: data['Eco-Friendly'] ?? '',
       energy: data['Energy (kcal)'] ?? 'Not Applicable',
@@ -152,6 +164,12 @@ class ProductSuggestion {
       unsaturatedFat: data['Unsaturated Fat (g)'] ?? 'Not Applicable',
       veganFriendly: data['Vegan-Friendly'] ?? '',
       vendorName: data['Vendor Name'] ?? '',
+      Type: data['Type'] ?? '',
+      Orgin: data['Orgin'] ?? '',
+      ManufacturerAddress: data['Manufacturer Address'] ?? '',
+      Manufactureddate: data['Manufactured date'] ?? '',
+      Expiry: data['Expiry'] ?? '',
+      ImportedMarketedBy: data['Imported&Marketed By'] ?? '',
     );
   }
 
@@ -189,12 +207,10 @@ class ProductSuggestion {
       SOH: SOH,
       whatIsIt: whatIsIt,
       whatIsItUsedFor: whatIsItUsedFor,
-      soh: price,
       addedSugars: addedSugars,
       additivesPreservatives: additivesPreservatives,
       artificialSweetenersColors: artificialSweetenersColors,
       brandName: brandName,
-      hsn: hsn,
       dietaryFiber: dietaryFiber,
       ecoFriendly: ecoFriendly,
       energy: energy,
@@ -215,6 +231,14 @@ class ProductSuggestion {
       unsaturatedFat: unsaturatedFat,
       veganFriendly: veganFriendly,
       vendorName: vendorName,
+      EAN: EAN,
+      FSSAI: FSSAI,
+      Manufactureddate: Manufactureddate,
+      ManufacturerAddress: ManufacturerAddress,
+      Orgin: Orgin,
+      Type: Type,
+      Expiry: Expiry,
+      ImportedMarketedBy: ImportedMarketedBy,
     );
   }
 }
@@ -252,24 +276,33 @@ class ProductSuggestionsNotifier
     }
 
     final normalizedQuery = query.trim().toLowerCase();
+    final queryTokens = normalizedQuery.split(' ');
 
     try {
-      final snapshot =
-          await FirebaseFirestore.instance.collection('Products').get();
+      final snapshot = await FirebaseFirestore.instance
+          .collection('Products')
+          .where('SOH', isNotEqualTo: 0)
+          .get();
 
       final uniqueProducts = <String, ProductSuggestion>{};
 
       for (final doc in snapshot.docs) {
         final product = ProductSuggestion.fromFirestore(doc.data());
+        final nameTokens = product.name.toLowerCase().split(' ');
+        final categoryTokens = product.category.toLowerCase().split(' ');
 
-        if (product.name.toLowerCase().contains(normalizedQuery) ||
-            product.category.toLowerCase().contains(normalizedQuery) ||
-            (product.vendorName.toLowerCase().contains(normalizedQuery))) {
+        final matches = queryTokens.every((token) =>
+            nameTokens.any((nameToken) => nameToken.contains(token)) ||
+            categoryTokens
+                .any((categoryToken) => categoryToken.contains(token)));
+
+        if (matches) {
           uniqueProducts[product.name] = product;
         }
       }
 
       state = uniqueProducts.values.toList();
+      print("Matched Products: ${state.map((p) => p.name).toList()}");
     } catch (e) {
       print("Error fetching product suggestions: $e");
       state = [];

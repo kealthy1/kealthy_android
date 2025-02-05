@@ -403,7 +403,7 @@ class _AddressFormState extends ConsumerState<AddressForm> {
     List<String> emptyFields = [];
     if (name.isEmpty) emptyFields.add('Name');
     if (road.isEmpty) emptyFields.add('Flat/Room/Area');
-    if (directions.isEmpty) emptyFields.add('Directions');
+
     if (savedValue.isEmpty) emptyFields.add('Type');
 
     if (emptyFields.isNotEmpty) {
@@ -519,7 +519,7 @@ class _AddressFormState extends ConsumerState<AddressForm> {
     } catch (e) {
       print('Error saving address: $e');
       Fluttertoast.showToast(
-        msg: "Something went wrong. Please try again.",
+        msg: "Something went wrong. Please try again $e.",
         backgroundColor: Colors.red,
         textColor: Colors.white,
       );

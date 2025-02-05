@@ -4,10 +4,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:kealthy/LandingPage/Help&Support/Help&Support_Tab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Maps/functions/Delivery_detailslocationprovider.dart';
 import '../../Maps/SelectAdress.dart';
+import '../../Orders/ordersTab.dart';
+import '../../Services/Notifications/FromFirestore.dart';
+import '../../Services/Notifications/Home.dart';
+import '../../Services/Notifications/shared_prefrences_Notification.dart';
 
 class SelectedRoadNotifier extends StateNotifier<String?> {
   SelectedRoadNotifier() : super(null) {
@@ -53,6 +56,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final buttonVisible = ref.watch(movableButtonProvider);
     final selectedRoad = ref.watch(selectedRoadProvider);
     final currentLocation = ref.watch(locationProvider);
 
@@ -115,7 +119,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
                                   ),
                                 );
                               },
-                              loading: () => const CircularProgressIndicator(),
+                              loading: () => SizedBox.shrink(),
                               error: (error, _) => const SizedBox.shrink(),
                             ),
                             typeAsyncValue.when(
@@ -153,7 +157,11 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
-        Help(),
+        if (buttonVisible) Orders(),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Help(),
+        ),
       ],
     );
   }
@@ -208,49 +216,121 @@ class Help extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final notifications = ref.watch(notificationProvider);
+    final notification = ref.watch(firestoreNotificationProvider);
+    final totalNotifications = notifications.length + notification.length;
     ref.watch(movableButtonProvider);
 
     return GestureDetector(
         onTap: () {
+          // ignore: unused_result
+          ref.refresh(firestoreNotificationProvider);
           Navigator.push(
               context,
               CupertinoModalPopupRoute(
-                builder: (context) => SupportDeskScreen(),
+                builder: (context) => NotificationHome(),
               ));
         },
         child: Stack(
+          clipBehavior: Clip.none,
           children: [
             IconButton(
               style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.grey.shade300),
               onPressed: () {
+                // ignore: unused_result
+                ref.refresh(firestoreNotificationProvider);
                 Navigator.push(
                     context,
                     CupertinoModalPopupRoute(
-                      builder: (context) => SupportDeskScreen(),
+                      builder: (context) => NotificationHome(),
                     ));
               },
               icon: Icon(
-                CupertinoIcons.chat_bubble_text,
+                CupertinoIcons.bell,
                 size: 25,
                 color: Color(0xFF273847),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-              decoration: BoxDecoration(
-                color: Color(0xFF273847),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                'Help',
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 10,
+            if (totalNotifications > 0)
+              Transform.translate(
+                offset: const Offset(25, -6),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 16,
+                    minHeight: 16,
+                  ),
+                  child: Semantics(
+                    label: '$totalNotifications',
+                    child: Text(
+                      totalNotifications > 99
+                          ? '99+'
+                          : totalNotifications.toString(),
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
           ],
         ));
+  }
+}
+
+class Orders extends StatelessWidget {
+  const Orders({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+                context,
+                CupertinoModalPopupRoute(
+                    builder: (context) => OrdersTabScreen()));
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.all(Radius.circular(20)),
+            ),
+            child: CircleAvatar(
+              backgroundColor: Colors.white,
+              radius: 18,
+              backgroundImage: AssetImage("assets/Delivery Boy (1).gif"),
+            ),
+          ),
+        ),
+        Transform.translate(
+          offset: const Offset(0, -7),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              'Live',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

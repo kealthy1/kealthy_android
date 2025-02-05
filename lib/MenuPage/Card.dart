@@ -1,13 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import '../DetailsPage/HomePage.dart';
 import '../DetailsPage/NutritionInfo.dart';
 import '../DetailsPage/Product_Rating.dart';
+import '../Services/Cache.dart';
 import 'menu_item.dart';
 
 class MenuItemCard extends ConsumerWidget {
@@ -51,7 +51,7 @@ class MenuItemCard extends ConsumerWidget {
                   child: AspectRatio(
                     aspectRatio: 0.9,
                     child: CachedNetworkImage(
-                      cacheManager: DefaultCacheManager(),
+                      cacheManager: CustomCacheManager(),
                       width: double.infinity,
                       fit: BoxFit.cover,
                       imageUrl: menuItem.imageUrls.isNotEmpty
@@ -78,13 +78,12 @@ class MenuItemCard extends ConsumerWidget {
                     children: [
                       Flexible(
                         child: Text(
+                          overflow: TextOverflow.ellipsis,
                           menuItem.name,
                           style: GoogleFonts.poppins(
                             textStyle: TextStyle(
                                 fontSize: 13, fontWeight: FontWeight.bold),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       averageStarsAsync.when(
@@ -124,18 +123,6 @@ class MenuItemCard extends ConsumerWidget {
                         error: (error, stack) => const SizedBox.shrink(),
                       ),
                       const SizedBox(height: 2),
-                      Flexible(
-                        child: Text(
-                          menuItem.vendorName,
-                          style: GoogleFonts.poppins(
-                            textStyle: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
                       Text(
                         '₹ ${menuItem.price.toStringAsFixed(0)}/-',
                         style: GoogleFonts.radioCanada(
@@ -159,8 +146,8 @@ class MenuItemCard extends ConsumerWidget {
                         topRight: Radius.circular(10),
                       ),
                       child: Container(
-                        height: 55,
-                        width: 45,
+                        height: 40,
+                        width: 35,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8.0, vertical: 4.0),
                         decoration: BoxDecoration(
@@ -170,31 +157,26 @@ class MenuItemCard extends ConsumerWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text(
+                            Text(
                               "Only",
-                              style: TextStyle(
+                              style: GoogleFonts.poppins(
                                 color: Colors.white,
-                                fontSize: 8,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: "Poppins",
+                                fontSize: 6,
                               ),
                             ),
                             Text(
                               menuItem.SOH.toStringAsFixed(0),
-                              style: const TextStyle(
+                              style: GoogleFonts.poppins(
                                 color: Colors.white,
-                                fontSize: 12,
+                                fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                fontFamily: "Poppins",
                               ),
                             ),
-                            const Text(
+                            Text(
                               "Left",
-                              style: TextStyle(
+                              style: GoogleFonts.poppins(
                                 color: Colors.white,
-                                fontSize: 8,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: "Poppins",
+                                fontSize: 6,
                               ),
                             ),
                           ],

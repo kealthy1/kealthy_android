@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/LandingPage/Widgets/Recent_Search.dart';
@@ -11,6 +10,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shimmer/shimmer.dart';
 import '../MenuPage/Search_provider.dart';
 import '../MenuPage/menu_item.dart';
+import '../Services/Cache.dart';
 import 'Widgets/Search All.dart';
 import 'Widgets/items.dart';
 import 'Widgets/searchprovider.dart';
@@ -231,7 +231,7 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
                                       child: ClipRRect(
                                         borderRadius: BorderRadius.circular(10),
                                         child: CachedNetworkImage(
-                                          cacheManager: DefaultCacheManager(),
+                                          cacheManager: CustomCacheManager(),
                                           fit: BoxFit.fill,
                                           imageUrl: suggestion.imageUrls[0],
                                           placeholder: (context, url) => Center(

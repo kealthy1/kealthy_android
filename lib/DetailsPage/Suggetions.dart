@@ -2,11 +2,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import '../MenuPage/menu_item.dart';
+import '../Services/Cache.dart';
 import 'HomePage.dart';
 
 class FirestoreData {
@@ -46,44 +46,125 @@ final menuItemsProvider = FutureProvider<List<MenuItem>>((ref) async {
 });
 
 class Suggestions extends ConsumerWidget {
-  final String nameFilter;
+  final MenuItem menuItem;
 
-  const Suggestions({super.key, required this.nameFilter});
+  const Suggestions({
+    super.key,
+    required this.menuItem,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final menuItemsAsync = ref.watch(menuItemsProvider);
 
     return menuItemsAsync.when(
-      data: (menuItems) => _buildSuggestions(context, menuItems, ref),
+      data: (menuItems) => _buildContent(context, menuItems, ref),
       loading: () => Center(child: SizedBox.shrink()),
       error: (error, stackTrace) => SizedBox.shrink(),
     );
   }
 
-  Widget _buildSuggestions(
+  Widget _buildContent(
       BuildContext context, List<MenuItem> menuItems, WidgetRef ref) {
-    final baseNameFilter = nameFilter.toLowerCase();
+    final baseNameFilter = menuItem.name.toLowerCase();
 
     final filteredItems = menuItems.where((item) {
-      return item.name.toLowerCase().contains(baseNameFilter);
+      final isNameMatched = item.name.toLowerCase().contains(baseNameFilter);
+      final isDifferentEAN = item.EAN != menuItem.EAN;
+      return isNameMatched && isDifferentEAN;
     }).toList();
 
     final double containerWidth = MediaQuery.of(context).size.width * 0.15;
     final double containerHeight = MediaQuery.of(context).size.width * 0.15;
 
-    return SizedBox(
-      height: containerHeight + 50,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: filteredItems.map((item) {
-            return _buildItemCard(
-                context, item, containerWidth, containerHeight, ref);
-          }).toList(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (filteredItems.isNotEmpty)
+          Text(
+            "Select Size",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        if (filteredItems.isNotEmpty)
+          SizedBox(
+            height: containerHeight + 50,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: filteredItems.map((item) {
+                  return _buildItemCard(
+                      context, item, containerWidth, containerHeight, ref);
+                }).toList(),
+              ),
+            ),
+          ),
+        if (filteredItems.isEmpty) SizedBox.shrink(),
+        SizedBox(height: 15),
+        _buildDetailsWidget(menuItem),
+      ],
+    );
+  }
+
+  Widget _buildDetailsWidget(MenuItem item) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              overflow: TextOverflow.ellipsis,
+              "Brand:",
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            SizedBox(width: 15),
+            Text(
+              item.brandName,
+              style: TextStyle(
+                overflow: TextOverflow.ellipsis,
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
+              ),
+            ),
+          ],
         ),
-      ),
+        SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              overflow: TextOverflow.ellipsis,
+              "Qty:",
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            SizedBox(width: 15),
+            Text(
+              overflow: TextOverflow.ellipsis,
+              item.qty,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -93,11 +174,15 @@ class Suggestions extends ConsumerWidget {
       onTap: () {
         // ignore: unused_result
         ref.refresh(menuItemsProvider);
+        print(
+          item.qty,
+        );
         Navigator.pushReplacement(
-            context,
-            CupertinoModalPopupRoute(
-              builder: (context) => HomePage(menuItem: item),
-            ));
+          context,
+          CupertinoModalPopupRoute(
+            builder: (context) => HomePage(menuItem: item),
+          ),
+        );
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -113,7 +198,7 @@ class Suggestions extends ConsumerWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(5),
               child: CachedNetworkImage(
-                cacheManager: DefaultCacheManager(),
+                cacheManager: CustomCacheManager(),
                 imageUrl: item.imageUrls[0],
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
@@ -130,10 +215,7 @@ class Suggestions extends ConsumerWidget {
                     ),
                   ),
                 ),
-                errorWidget: (context, url, error) => Container(
-                  color: Colors.grey.shade300,
-                  child: Icon(Icons.broken_image, size: 50),
-                ),
+                errorWidget: (context, url, error) => SizedBox.shrink(),
               ),
             ),
           ),
@@ -142,19 +224,20 @@ class Suggestions extends ConsumerWidget {
             child: Column(
               children: [
                 Text(
+                  overflow: TextOverflow.ellipsis,
                   item.name,
                   style: GoogleFonts.poppins(
-                    fontSize: 9,
+                    fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
                   textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
+                  overflow: TextOverflow.ellipsis,
                   item.qty,
                   style: GoogleFonts.poppins(
-                    fontSize: 8,
+                    fontSize: 9,
                     color: Colors.grey.shade700,
                   ),
                   textAlign: TextAlign.center,

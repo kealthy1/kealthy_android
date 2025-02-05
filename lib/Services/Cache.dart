@@ -1,14 +1,22 @@
-// class MyCacheManager extends CacheManager {
-//   static const key = 'myCache';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
-//   MyCacheManager()
-//       : super(
-//           Config(
-//             key,
-//             stalePeriod: const Duration(days: 7), // Cache for 7 days
-//             maxNrOfCacheObjects: 100, // Maximum number of cached items
-//           ),
-//         );
-// }
+class CustomCacheManager extends CacheManager {
+  static const String key = "customCache";
 
-// final myCacheManager = MyCacheManager();
+  static final CustomCacheManager _instance = CustomCacheManager._internal();
+
+  factory CustomCacheManager() {
+    return _instance;
+  }
+
+  CustomCacheManager._internal()
+      : super(
+          Config(
+            key,
+            stalePeriod: const Duration(days: 4), // Expire cache after 7 days
+            maxNrOfCacheObjects: 250, // Maximum number of cached items
+            repo: JsonCacheInfoRepository(databaseName: key),
+            fileService: HttpFileService(),
+          ),
+        );
+}

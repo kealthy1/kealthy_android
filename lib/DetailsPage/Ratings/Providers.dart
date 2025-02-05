@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../../Services/sharedpreferncesname.dart';
 
 class ProductReviewState {
   final List<String> productNames;
@@ -139,27 +138,7 @@ final rateProductProvider =
 );
 
 
-class ProductReviewNotifier extends StateNotifier<ProductReviewState> {
-  ProductReviewNotifier()
-      : super(ProductReviewState(productNames: [], isLoading: true)) {
-    _loadProductNames();
-  }
 
-  Future<void> _loadProductNames() async {
-    state = state.copyWith(isLoading: true);
-    final productNames = await SharedPreferencesHelper.getOrderItemNames();
-    state = state.copyWith(productNames: productNames, isLoading: false);
-  }
 
-  Future<void> removeProduct(String productName) async {
-    state = state.copyWith(isLoading: true);
-    await SharedPreferencesHelper.removeOrderItemByName(productName);
-    await _loadProductNames();
-    print('Removed product: $productName and updated the state.');
-  }
-}
 
-final productReviewProvider =
-    StateNotifierProvider<ProductReviewNotifier, ProductReviewState>(
-  (ref) => ProductReviewNotifier(),
-);
+

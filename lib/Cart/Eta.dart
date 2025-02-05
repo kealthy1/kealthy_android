@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'SlotsBooking.dart';
 
 class EstimatedTimeSelector extends ConsumerWidget {
@@ -40,15 +39,8 @@ class EstimatedTimeSelector extends ConsumerWidget {
         return Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
-                spreadRadius: 2,
-                blurRadius: 5,
-                offset: const Offset(0, 3),
-              ),
-            ],
-            borderRadius: BorderRadius.circular(8.0),
+            border: Border.all(color: Colors.grey.withOpacity(0.4), width: 1),
+            borderRadius: BorderRadius.circular(8),
           ),
           child: CheckboxListTile(
             value: ref.watch(selectedETAProvider) == etaTime,
@@ -74,12 +66,26 @@ class EstimatedTimeSelector extends ConsumerWidget {
                 }
               }
             },
-            title: Text(
-              'Instant delivery ⚡',
-              style: GoogleFonts.poppins(
-                color: Colors.black,
-                fontSize: 18,
-              ),
+            title: Row(
+              children: [
+                Text(
+                  'Instant delivery ⚡',
+                  style: GoogleFonts.poppins(
+                    color: Colors.black,
+                    fontSize: 16,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    '₹50 extra',
+                    style: GoogleFonts.poppins(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 8,
+                    ),
+                  ),
+                ),
+              ],
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

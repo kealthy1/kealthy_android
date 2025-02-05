@@ -9,7 +9,6 @@ import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Services/PaymentHandler.dart';
 
-
 class RazorPay extends ConsumerStatefulWidget {
   final double totalAmountToPay;
 
@@ -90,6 +89,7 @@ class _RazorPayState extends ConsumerState<RazorPay> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final name = prefs.getString('Name');
+      final phoneNumber = prefs.getString('phoneNumber');
       final storedOrderId = prefs.getString('RazorpayorderId');
 
       final options = {
@@ -102,7 +102,7 @@ class _RazorPayState extends ConsumerState<RazorPay> {
             'https://firebasestorage.googleapis.com/v0/b/kealthy-90c55.appspot.com/o/final-image-removebg-preview.png?alt=media&token=3184c1f9-2162-45e2-9bea-95519ef1519b',
         if (storedOrderId != null) 'order_id': storedOrderId,
         'prefill': {
-          'contact': '+918848673425',
+          'contact': phoneNumber,
           'email': name,
         },
         'external': {
@@ -124,6 +124,7 @@ class _RazorPayState extends ConsumerState<RazorPay> {
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(

@@ -7,7 +7,7 @@ class SharedPreferencesCartItem {
   final String name;
   final double price;
   final String imageUrl;
-  final String category;
+  final String EAN;
   int quantity;
 
   SharedPreferencesCartItem({
@@ -15,19 +15,18 @@ class SharedPreferencesCartItem {
     required this.name,
     required this.price,
     required this.imageUrl,
-    required this.category,
+    required this.EAN,
     this.quantity = 1,
   });
 
   double get totalPrice => price * quantity;
-  
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
         'price': price,
         'imageUrl': imageUrl,
-        'category': category,
+        'EAN': EAN,
         'quantity': quantity,
       };
 
@@ -37,7 +36,7 @@ class SharedPreferencesCartItem {
       name: json['name'] ?? '',
       price: (json['price'] ?? 0.0) as double,
       imageUrl: json['imageUrl'] ?? '',
-      category: json['category'] ?? '',
+      EAN: json['EAN'] ?? '',
       quantity: json['quantity'] ?? 1,
     );
   }
@@ -104,9 +103,8 @@ class SharedPreferencesCartNotifier
 
   Future<void> clearCart() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs
-        .remove('cartItems');
-    state = []; 
+    await prefs.remove('cartItems');
+    state = [];
     print("Cart has been cleared successfully.");
   }
 }

@@ -19,8 +19,9 @@ import 'Maps/fluttermap.dart';
 import 'Payment/SavedAdress.dart';
 import 'Riverpod/order_provider.dart';
 import 'Services/Fcm.dart';
-import 'Services/Location_Permission.dart';
+import 'Services/Notifications/FromFirestore.dart';
 import 'Services/adresslisten.dart';
+import 'Services/updateinapp.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -32,7 +33,7 @@ void main() async {
     persistenceEnabled: true,
   );
   await NotificationService.instance.initialize();
- await ReviewService.instance.initialize(navigatorKey);
+  await ReviewService.instance.initialize(navigatorKey);
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   final container = ProviderContainer();
 
@@ -51,6 +52,7 @@ void main() async {
     container.read(rateProductProvider);
     container.read(averageStarsProvider(''));
     container.read(orderStatusProvider);
+    container.read(firestoreNotificationProvider);
     print("Data prefetched successfully.");
   } catch (e) {
     print("Error prefetching addresses: $e");
@@ -70,11 +72,8 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      InAppUpdateService().checkForUpdate(context);
       NotificationHandler.initialize(navigatorKey.currentContext!, ref);
-
-      final locationServiceChecker =
-          LocationServiceChecker(navigatorKey.currentContext!);
-      locationServiceChecker.startChecking();
     });
 
     return MaterialApp(

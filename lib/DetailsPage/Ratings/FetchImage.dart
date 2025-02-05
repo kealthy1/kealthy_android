@@ -10,24 +10,39 @@ class FirestoreService {
 
       final querySnapshot = await collectionRef
           .where('Name', isEqualTo: productName)
-          .limit(1) 
+          .limit(1)
           .get();
 
-      if (querySnapshot.docs.isNotEmpty) {
-        final docData = querySnapshot.docs.first.data();
-
-        if (docData['ImageUrl'] is List) {
-          final List<dynamic> imageUrlArray = docData['ImageUrl'];
-
-          if (imageUrlArray.isNotEmpty) {
-            return imageUrlArray[0] as String;
-          }
-        }
+      if (querySnapshot.docs.isEmpty) {
+        print("❌ No document found in Firestore for: $productName");
+        return null;
       }
-    } catch (e) {
-      print("Error fetching imageUrl for product $productName: $e");
-    }
 
-    return null; 
+      final docData = querySnapshot.docs.first.data();
+
+      // Check if "ImageUrl" exists in Firestore
+      if (!docData.containsKey("ImageUrl")) {
+        print("⚠️ 'ImageUrl' field missing in Firestore for: $productName");
+        return null;
+      }
+
+      final dynamic imageUrlData = docData["ImageUrl"];
+
+      if (imageUrlData is List) {
+        if (imageUrlData.isNotEmpty && imageUrlData[0] is String) {
+          return imageUrlData[0] as String;
+        } else {
+          print("⚠️ 'ImageUrl' list is empty or contains invalid data.");
+          return null;
+        }
+      } else if (imageUrlData is String) {
+        return imageUrlData;
+      } else {
+        print("⚠️ Unexpected 'ImageUrl' format: $imageUrlData");
+      }
+    } catch (e) {}
+
+    print("⚠️ Returning null - Image not found for: $productName");
+    return null;
   }
 }

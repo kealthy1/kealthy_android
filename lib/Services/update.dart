@@ -32,33 +32,23 @@ class UpdateService {
       print('Local Version: $localVersion');
       print('Play Store Version: $playStoreVersion');
 
+      if (playStoreVersion == '1.1.11') {
+        print('Play Store version is 1.1.11. Skipping update check.');
+        return;
+      }
+
       if (localVersion != playStoreVersion) {
-        final bool shouldShowDialog = await shouldShowUpdateDialog();
-        if (shouldShowDialog) {
-          showUpdateDialog(context, localVersion, playStoreVersion);
-        }
+        showUpdateDialog(context, localVersion, playStoreVersion);
       }
     } catch (e) {
       print('Error checking for updates: $e');
     }
   }
 
-  static Future<bool> shouldShowUpdateDialog() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final int? lastShownTimestamp = prefs.getInt('lastUpdateDialogShown');
-
-    final int currentTimestamp = DateTime.now().millisecondsSinceEpoch;
-    if (lastShownTimestamp == null ||
-        (currentTimestamp - lastShownTimestamp) >= 1 * 60 * 60 * 1000) {
-      prefs.setInt('lastUpdateDialogShown', currentTimestamp);
-      return true;
-    }
-    return false;
-  }
-
   static void showUpdateDialog(
       BuildContext context, String localVersion, String playStoreVersion) {
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,

@@ -173,6 +173,7 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
+          surfaceTintColor: Colors.white,
           centerTitle: true,
           automaticallyImplyLeading: false,
           title: Text(
@@ -194,7 +195,7 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
                       await Geolocator.isLocationServiceEnabled();
 
                   if (serviceEnabled) {
-                    Navigator.pushReplacement(
+                    Navigator.push(
                       context,
                       CupertinoModalPopupRoute(
                         builder: (context) => SelectLocationPage(
@@ -514,6 +515,19 @@ class _AddressCardState extends ConsumerState<AddressCard> {
               ref.invalidate(selectedAddressProvider);
               ref.invalidate(selectedSlotProviders);
               widget.onSelected();
+              Navigator.pop(context);
+              // ignore: unused_result
+              ref.refresh(showAddressProviders);
+              // ignore: unused_result
+              ref.refresh(selectedSlotProviders);
+              // ignore: unused_result
+              ref.refresh(savedAddressProvider);
+              // ignore: unused_result
+              ref.refresh(totalDistanceProvider);
+              // ignore: unused_result
+              ref.refresh(selectedRoadProvider);
+              // ignore: unused_result
+              ref.refresh(typeProvider);
             } else {
               Fluttertoast.showToast(
                 msg: "Failed to select address. Try again.",
@@ -599,10 +613,11 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                             'Landmark: ${widget.address.landmark}',
                             style: const TextStyle(color: Colors.black54),
                           ),
-                        Text(
-                          'Directions: ${widget.address.directions}',
-                          style: const TextStyle(color: Colors.black54),
-                        ),
+                        if (widget.address.directions.isNotEmpty)
+                          Text(
+                            'Directions: ${widget.address.directions}',
+                            style: const TextStyle(color: Colors.black54),
+                          ),
                       ],
                     ),
                   ),

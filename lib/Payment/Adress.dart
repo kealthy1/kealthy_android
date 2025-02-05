@@ -17,44 +17,51 @@ class AdressPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 218, 214, 214),
-      appBar: AppBar(
-        surfaceTintColor: Colors.white,
-        backgroundColor: const Color.fromARGB(255, 218, 214, 214),
-        automaticallyImplyLeading: false,
-        centerTitle: true,
-        title: const Text(
-          'Confirm Address',
-          style: TextStyle(),
+    return WillPopScope(
+      onWillPop: () async {
+        // ignore: unused_result
+        ref.refresh(totalDistanceProvider);
+        return true;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          surfaceTintColor: Colors.white,
+          backgroundColor: Colors.white,
+          automaticallyImplyLeading: false,
+          centerTitle: true,
+          title: const Text(
+            'Confirm Address',
+            style: TextStyle(),
+          ),
         ),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    child: ConfirmOrder(),
-                  ),
-                  const DeliveryInstructionsSection(),
-                  BillDetails(
-                    totalPrice: totalPrice,
-                  ),
-                ],
+        body: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      child: ConfirmOrder(),
+                    ),
+                    const DeliveryInstructionsSection(),
+                    BillDetails(
+                      totalPrice: totalPrice,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: PaymentSection(
-              totalAmountToPay: totalPrice,
-            ),
-          )
-        ],
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: PaymentSection(
+                totalAmountToPay: totalPrice,
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
