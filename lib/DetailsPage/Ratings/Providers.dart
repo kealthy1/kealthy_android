@@ -28,20 +28,20 @@ class RateProductState {
   const RateProductState({
     this.selectedRating = 0,
     this.feedback = '',
-    this.customerName = '', 
+    this.customerName = '',
     this.isLoading = false,
   });
 
   RateProductState copyWith({
     int? selectedRating,
     String? feedback,
-    String? customerName, 
+    String? customerName,
     bool? isLoading,
   }) {
     return RateProductState(
       selectedRating: selectedRating ?? this.selectedRating,
       feedback: feedback ?? this.feedback,
-      customerName: customerName ?? this.customerName, 
+      customerName: customerName ?? this.customerName,
       isLoading: isLoading ?? this.isLoading,
     );
   }
@@ -102,7 +102,7 @@ class RateProductNotifier extends StateNotifier<Map<String, RateProductState>> {
         "productName": productName,
         "starCount": productState.selectedRating,
         "feedback": productState.feedback,
-        "customerName": customerName, 
+        "customerName": customerName,
       };
 
       final response = await http.post(
@@ -131,14 +131,7 @@ class RateProductNotifier extends StateNotifier<Map<String, RateProductState>> {
   }
 }
 
-
 final rateProductProvider =
     StateNotifierProvider<RateProductNotifier, Map<String, RateProductState>>(
   (ref) => RateProductNotifier(),
 );
-
-
-
-
-
-

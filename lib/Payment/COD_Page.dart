@@ -301,7 +301,7 @@ class _OrderConfirmationState extends ConsumerState<OrderConfirmation> {
                                                   const OrdersTabScreen(),
                                             ),
                                           );
-                                        },
+                                        }, button: 'My Orders',
                                       ).show();
                                     }
                                   } catch (e) {

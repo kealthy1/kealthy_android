@@ -10,6 +10,7 @@ import 'package:kealthy/Login/login_page.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../Login/Guest_Alert.dart';
 import '../../Maps/SelectAdress.dart';
 import '../../Orders/ordersTab.dart';
 
@@ -412,7 +413,40 @@ class ProfilePage extends ConsumerWidget {
         Icons.chevron_right,
         color: Color(0xFF273847),
       ),
-      onTap: onTap,
+      onTap: () async {
+        final prefs = await SharedPreferences.getInstance();
+        final phoneNumber = prefs.getString('phoneNumber') ?? '';
+
+        if (phoneNumber.isEmpty &&
+            (title == 'My Address' ||
+                title == 'Orders' ||
+                title == 'Help & Support')) {
+          GuestDialog.show(
+            context: context,
+            title: "Login Required",
+            content: "Please log in to access $title.",
+            navigateTo: LoginFields(),
+          );
+        } else {
+          onTap();
+        }
+      },
     );
   }
+}
+
+class AuthNotifier extends StateNotifier<String?> {
+  AuthNotifier() : super(null) {
+    _loadPhoneNumber();
+  }
+
+  // Load phoneNumber from SharedPreferences
+  Future<void> _loadPhoneNumber() async {
+    final prefs = await SharedPreferences.getInstance();
+    state = prefs.getString('phoneNumber');
+  }
+
+  final authProvider = StateNotifierProvider<AuthNotifier, String?>((ref) {
+    return AuthNotifier();
+  });
 }

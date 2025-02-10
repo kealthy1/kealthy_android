@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Services/Notifications/Home.dart';
 
@@ -64,6 +65,7 @@ class ReviewService {
     String? payload,
     String? imageUrl,
   }) async {
+    await _deleteSharedPreferenceData(["notification_shown", "order_id"]);
     ByteArrayAndroidBitmap? bigPicture;
     ByteArrayAndroidBitmap? largeIcon;
 
@@ -112,6 +114,19 @@ class ReviewService {
       platformDetails,
       payload: payload,
     );
+  }
+
+  Future<void> _deleteSharedPreferenceData(List<String> keys) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    for (String key in keys) {
+      if (prefs.containsKey(key)) {
+        await prefs.remove(key);
+        print("✅ SharedPreferences data [$key] deleted successfully");
+      } else {
+        print("⚠️ No data found for key: $key");
+      }
+    }
   }
 
   Future<Uint8List> _fetchImage(String url) async {

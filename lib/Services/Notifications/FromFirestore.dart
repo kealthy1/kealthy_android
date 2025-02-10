@@ -219,13 +219,16 @@ class NotificationsScreens extends ConsumerWidget {
                                                 Shimmer.fromColors(
                                               baseColor: Colors.grey[300]!,
                                               highlightColor: Colors.grey[100]!,
-                                              child: Container(
-                                                width: 80,
-                                                height: 100,
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey[300],
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: Container(
+                                                  width: 80,
+                                                  height: 100,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey[300],
+                                                    borderRadius:
+                                                        BorderRadius.circular(12),
+                                                  ),
                                                 ),
                                               ),
                                             ),

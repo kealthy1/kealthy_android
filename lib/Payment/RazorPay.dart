@@ -55,6 +55,7 @@ class _RazorPayState extends ConsumerState<RazorPay> {
             ),
           );
         },
+        button: " My Orders",
       ).show();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -73,7 +74,7 @@ class _RazorPayState extends ConsumerState<RazorPay> {
     ReusableCountdownDialog(
       context: context,
       ref: ref,
-      message: "Payment Failed! Returning to the cart",
+      message: "Payment Failed",
       imagePath: "assets/Animation - 1731995566846.json",
       onRedirect: () {
         Navigator.pushReplacement(
@@ -81,7 +82,7 @@ class _RazorPayState extends ConsumerState<RazorPay> {
             CupertinoModalPopupRoute(
               builder: (context) => CustomBottomNavigationBar(),
             ));
-      },
+      }, button: 'Home',
     ).show();
   }
 
@@ -124,7 +125,6 @@ class _RazorPayState extends ConsumerState<RazorPay> {
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(

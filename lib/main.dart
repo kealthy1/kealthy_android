@@ -8,7 +8,6 @@ import 'package:kealthy/Login/SplashScreen.dart';
 import 'package:kealthy/MenuPage/MenuPage.dart';
 import 'package:kealthy/Services/Blogs/Blog.dart';
 import 'package:kealthy/Services/Connection.dart';
-import 'package:kealthy/Services/NotificationHandler.dart';
 import 'DetailsPage/NutritionInfo.dart';
 import 'DetailsPage/Ratings/Providers.dart';
 import 'DetailsPage/Ratings/Show_Review.dart';
@@ -73,7 +72,7 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       InAppUpdateService().checkForUpdate(context);
-      NotificationHandler.initialize(navigatorKey.currentContext!, ref);
+      
     });
 
     return MaterialApp(

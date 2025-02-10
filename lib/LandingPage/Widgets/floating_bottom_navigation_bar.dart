@@ -6,11 +6,15 @@ import 'package:kealthy/LandingPage/Myprofile/Myprofile.dart';
 import 'package:kealthy/Orders/ordersTab.dart';
 import 'package:kealthy/Services/update.dart';
 import 'package:permission_handler/permission_handler.dart' as perm;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../Riverpod/BackButton.dart';
 import '../../Services/Location_Permission.dart';
+import '../../Services/NotificationHandler.dart';
 import '../../Services/fcm_permission.dart';
 import '../HomePage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 final ordersProvider = StateProvider<bool>((ref) => false);
 final bottomNavIndexProvider = StateProvider<int>((ref) => 0);
@@ -30,6 +34,12 @@ class _CustomBottomNavigationBarState
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final prefs = await SharedPreferences.getInstance();
+      final phoneNumber = prefs.getString('phoneNumber') ?? '';
+
+      if (phoneNumber.isEmpty) {
+        return;
+      }
       UpdateService.checkForUpdate(context);
 
       perm.PermissionStatus status = await perm.Permission.notification.status;
@@ -40,6 +50,9 @@ class _CustomBottomNavigationBarState
 
       final locationServiceChecker = LocationServiceChecker(context);
       locationServiceChecker.startChecking();
+      if (mounted && navigatorKey.currentContext != null) {
+        NotificationHandler.initialize(navigatorKey.currentContext!, ref);
+      }
     });
   }
 

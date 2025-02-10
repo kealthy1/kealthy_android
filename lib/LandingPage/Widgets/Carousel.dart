@@ -5,11 +5,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:kealthy/Services/BMI/Bmi.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../Riverpod/Carousel.dart';
-import '../../Services/BMI.dart';
+import '../../Services/BMI/calorie.dart';
 import '../../Services/Blogs/BlogList.dart';
 import '../../Services/Cache.dart';
 
@@ -230,6 +231,12 @@ class _CarouselSliderWidgetState extends ConsumerState<CarouselSliderWidget> {
               builder: (context) => const CalorieIntakePage()),
         );
         break;
+        case 5:
+        Navigator.push(
+          context,
+          CupertinoModalPopupRoute(
+              builder: (context) =>  BmiTrackerPage()),
+        );
       default:
         break;
     }

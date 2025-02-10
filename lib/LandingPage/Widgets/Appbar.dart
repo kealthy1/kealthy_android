@@ -4,13 +4,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:kealthy/Login/login_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../Login/Guest_Alert.dart';
 import '../../Maps/functions/Delivery_detailslocationprovider.dart';
 import '../../Maps/SelectAdress.dart';
 import '../../Orders/ordersTab.dart';
 import '../../Services/Notifications/FromFirestore.dart';
 import '../../Services/Notifications/Home.dart';
 import '../../Services/Notifications/shared_prefrences_Notification.dart';
+import 'package:lottie/lottie.dart';
 
 class SelectedRoadNotifier extends StateNotifier<String?> {
   SelectedRoadNotifier() : super(null) {
@@ -78,16 +81,28 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
       backgroundColor: Colors.white,
       title: GestureDetector(
         onTap: () async {
-          final notifier = ref.read(selectedRoadProvider.notifier);
-          final updatedRoad = await Navigator.push(
-            context,
-            CupertinoModalPopupRoute(
-              builder: (context) => const SelectAdress(totalPrice: 0),
-            ),
-          );
+          final prefs = await SharedPreferences.getInstance();
+          final phoneNumber = prefs.getString('phoneNumber') ?? '';
 
-          if (updatedRoad != null) {
-            await notifier.updateSelectedRoad(updatedRoad);
+          if (phoneNumber.isEmpty) {
+            GuestDialog.show(
+              context: context,
+              title: "Login Required",
+              content: "Please log in to continue.",
+              navigateTo: LoginFields(),
+            );
+          } else {
+            final notifier = ref.read(selectedRoadProvider.notifier);
+            final updatedRoad = await Navigator.push(
+              context,
+              CupertinoModalPopupRoute(
+                builder: (context) => const SelectAdress(totalPrice: 0),
+              ),
+            );
+
+            if (updatedRoad != null) {
+              await notifier.updateSelectedRoad(updatedRoad);
+            }
           }
         },
         child: Row(
@@ -223,8 +238,6 @@ class Help extends ConsumerWidget {
 
     return GestureDetector(
         onTap: () {
-          // ignore: unused_result
-          ref.refresh(firestoreNotificationProvider);
           Navigator.push(
               context,
               CupertinoModalPopupRoute(
@@ -238,19 +251,13 @@ class Help extends ConsumerWidget {
               style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.grey.shade300),
               onPressed: () {
-                // ignore: unused_result
-                ref.refresh(firestoreNotificationProvider);
                 Navigator.push(
                     context,
                     CupertinoModalPopupRoute(
                       builder: (context) => NotificationHome(),
                     ));
               },
-              icon: Icon(
-                CupertinoIcons.bell,
-                size: 25,
-                color: Color(0xFF273847),
-              ),
+              icon: buildNotificationIcon(notification.length),
             ),
             if (totalNotifications > 0)
               Transform.translate(
@@ -284,6 +291,24 @@ class Help extends ConsumerWidget {
               ),
           ],
         ));
+  }
+
+  Widget buildNotificationIcon(int notification) {
+    if (notification > 0) {
+      return Lottie.asset(
+        'assets/icons8-notification.json',
+        width: 30,
+        height: 30,
+        fit: BoxFit.cover,
+        repeat: true, // Ensure continuous animation
+      );
+    } else {
+      return const Icon(
+        CupertinoIcons.bell,
+        size: 30,
+        color: Color(0xFF273847),
+      );
+    }
   }
 }
 

@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Services/FeedbackAPI.dart';
+import '../../Services/Navigation.dart';
+import 'floating_bottom_navigation_bar.dart';
 
 final isLoadingProvider = StateProvider<bool>((ref) => false);
 
@@ -400,7 +402,10 @@ class FeedbackPage extends ConsumerWidget {
                                 final isSuccess = await feedbackNotifier
                                     .submitFeedback(context);
                                 if (isSuccess) {
-                                  Navigator.pop(context);
+                                  Navigator.push(
+                                      context,
+                                      SeamlessRevealRoute(
+                                          page: CustomBottomNavigationBar()));
                                   // ignore: unused_result
                                   ref.refresh(feedbackProvider);
                                   // ignore: unused_result

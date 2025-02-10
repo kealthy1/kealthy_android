@@ -79,7 +79,7 @@ class CategoryItem extends ConsumerWidget {
                     child: CachedNetworkImage(
                       cacheManager: CustomCacheManager(),
                       imageUrl: imageUrl,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.fill,
                       placeholder: (context, url) => Shimmer.fromColors(
                         baseColor: Colors.grey[300]!,
                         highlightColor: Colors.grey[100]!,

@@ -30,7 +30,7 @@ class NotificationStateNotifier extends StateNotifier<NotificationState> {
       final currentTime = DateTime.now().millisecondsSinceEpoch;
       final timeDifference = currentTime - timestamp;
 
-      if (timeDifference > 3600000) {
+      if (timeDifference > 10800000) {
         state = state.copyWith(rateUsDialogBody: body);
       } else {
         state = state.copyWith(rateUsDialogBody: null);

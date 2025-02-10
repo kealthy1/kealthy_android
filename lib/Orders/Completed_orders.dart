@@ -75,13 +75,7 @@ class OrderDataNotifier extends StateNotifier<AsyncValue<List<OrderData>?>> {
   Future<void> fetchOrderData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final phoneNumber = prefs.getString('phoneNumber');
-
-      if (phoneNumber == null) {
-        state = AsyncValue.error(
-            "Phone number not found in preferences.", StackTrace.current);
-        return;
-      }
+      final phoneNumber = prefs.getString("phoneNumber");
 
       final apiUrl = "https://api-jfnhkjk4nq-uc.a.run.app/orders/$phoneNumber";
       final response = await http.get(Uri.parse(apiUrl));
@@ -126,198 +120,200 @@ class OrderCard extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: orderDataAsync.when(
-        data: (orders) {
-          if (orders == null || orders.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    CupertinoIcons.cart,
-                    size: 50,
-                    color: Color(0xFF273847),
-                  ),
-                  Text(
-                    'No orders found',
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
+          data: (orders) {
+            if (orders == null || orders.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      CupertinoIcons.cart,
+                      size: 50,
                       color: Color(0xFF273847),
                     ),
-                  ),
-                ],
-              ),
-            );
-          }
-          orders.sort((a, b) => b.date.compareTo(a.date));
-          return ListView.builder(
-            itemCount: orders.length,
-            itemBuilder: (context, index) {
-              final orderData = orders[index];
-              final screenSize = MediaQuery.of(context).size;
-              final padding = screenSize.width * 0.03;
-              final itemHeight = screenSize.height * 0.10;
-
-              return Padding(
-                padding: EdgeInsets.all(padding),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 4,
-                        offset: const Offset(0, 3),
+                    Text(
+                      'No orders found',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        color: Color(0xFF273847),
                       ),
-                    ],
-                  ),
-                  padding: EdgeInsets.all(padding),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                overflow: TextOverflow.ellipsis,
-                                "Order ${orderData.orderId.length > 10 ? orderData.orderId.substring(orderData.orderId.length - 10) : orderData.orderId}",
-                                style: GoogleFonts.poppins(
-                                  color: Colors.black,
-                                  fontSize: 20,
-                                ),
-                              ),
-                              SizedBox(
-                                width: 5,
-                              ),
-                              Icon(
-                                CupertinoIcons.doc,
-                                size: 16,
-                                color: Colors.grey,
-                              ),
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              Text(
-                                overflow: TextOverflow.ellipsis,
-                                orderData.date,
-                                style: GoogleFonts.poppins(
-                                  color: Colors.black,
-                                ),
-                              ),
-                              Text(
-                                overflow: TextOverflow.ellipsis,
-                                DateFormat('h:mm a').format(
-                                  DateFormat('HH:mm:ss').parse(orderData.time),
-                                ),
-                                style: GoogleFonts.poppins(
-                                  color: Colors.black,
-                                ),
-                              )
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        overflow: TextOverflow.ellipsis,
-                        "Total Amount  ₹${orderData.totalAmountToPay.toStringAsFixed(0)}/-",
-                        style: GoogleFonts.poppins(),
-                      ),
-                      const Divider(
-                        thickness: 1.5,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Items:",
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            overflow: TextOverflow.ellipsis,
-                            "Delivered",
-                            style: GoogleFonts.poppins(
-                              color: Colors.green,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      SizedBox(
-                        height: itemHeight,
-                        child: ListView.builder(
-                          itemCount: orderData.orderItems.length,
-                          itemBuilder: (context, itemIndex) {
-                            final item = orderData.orderItems[itemIndex];
-                            return ListTile(
-                              title: Text(
-                                overflow: TextOverflow.ellipsis,
-                                item.itemName,
-                                style: GoogleFonts.poppins(),
-                              ),
-                              subtitle: Text(
-                                overflow: TextOverflow.ellipsis,
-                                "Quantity: ${item.itemQuantity} | Price: ₹${item.itemPrice.toStringAsFixed(0)}/-",
-                                style: GoogleFonts.poppins(),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: FutureBuilder<String?>(
-                          future: SharedPreferences.getInstance()
-                              .then((prefs) => prefs.getString('order_id')),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData &&
-                                snapshot.data == orderData.orderId) {
-                              return ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  backgroundColor: const Color(0xFF273847),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 10),
-                                  textStyle: GoogleFonts.poppins(
-                                      color: Colors.white, fontSize: 10),
-                                ),
-                                onPressed: () {},
-                                child: Text(
-                                  "Share Feedback",
-                                  style:
-                                      GoogleFonts.poppins(color: Colors.white),
-                                ),
-                              );
-                            }
-                            return const SizedBox
-                                .shrink();
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               );
-            },
-          );
-        },
-        loading: () => Center(
-            child: LoadingAnimationWidget.inkDrop(
-          size: 60,
-          color: Color(0xFF273847),
-        )),
-        error: (err, stack) => Center(child: Text("Error: $err")),
-      ),
+            }
+            orders.sort((a, b) => b.date.compareTo(a.date));
+            return ListView.builder(
+              itemCount: orders.length,
+              itemBuilder: (context, index) {
+                final orderData = orders[index];
+                final screenSize = MediaQuery.of(context).size;
+                final padding = screenSize.width * 0.03;
+
+                return Padding(
+                  padding: EdgeInsets.all(padding),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 4,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    padding: EdgeInsets.all(padding),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  overflow: TextOverflow.ellipsis,
+                                  "Order ${orderData.orderId.length > 10 ? orderData.orderId.substring(orderData.orderId.length - 10) : orderData.orderId}",
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.black,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                Icon(
+                                  CupertinoIcons.doc,
+                                  size: 16,
+                                  color: Colors.grey,
+                                ),
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                Text(
+                                  overflow: TextOverflow.ellipsis,
+                                  orderData.date,
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                Text(
+                                  overflow: TextOverflow.ellipsis,
+                                  DateFormat('h:mm a').format(
+                                    DateFormat('HH:mm:ss')
+                                        .parse(orderData.time),
+                                  ),
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.black,
+                                  ),
+                                )
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          overflow: TextOverflow.ellipsis,
+                          "Total Amount  ₹${orderData.totalAmountToPay.toStringAsFixed(0)}/-",
+                          style: GoogleFonts.poppins(),
+                        ),
+                        const Divider(
+                          thickness: 1.5,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Items:",
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              overflow: TextOverflow.ellipsis,
+                              "Delivered",
+                              style: GoogleFonts.poppins(
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: orderData.orderItems.length,
+                            itemBuilder: (context, itemIndex) {
+                              final item = orderData.orderItems[itemIndex];
+                              return ListTile(
+                                title: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 5, vertical: 1),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        '${item.itemQuantity}',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        'x ${item.itemName}',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0, vertical: 5),
+                                  child: Text(
+                                    overflow: TextOverflow.ellipsis,
+                                    "₹${item.itemPrice.toStringAsFixed(0)}/-",
+                                    style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+          loading: () => Center(
+                  child: LoadingAnimationWidget.inkDrop(
+                size: 60,
+                color: Color(0xFF273847),
+              )),
+          error: (err, stack) => SizedBox.shrink()),
     );
   }
 }

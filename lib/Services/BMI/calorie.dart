@@ -1,8 +1,14 @@
+// ignore_for_file: unused_result
+
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../Riverpod/calorie_provider.dart';
+import '../../Riverpod/calorie_provider.dart';
+
+final selectedActivityProvider =
+    StateProvider<String>((ref) => "Sedentary (Little or no exercise)");
 
 class CalorieIntakePage extends ConsumerStatefulWidget {
   const CalorieIntakePage({super.key});
@@ -26,14 +32,21 @@ class _CalorieIntakePageState extends ConsumerState<CalorieIntakePage> {
     super.dispose();
   }
 
+  final activityLevels = [
+    "Sedentary (Little or no exercise)",
+    "Light (1-2 times/week)",
+    "Moderate (2-3 times/week)",
+    "Active (4+ times/week)"
+  ];
+
   @override
   Widget build(BuildContext context) {
     final calorieState = ref.watch(calorieProvider);
 
     return WillPopScope(
       onWillPop: () async {
-        // ignore: unused_result
         ref.refresh(calorieProvider);
+        ref.refresh(selectedActivityProvider);
         return true;
       },
       child: Scaffold(
@@ -43,7 +56,7 @@ class _CalorieIntakePageState extends ConsumerState<CalorieIntakePage> {
           centerTitle: true,
           automaticallyImplyLeading: false,
           title: Text(
-            "Kealthy BMI Tracker",
+            "Kealthy Calorie Tracker",
             style: GoogleFonts.poppins(color: Colors.black),
           ),
         ),
@@ -97,6 +110,53 @@ class _CalorieIntakePageState extends ConsumerState<CalorieIntakePage> {
                 },
               ),
               const SizedBox(height: 16),
+              Center(
+                child: Text("Activity Level",
+                    style: GoogleFonts.poppins(
+                        fontSize: 16, fontWeight: FontWeight.w600)),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Consumer(
+                builder: (context, ref, child) {
+                  final selectedActivity = ref.watch(selectedActivityProvider);
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: DropdownButton2<String>(
+                      value: selectedActivity,
+                      isExpanded: true,
+                      hint: Text("Select Activity Level",
+                          style: GoogleFonts.poppins(color: Colors.white)),
+                      buttonStyleData: ButtonStyleData(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white,
+                        ),
+                      ),
+                      dropdownStyleData: DropdownStyleData(
+                        decoration: BoxDecoration(color: Colors.white),
+                      ),
+                      items: activityLevels.map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12.0, vertical: 8.0),
+                            child: Text(value),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        ref.read(selectedActivityProvider.notifier).state =
+                            newValue!;
+                      },
+                    ),
+                  );
+                },
+              ),
               Row(
                 children: [
                   Radio<String>(
@@ -129,14 +189,29 @@ class _CalorieIntakePageState extends ConsumerState<CalorieIntakePage> {
                 child: ElevatedButton(
                   onPressed: () {
                     FocusScope.of(context).unfocus();
-
                     if (calorieState.weight > 0 &&
                         calorieState.height > 0 &&
                         calorieState.age > 0 &&
                         calorieState.gender.isNotEmpty) {
+                      final selectedActivity =
+                          ref.read(selectedActivityProvider);
+                      double activityMultiplier = 1.2; // Default Sedentary
+
+                      switch (selectedActivity) {
+                        case "Light (1-2 times/week)":
+                          activityMultiplier = 1.375;
+                          break;
+                        case "Moderate (2-3 times/week)":
+                          activityMultiplier = 1.55;
+                          break;
+                        case "Active (4+ times/week)":
+                          activityMultiplier = 1.725;
+                          break;
+                      }
+
                       ref
                           .read(calorieProvider.notifier)
-                          .calculateCalories(1.375);
+                          .calculateCalories(activityMultiplier);
 
                       Future.delayed(const Duration(milliseconds: 200), () {
                         if (_scrollController.hasClients) {
@@ -164,7 +239,7 @@ class _CalorieIntakePageState extends ConsumerState<CalorieIntakePage> {
                     backgroundColor: const Color(0xFF273847),
                   ),
                   child: Text(
-                    'Calculate BMI',
+                    'Calculate',
                     style:
                         GoogleFonts.poppins(color: Colors.white, fontSize: 12),
                   ),

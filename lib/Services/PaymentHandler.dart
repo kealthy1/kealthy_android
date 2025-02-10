@@ -80,7 +80,7 @@ class PaymentHandler {
           'item_price': itemPrice,
           "item_EAN": EAN,
         });
-        // unawaited(reduceItemStock(EAN!, itemQuantity));
+        unawaited(reduceItemStock(EAN!, itemQuantity));
         index++;
       }
       unawaited(SharedPreferencesHelper.saveOrderItems(orderItems));
@@ -138,6 +138,7 @@ class PaymentHandler {
         title: randomTitle,
         body: randomBody,
         payload: "review_screen",
+        fcm_token: fcmToken,
         imageUrl:
             "https://firebasestorage.googleapis.com/v0/b/kealthy-90c55.appspot.com/o/feedback%2Fa-minimalistic-design-for-a-healthy-food_38vJ50AsTdOxv4Z5Wt32LA_8cxtpxqbSYaVP_s8Ygh7bQ.jpeg?alt=media&token=03691f32-6713-44cb-8cb4-edf94ebf645a",
         productNames: productNames,

@@ -2,11 +2,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/MenuPage/MenuPage.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../Services/Cache.dart';
+import '../Services/Notifications/FromFirestore.dart';
 
 class FoodCategoriesScreen extends StatelessWidget {
   final String category;
@@ -77,7 +79,7 @@ class FoodCategoriesScreen extends StatelessWidget {
   }
 }
 
-class CategoryCard extends StatelessWidget {
+class CategoryCard extends ConsumerWidget {
   final String imageUrl;
   final String title;
   final String description;
@@ -91,7 +93,7 @@ class CategoryCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     double screenWidth = MediaQuery.of(context).size.width;
 
     return GestureDetector(
@@ -102,6 +104,8 @@ class CategoryCard extends StatelessWidget {
             builder: (context) => MenuPage(categoryName: title),
           ),
         );
+        // ignore: unused_result
+        ref.refresh(firestoreNotificationProvider);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 5),
@@ -149,7 +153,6 @@ class CategoryCard extends StatelessWidget {
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
-                     
                     ),
                     const SizedBox(height: 8),
                     Text(

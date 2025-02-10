@@ -34,7 +34,7 @@ class ProductReviewWidget extends ConsumerWidget {
 
           return Scaffold(
             backgroundColor: Colors.white,
-            appBar: AppBar(
+            appBar: AppBar(centerTitle: true,
               automaticallyImplyLeading: false,
               surfaceTintColor: Colors.white,
               title: Text(
@@ -126,7 +126,6 @@ class ProductReviewWidget extends ConsumerWidget {
                                               fontSize: 18,
                                               fontWeight: FontWeight.w600,
                                             ),
-                                            overflow: TextOverflow.ellipsis,
                                           ),
                                           const SizedBox(height: 10),
                                           averageStarsAsync.when(
@@ -277,9 +276,7 @@ class ProductReviewWidget extends ConsumerWidget {
                                                     firestoreNotificationProvider);
                                                 Navigator.pop(context);
                                               },
-                                              onError: (error) {
-                                               
-                                              },
+                                              onError: (error) {},
                                             );
                                           },
                                     child: ref

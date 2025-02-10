@@ -57,6 +57,13 @@ Future<void> checkAndRequestLocation(BuildContext context) async {
                           await Geolocator.isLocationServiceEnabled();
                       if (!serviceEnabled) {
                         await Geolocator.openLocationSettings();
+                      }
+                      LocationPermission permission =
+                          await Geolocator.checkPermission();
+
+                      if (permission == LocationPermission.denied ||
+                          permission == LocationPermission.deniedForever) {
+                        openAppSettings();
                       } else {
                         Navigator.of(context).pop();
                       }

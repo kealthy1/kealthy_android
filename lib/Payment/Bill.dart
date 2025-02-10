@@ -29,10 +29,8 @@ class BillDetails extends ConsumerWidget {
 
     return totalDistanceAsync.when(
       data: (totalDistance) {
-        double originalFee = 0;
         double discountedFee = 0;
         bool isFreeDelivery = false;
-        bool showUnlockMessage = false;
 
         // Add ₹50 if selected slot is "Slot Delivery 📦"
         double additionalCharge = 0;
@@ -60,11 +58,6 @@ class BillDetails extends ConsumerWidget {
           int roundedDistance = totalDistance.ceil();
 
           // Calculate original fee (total distance at standard rates)
-          originalFee = roundedDistance > 10
-              ? (5 * 30) + (5 * 10) + ((roundedDistance - 10) * 10)
-              : (roundedDistance <= 5
-                  ? roundedDistance * 30
-                  : (5 * 30) + ((roundedDistance - 5) * 10));
 
           // Delivery fee logic
           if (totalPrice >= 199) {
@@ -86,9 +79,7 @@ class BillDetails extends ConsumerWidget {
             }
           }
 
-          if (totalPrice < 199 && roundedDistance <= 5) {
-            showUnlockMessage = true;
-          }
+          if (totalPrice < 199 && roundedDistance <= 5) {}
 
           _saveDeliveryFee(discountedFee);
         }
@@ -125,17 +116,47 @@ class BillDetails extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    if (isFreeDelivery || showUnlockMessage)
-                      Text(
-                        isFreeDelivery
-                            ? 'You Unlocked A Free Delivery 🎉'
-                            : 'Purchase for ₹${(199 - totalPrice).toStringAsFixed(0)} More to unlock free Delivery!',
-                        style: GoogleFonts.poppins(
-                          color: isFreeDelivery ? Colors.green : Colors.orange,
-                        ),
-                      )
-                    else
-                      const SizedBox.shrink(),
+                    Text(
+                      (totalPrice >= 199 &&
+                              totalDistance != null &&
+                              totalDistance.ceil() <= 7)
+                          ? 'You Unlocked A Free Delivery 🎉'
+                          : (totalPrice < 199 &&
+                                  totalDistance != null &&
+                                  totalDistance.ceil() <= 7)
+                              ? 'Purchase for ₹${(199 - totalPrice).toStringAsFixed(0)} More to unlock free Delivery!'
+                              : (totalPrice < 199 &&
+                                      totalDistance != null &&
+                                      totalDistance.ceil() > 7)
+                                  ? 'Purchase for ₹${(199 - totalPrice).toStringAsFixed(0)} and pay delivery fee ₹${((totalDistance.ceil() - 7) * 8).toStringAsFixed(0)}/- Only'
+                                  : (totalPrice >= 199 &&
+                                          totalDistance != null &&
+                                          totalDistance.ceil() > 7)
+                                      ? 'Unlocked A Discounted Delivery! 🎉 You saved ₹${((totalDistance * 10) - discountedFee).toStringAsFixed(0)} on This Order!'
+                                      : '',
+                      style: GoogleFonts.montserrat(
+                        color: (totalPrice >= 199 &&
+                                totalDistance != null &&
+                                totalDistance.ceil() <= 7)
+                            ? Colors.green // Free Delivery (Green)
+                            : (totalPrice < 199 &&
+                                    totalDistance != null &&
+                                    totalDistance.ceil() <= 7)
+                                ? Colors.orange // Unlock Free Delivery (Orange)
+                                : (totalPrice < 199 &&
+                                        totalDistance != null &&
+                                        totalDistance.ceil() > 7)
+                                    ? Colors
+                                        .red // Purchase & Pay Delivery Fee (Red)
+                                    : (totalPrice >= 199 &&
+                                            totalDistance != null &&
+                                            totalDistance.ceil() > 7)
+                                        ? Colors
+                                            .green // Discounted Delivery (Blue)
+                                        : Colors
+                                            .orange, // Default color (if none of the conditions match)
+                      ),
+                    ),
                     const SizedBox(height: 10),
                     ListView(
                       shrinkWrap: true,
@@ -159,15 +180,16 @@ class BillDetails extends ConsumerWidget {
                             children: [
                               if (isFreeDelivery)
                                 Text(
-                                  '₹${originalFee.toStringAsFixed(0)} /-',
+                                  '₹${(totalDistance != null ? (totalDistance * 10).toStringAsFixed(0) : '0')} /-',
                                   style: const TextStyle(
                                     decoration: TextDecoration.lineThrough,
                                     color: Colors.grey,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               if (totalDistance != null && totalDistance >= 7)
                                 Text(
-                                  '₹${(totalDistance * 8).toStringAsFixed(0)} ',
+                                  '₹${(totalDistance * 10).toStringAsFixed(0)} ',
                                   style: GoogleFonts.poppins(
                                       color: Colors.grey,
                                       fontWeight: FontWeight.bold,
@@ -216,7 +238,7 @@ class BillDetails extends ConsumerWidget {
                           title: 'To Pay',
                           amount: '₹${totalToPay.toStringAsFixed(0)}/-',
                           isRightAligned: true,
-                          isBold: false,
+                          isBold: true,
                         ),
                       ],
                     ),
@@ -234,7 +256,7 @@ class BillDetails extends ConsumerWidget {
         ),
       ),
       error: (error, stack) => Center(
-        child: Text('Error loading distance: $error'),
+        child: SizedBox.shrink(),
       ),
     );
   }

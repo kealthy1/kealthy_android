@@ -5,6 +5,7 @@ class NotificationData {
   final String title;
   final String body;
   final String payload;
+  final String fcm_token;
   final String imageUrl;
   final List<String> productNames;
   final Timestamp timestamp;
@@ -16,6 +17,7 @@ class NotificationData {
     required this.title,
     required this.body,
     required this.payload,
+    required this.fcm_token,
     required this.imageUrl,
     required this.productNames,
     required this.timestamp,
@@ -29,6 +31,7 @@ class NotificationData {
       title: map['title'] as String,
       body: map['body'] as String,
       payload: map['payload'] as String,
+      fcm_token: map['fcm_token'] as String,
       imageUrl: map['imageUrl'] as String,
       productNames: List<String>.from(map['product_names'] as List<dynamic>),
       timestamp: map['timestamp'] as Timestamp,
@@ -43,6 +46,7 @@ class NotificationData {
       'title': title,
       'body': body,
       'payload': payload,
+      'fcm_token': fcm_token,
       'imageUrl': imageUrl,
       'product_names': productNames,
       'timestamp': timestamp,

@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/Cart/SlotsBooking.dart';
 import 'package:kealthy/Cart/adress&slot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../Login/Guest_Alert.dart';
+import '../Login/login_page.dart';
 import '../Maps/SelectAdress.dart';
 import '../Payment/COD_Page.dart';
 import '../Payment/SavedAdress.dart';
@@ -153,6 +155,19 @@ class ShowCart extends ConsumerWidget {
                                 : () async {
                                     final prefs =
                                         await SharedPreferences.getInstance();
+                                    final phoneNumber =
+                                        prefs.getString('phoneNumber') ?? '';
+
+                                    if (phoneNumber.isEmpty) {
+                                      GuestDialog.show(
+                                        context: context,
+                                        title: "Login Required",
+                                        content: "Please log in to continue.",
+                                        navigateTo: LoginFields(),
+                                      );
+                                      return;
+                                    }
+
                                     await prefs.remove("selectedSlot");
                                     // ignore: unused_result
                                     ref.refresh(CODloadingProvider);

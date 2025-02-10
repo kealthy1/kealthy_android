@@ -7,6 +7,7 @@ class ReusableCountdownDialog {
   final BuildContext context;
   final WidgetRef ref;
   final String message;
+  final String button;
   final String imagePath;
   final VoidCallback onRedirect;
 
@@ -16,6 +17,7 @@ class ReusableCountdownDialog {
     required this.message,
     required this.imagePath,
     required this.onRedirect,
+    required this.button,
   });
 
   void show() {
@@ -29,7 +31,8 @@ class ReusableCountdownDialog {
               onWillPop: () async {
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => const CustomBottomNavigationBar()),
+                  MaterialPageRoute(
+                      builder: (context) => const CustomBottomNavigationBar()),
                   (route) => false,
                 );
                 return false;
@@ -45,6 +48,7 @@ class ReusableCountdownDialog {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Lottie.asset(
+                        repeat: false,
                         imagePath,
                         height: 300,
                       ),
@@ -64,8 +68,8 @@ class ReusableCountdownDialog {
                           Navigator.pop(context);
                           onRedirect();
                         },
-                        child: const Text(
-                          "My Orders",
+                        child: Text(
+                          button,
                           style: TextStyle(color: Colors.white),
                         ),
                       ),

@@ -6,7 +6,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:kealthy/Login/otp_screen.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import '../LandingPage/Widgets/floating_bottom_navigation_bar.dart';
 import '../Riverpod/LoadingproviderLoginpage.dart';
+import 'Guest_Alert.dart';
+import 'signUp.dart';
 
 class LoginFields extends ConsumerStatefulWidget {
   const LoginFields({super.key});
@@ -29,30 +32,68 @@ class _LoginFieldsState extends ConsumerState<LoginFields> {
     ref.read(loadingProvider.notifier).state = true;
 
     final phoneNumber = _phoneController.text.trim();
-    const url = 'https://api-jfnhkjk4nq-uc.a.run.app/send-otp';
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phoneNumber': phoneNumber}),
-      );
+    const checkUserUrl =
+        'https://api-jfnhkjk4nq-uc.a.run.app/checkUserExists?phoneNumber=';
+    const otpUrl = 'https://api-jfnhkjk4nq-uc.a.run.app/send-otp';
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final verificationId = data['verificationId'];
-        print('OTP sent successfully! Response: ${response.body}');
-        FocusScope.of(context).unfocus();
-        Navigator.pushReplacement(
-          context,
-          CupertinoPageRoute(
-            builder: (context) => OTPScreen(
-              verificationId: verificationId,
-              phoneNumber: phoneNumber,
-            ),
-          ),
-        );
+    try {
+      final checkUserResponse =
+          await http.get(Uri.parse('$checkUserUrl$phoneNumber'));
+
+      if (checkUserResponse.statusCode == 200) {
+        final userData = jsonDecode(checkUserResponse.body);
+
+        if (userData['success'] && userData['message'] == "User found") {
+          final otpResponse = await http.post(
+            Uri.parse(otpUrl),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'phoneNumber': phoneNumber}),
+          );
+
+          if (otpResponse.statusCode == 200) {
+            final otpData = jsonDecode(otpResponse.body);
+            final verificationId = otpData['verificationId'];
+
+            print('OTP sent successfully! Response: ${otpResponse.body}');
+            FocusScope.of(context).unfocus();
+
+            Navigator.pushReplacement(
+              context,
+              CupertinoPageRoute(
+                builder: (context) => OTPScreen(
+                  verificationId: verificationId,
+                  phoneNumber: phoneNumber,
+                ),
+              ),
+            );
+          } else {
+            print('Failed to send OTP: ${otpResponse.body}');
+          }
+        } else {
+          final otpResponse = await http.post(
+            Uri.parse(otpUrl),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'phoneNumber': phoneNumber}),
+          );
+
+          if (otpResponse.statusCode == 200) {
+            final otpData = jsonDecode(otpResponse.body);
+            final verificationId = otpData['verificationId'];
+            Navigator.pushReplacement(
+              context,
+              CupertinoPageRoute(
+                builder: (context) => SignUpScreen(
+                  phoneNumber: phoneNumber,
+                  verificationId: verificationId,
+                ),
+              ),
+            );
+          } else {
+            print('Failed to send OTP: ${otpResponse.body}');
+          }
+        }
       } else {
-        print('Failed to send OTP: ${response.body}');
+        print('Failed to check user: ${checkUserResponse.body}');
       }
     } catch (e) {
       print('Error: $e');
@@ -72,24 +113,55 @@ class _LoginFieldsState extends ConsumerState<LoginFields> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Container(
-              height: MediaQuery.of(context).size.height * 0.5,
-              decoration: BoxDecoration(
-                border:
-                    Border.all(color: Colors.grey.withOpacity(0.4), width: 0.5),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
+            Stack(
+              children: [
+                Container(
+                  height: MediaQuery.of(context).size.height * 0.5,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                        color: Colors.grey.withOpacity(0.4), width: 0.5),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(20),
+                      bottomRight: Radius.circular(20),
+                    ),
+                    image: DecorationImage(
+                      image: AssetImage("assets/opening.jpg"),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
-                image: DecorationImage(
-                  image: AssetImage("assets/opening.jpg"),
-                  fit: BoxFit.cover,
+                Positioned(
+                  top: 40,
+                  right: 20,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: TextButton(
+                      onPressed: () {
+                        GuestDialog.show(
+                          context: context,
+                          title: "Continue as Guest?",
+                          content:
+                              "You won't be able to save preferences or place orders without logging in.",
+                          navigateTo: const CustomBottomNavigationBar(),
+                        );
+                      },
+                      child: Text(
+                        "Skip",
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-            SizedBox(
-              height: 20,
-            ),
+            SizedBox(height: 20),
             Form(
               key: _formKey,
               child: Padding(

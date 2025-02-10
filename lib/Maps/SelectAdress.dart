@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/LandingPage/Widgets/Appbar.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../Payment/Addressconfirm.dart';
@@ -194,6 +195,13 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
                   bool serviceEnabled =
                       await Geolocator.isLocationServiceEnabled();
 
+                  LocationPermission permission =
+                      await Geolocator.checkPermission();
+
+                  if (permission == LocationPermission.denied ||
+                      permission == LocationPermission.deniedForever) {
+                    openAppSettings();
+                  }
                   if (serviceEnabled) {
                     Navigator.push(
                       context,

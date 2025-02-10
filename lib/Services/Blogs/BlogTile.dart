@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:kealthy/Login/login_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../Login/Guest_Alert.dart';
 import 'Blog.dart';
 
 class LikesState {
@@ -193,10 +195,23 @@ class BlogListTile extends ConsumerWidget {
                         color: likesProvider.isLiked
                             ? const Color(0xFF273847)
                             : Colors.grey,
-                        onPressed: () {
-                          ref
-                              .read(blogLikesProvider(blog.id).notifier)
-                              .toggleLikeAsync(blog.id);
+                        onPressed: () async {
+                          final prefs = await SharedPreferences.getInstance();
+                          final phoneNumber =
+                              prefs.getString('phoneNumber') ?? '';
+                          if (phoneNumber.isEmpty) {
+                            GuestDialog.show(
+                              context: context,
+                              title: "Login Required",
+                              content: "Please log in to like this post.",
+                              navigateTo:
+                                  LoginFields(), 
+                            );
+                          } else {
+                            ref
+                                .read(blogLikesProvider(blog.id).notifier)
+                                .toggleLikeAsync(blog.id);
+                          }
                         },
                       ),
                       if (likesProvider.likesCount > 0)
