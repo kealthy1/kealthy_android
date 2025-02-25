@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:kealthy/Login/login_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../Login/Guest_Alert.dart';
+import '../Login/Guest_Alert.dart';
 import 'Blog.dart';
 
 class LikesState {

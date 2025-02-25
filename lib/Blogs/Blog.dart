@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:kealthy/Services/Blogs/BlogList.dart';
+import 'package:kealthy/Blogs/BlogList.dart';
 
-import '../Cache.dart';
+import '../Services/Cache.dart';
 
 final blogProvider = FutureProvider<List<Blog>>((ref) async {
   final firestore = FirebaseFirestore.instance;

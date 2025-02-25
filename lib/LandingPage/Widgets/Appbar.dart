@@ -10,9 +10,7 @@ import '../../Login/Guest_Alert.dart';
 import '../../Maps/functions/Delivery_detailslocationprovider.dart';
 import '../../Maps/SelectAdress.dart';
 import '../../Orders/ordersTab.dart';
-import '../../Services/Notifications/FromFirestore.dart';
-import '../../Services/Notifications/Home.dart';
-import '../../Services/Notifications/shared_prefrences_Notification.dart';
+import '../../Notifications/FromFirestore.dart';
 import 'package:lottie/lottie.dart';
 
 class SelectedRoadNotifier extends StateNotifier<String?> {
@@ -231,9 +229,8 @@ class Help extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifications = ref.watch(notificationProvider);
     final notification = ref.watch(firestoreNotificationProvider);
-    final totalNotifications = notifications.length + notification.length;
+    final totalNotifications = notification.length;
     ref.watch(movableButtonProvider);
 
     return GestureDetector(
@@ -241,7 +238,7 @@ class Help extends ConsumerWidget {
           Navigator.push(
               context,
               CupertinoModalPopupRoute(
-                builder: (context) => NotificationHome(),
+                builder: (context) => NotificationsScreens(),
               ));
         },
         child: Stack(
@@ -254,7 +251,7 @@ class Help extends ConsumerWidget {
                 Navigator.push(
                     context,
                     CupertinoModalPopupRoute(
-                      builder: (context) => NotificationHome(),
+                      builder: (context) => NotificationsScreens(),
                     ));
               },
               icon: buildNotificationIcon(notification.length),
@@ -297,10 +294,10 @@ class Help extends ConsumerWidget {
     if (notification > 0) {
       return Lottie.asset(
         'assets/icons8-notification.json',
-        width: 30,
-        height: 30,
-        fit: BoxFit.cover,
-        repeat: true, // Ensure continuous animation
+        width: 25,
+        height: 25,
+        fit: BoxFit.fill,
+        repeat: true,
       );
     } else {
       return const Icon(

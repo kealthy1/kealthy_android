@@ -1,11 +1,15 @@
+// ignore_for_file: unused_result
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/LandingPage/Help&Support/Help&Support_Tab.dart';
+import 'package:kealthy/LandingPage/Myprofile/EditProfile.dart';
 import 'package:kealthy/LandingPage/Myprofile/PrivacyPolicy.dart';
 import 'package:kealthy/LandingPage/Myprofile/Refund&Policy.dart';
 import 'package:kealthy/LandingPage/Myprofile/Terms&Conditions.dart';
+import 'package:kealthy/LandingPage/Widgets/floating_bottom_navigation_bar.dart';
 import 'package:kealthy/Login/login_page.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
@@ -13,18 +17,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../Login/Guest_Alert.dart';
 import '../../Maps/SelectAdress.dart';
 import '../../Orders/ordersTab.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+const String baseUrl = "https://api-jfnhkjk4nq-uc.a.run.app";
 
 class UserProfile {
   final String name;
+  final String email;
 
-  UserProfile({required this.name});
+  UserProfile({required this.name, required this.email});
 }
 
 class UserProfileNotifier extends StateNotifier<UserProfile> {
   bool _isDisposed = false;
 
-  UserProfileNotifier() : super(UserProfile(name: 'User')) {
-    _loadUserName();
+  UserProfileNotifier() : super(UserProfile(name: 'User', email: '')) {
+    _loadUserDetails();
   }
 
   @override
@@ -33,24 +42,67 @@ class UserProfileNotifier extends StateNotifier<UserProfile> {
     super.dispose();
   }
 
-  Future<void> _loadUserName() async {
+  Future<void> _loadUserDetails() async {
     final prefs = await SharedPreferences.getInstance();
-    String savedName = prefs.getString('name') ?? 'User';
+    String? savedName = prefs.getString('selectedName');
+    String? savedEmail = prefs.getString('email');
+
+    if ((savedName == null || savedName.isEmpty) ||
+        (savedEmail == null || savedEmail.isEmpty)) {
+      // Fetch from API if missing
+      final userDetails = await _fetchUserDetailsFromAPI();
+      savedName = userDetails['name'] ?? 'User';
+      savedEmail = userDetails['email'] ?? '';
+
+      if (savedName.isNotEmpty) {
+        await prefs.setString('selectedName', savedName);
+      }
+      if (savedEmail.isNotEmpty) {
+        await prefs.setString('email', savedEmail);
+      }
+    }
+
     if (!_isDisposed) {
-      state = UserProfile(name: savedName);
+      state = UserProfile(name: savedName, email: savedEmail);
     }
   }
 
-  Future<void> updateUserName(String newName) async {
+  Future<Map<String, String?>> _fetchUserDetailsFromAPI() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('name', newName);
+    final String? phoneNumber = prefs.getString("phoneNumber");
+
+    if (phoneNumber == null || phoneNumber.isEmpty) {
+      return {"name": null, "email": null};
+    }
+
+    final url = Uri.parse('$baseUrl/getUserDetails');
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"phoneNumber": phoneNumber}),
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      return {
+        "name": data['user']['name'],
+        "email": data['user']['email'],
+      };
+    }
+    return {"name": null, "email": null};
+  }
+
+  Future<void> updateUserDetails(String newName, String newEmail) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selectedName', newName);
+    await prefs.setString('email', newEmail);
     if (!_isDisposed) {
-      state = UserProfile(name: newName);
+      state = UserProfile(name: newName, email: newEmail);
     }
   }
 
-  Future<void> refreshUserName() async {
-    await _loadUserName();
+  Future<void> refreshUserDetails() async {
+    await _loadUserDetails();
   }
 }
 
@@ -64,7 +116,7 @@ class ProfilePage extends ConsumerWidget {
 
   Future<String?> _getPhoneNumber() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('phoneNumber') ?? 'Not Set';
+    return prefs.getString('phoneNumber') ?? '';
   }
 
   Future<void> _clearPreferencesAndNavigate(BuildContext context) async {
@@ -77,7 +129,7 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget buildLogoutAlertDialog(BuildContext context) {
+  Widget buildLogoutAlertDialog(BuildContext context, WidgetRef ref) {
     return AlertDialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
@@ -124,6 +176,7 @@ class ProfilePage extends ConsumerWidget {
         ),
         ElevatedButton(
           onPressed: () {
+            ref.refresh(bottomNavIndexProvider);
             _clearPreferencesAndNavigate(context);
           },
           style: ElevatedButton.styleFrom(
@@ -148,11 +201,11 @@ class ProfilePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userProfile = ref.watch(userProfileProvider);
     final userName = userProfile.name;
-
+final userEmail = userProfile.email;
     return FutureBuilder<String?>(
       future: _getPhoneNumber(),
       builder: (context, snapshot) {
-        final phoneNumber = snapshot.data ?? 'Not Set';
+        final phoneNumber = snapshot.data ?? '';
 
         return Scaffold(
           appBar: AppBar(
@@ -175,73 +228,102 @@ class ProfilePage extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            CupertinoIcons.person_alt_circle,
-                            color: Colors.grey.shade500,
-                            size: 60,
-                          ),
-                          const SizedBox(width: 16),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        CupertinoModalPopupRoute(
+                          builder: (context) =>
+                              EditProfilePage(nameFromConstructor: userName, EMAILFromConstructor: userEmail,),
+                        ),
+                      );
+                    },
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text(
-                                userName,
-                                style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black),
+                              Icon(
+                                CupertinoIcons.person_alt_circle,
+                                color: Colors.grey.shade500,
+                                size: 60,
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                phoneNumber,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Expanded(
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              Flexible(
+                                                child: Text(
+                                                  userName,
+                                                  softWrap: true,
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Icon(
+                                                Icons.mode_edit_outline_rounded,
+                                                size: 20,
+                                                color: Colors.black,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      phoneNumber,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                      IconButton(
-                        onPressed: () async {
-                          final link =
-                              'https://play.google.com/store/apps/details?id=com.COTOLORE.Kealthy';
-                          final text = link;
-
-                          try {
-                            await Share.share(
-                              text,
-                              subject: 'Kealthy App',
-                            );
-                          } catch (e) {
-                            debugPrint('Error sharing: $e');
-                          }
-                        },
-                        icon: Row(
-                          children: [
-                            Icon(
-                              CupertinoIcons.arrowshape_turn_up_right,
-                              color: Colors.black,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Share',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ],
                         ),
-                      )
-                    ],
+                        IconButton(
+                          onPressed: () async {
+                            final link =
+                                'https://play.google.com/store/apps/details?id=com.COTOLORE.Kealthy';
+                            final text = link;
+                            try {
+                              await Share.share(
+                                text,
+                                subject: 'Kealthy App',
+                              );
+                            } catch (e) {
+                              debugPrint('Error sharing: $e');
+                            }
+                          },
+                          icon: const Icon(
+                            CupertinoIcons.arrowshape_turn_up_right,
+                            color: Colors.black,
+                            size: 20,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 24),
                   ListView.separated(
@@ -301,7 +383,7 @@ class ProfilePage extends ConsumerWidget {
                               context,
                               CupertinoModalPopupRoute(
                                   builder: (context) =>
-                                      const SupportDeskScreen()))
+                                      const SupportDeskScreen(value: 0,)))
                         },
                       ];
 
@@ -336,7 +418,7 @@ class ProfilePage extends ConsumerWidget {
                               onPressed: () => showDialog(
                                 context: context,
                                 builder: (context) =>
-                                    buildLogoutAlertDialog(context),
+                                    buildLogoutAlertDialog(context, ref),
                               ),
                               style: ElevatedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(

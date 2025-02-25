@@ -414,10 +414,10 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
 
                                   final drivingDistance =
                                       await drivingDistanceFuture;
-                                  if (drivingDistance > 10) {
+                                  if (drivingDistance > 15) {
                                     Fluttertoast.showToast(
                                       msg:
-                                          "Above 10 km Location is not serviceable.",
+                                          "Above 15 km Location is not serviceable.",
                                       toastLength: Toast.LENGTH_SHORT,
                                       gravity: ToastGravity.BOTTOM,
                                     );

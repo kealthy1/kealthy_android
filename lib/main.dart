@@ -6,11 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/DetailsPage/Ratings/Alert.dart';
 import 'package:kealthy/Login/SplashScreen.dart';
 import 'package:kealthy/MenuPage/MenuPage.dart';
-import 'package:kealthy/Services/Blogs/Blog.dart';
+import 'package:kealthy/Blogs/Blog.dart';
 import 'package:kealthy/Services/Connection.dart';
 import 'DetailsPage/NutritionInfo.dart';
 import 'DetailsPage/Ratings/Providers.dart';
 import 'DetailsPage/Ratings/Show_Review.dart';
+import 'LandingPage/Myprofile/Myprofile.dart';
 import 'LandingPage/Widgets/Carousel.dart';
 import 'LandingPage/Widgets/searchprovider.dart';
 import 'Maps/SelectAdress.dart';
@@ -18,7 +19,7 @@ import 'Maps/fluttermap.dart';
 import 'Payment/SavedAdress.dart';
 import 'Riverpod/order_provider.dart';
 import 'Services/Fcm.dart';
-import 'Services/Notifications/FromFirestore.dart';
+import 'Notifications/FromFirestore.dart';
 import 'Services/adresslisten.dart';
 import 'Services/updateinapp.dart';
 
@@ -30,12 +31,12 @@ void main() async {
   await Firebase.initializeApp();
   FirebaseFirestore.instance.settings = const Settings(
     persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
   await NotificationService.instance.initialize();
   await ReviewService.instance.initialize(navigatorKey);
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   final container = ProviderContainer();
-
   try {
     container.read(addressesProvider);
     container.read(showAddressProviders);
@@ -52,6 +53,7 @@ void main() async {
     container.read(averageStarsProvider(''));
     container.read(orderStatusProvider);
     container.read(firestoreNotificationProvider);
+    container.read(userProfileProvider);
     print("Data prefetched successfully.");
   } catch (e) {
     print("Error prefetching addresses: $e");
@@ -72,7 +74,6 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       InAppUpdateService().checkForUpdate(context);
-      
     });
 
     return MaterialApp(

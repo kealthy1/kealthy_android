@@ -5,8 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../Services/Notifications/Home.dart';
+import '../../Notifications/FromFirestore.dart';
 
 class ReviewService {
   ReviewService._();
@@ -33,7 +32,7 @@ class ReviewService {
     );
 
     const InitializationSettings settings = InitializationSettings(
-      android: AndroidInitializationSettings('mipmap/ic_launcher'),
+      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
     );
 
     await _localNotifications
@@ -49,7 +48,7 @@ class ReviewService {
         if (payload == "review_screen") {
           navigatorKey.currentState?.pushReplacement(
             CupertinoModalPopupRoute(
-              builder: (context) => NotificationHome(),
+              builder: (context) => NotificationsScreens(),
             ),
           );
         }
@@ -95,11 +94,11 @@ class ReviewService {
             importance: Importance.high,
             priority: Priority.high,
             colorized: true,
-            autoCancel: false,
+            autoCancel: true,
             channelShowBadge: true,
             enableVibration: true,
             largeIcon: largeIcon,
-            icon: 'drawable/ic_notification',
+            icon: '@drawable/ic_notification',
             styleInformation: bigPictureStyle,
             color: Colors.white);
 

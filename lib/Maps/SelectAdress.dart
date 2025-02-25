@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +14,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import '../Payment/Addressconfirm.dart';
 import '../Payment/Bill.dart';
 import '../Payment/SavedAdress.dart';
-import '../Riverpod/distance.dart';
 import '../Services/adresslisten.dart';
 import 'fluttermap.dart';
 import 'functions/Location_Permission.dart';
@@ -73,7 +74,6 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // ignore: unused_result
       ref.refresh(addressesProvider);
     });
   }
@@ -121,7 +121,6 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
           fontSize: 12.0,
         );
 
-        // ignore: unused_result
         ref.refresh(addressesProvider);
       } else if (response.statusCode == 404) {
         Fluttertoast.showToast(
@@ -156,17 +155,11 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
 
     return WillPopScope(
       onWillPop: () async {
-        // ignore: unused_result
         ref.refresh(showAddressProviders);
-        // ignore: unused_result
         ref.refresh(selectedSlotProviders);
-        // ignore: unused_result
         ref.refresh(savedAddressProvider);
-        // ignore: unused_result
         ref.refresh(totalDistanceProvider);
-        // ignore: unused_result
         ref.refresh(selectedRoadProvider);
-        // ignore: unused_result
         ref.refresh(typeProvider);
 
         return true;
@@ -187,7 +180,7 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
           backgroundColor: Colors.white,
         ),
         body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           child: Column(
             children: [
               GestureDetector(
@@ -277,7 +270,6 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
                       backgroundColor: Colors.white,
                       color: Color(0xFF273847),
                       onRefresh: () async {
-                        // ignore: unused_result
                         ref.refresh(addressesProvider);
                       },
                       child: ListView.builder(
@@ -287,61 +279,36 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
                           final double restaurantLatitude = 10.010279427438405;
                           final double restaurantLongitude = 76.38426666931349;
 
-                          final double calculatedDistance = calculatesDistance(
-                            address.latitude,
-                            address.longitude,
-                            restaurantLatitude,
-                            restaurantLongitude,
-                          );
-
-                          final Future<double> drivingDistanceFuture =
-                              calculateDrivingDistance(
-                            apiKey: "AIzaSyD1MUoakZ0mm8WeFv_GK9k_zAWdGk5r1hA",
-                            startLatitude: address.latitude,
-                            startLongitude: address.longitude,
-                            endLatitude: restaurantLatitude,
-                            endLongitude: restaurantLongitude,
-                          );
-
-                          return FutureBuilder<double>(
-                            future: drivingDistanceFuture,
-                            builder: (context, snapshot) {
-                              final double drivingDistance =
-                                  snapshot.data ?? calculatedDistance;
-
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8.0),
-                                child: AddressCard(
-                                  address: address,
-                                  isSelected: selectedAddress == address,
-                                  restaurantLatitude: restaurantLatitude,
-                                  restaurantLongitude: restaurantLongitude,
-                                  distance: drivingDistance,
-                                  onSelected: () async {
-                                    final prefs =
-                                        await SharedPreferences.getInstance();
-                                    final phoneNumber =
-                                        prefs.getString('phoneNumber');
-                                    await prefs.setDouble(
-                                        'selectedDistance', drivingDistance);
-                                    await ref
-                                        .read(updateAddressProvider.notifier)
-                                        .updateSelectedAddress(
-                                            phoneNumber!, address.type);
-                                    if (mounted) {
-                                      ref
-                                          .read(
-                                              selectedAddressProvider.notifier)
-                                          .state = address;
-                                    }
-                                  },
-                                  onDelete: () async {
-                                    await deleteAddressFromAPI(address, ref);
-                                  },
-                                ),
-                              );
-                            },
+                          return Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: AddressCard(
+                              address: address,
+                              isSelected: selectedAddress == address,
+                              restaurantLatitude: restaurantLatitude,
+                              restaurantLongitude: restaurantLongitude,
+                              distance: address.distance,
+                              onSelected: () async {
+                                final prefs =
+                                    await SharedPreferences.getInstance();
+                                final phoneNumber =
+                                    prefs.getString('phoneNumber');
+                                await prefs.setDouble(
+                                    'selectedDistance', address.distance);
+                                await ref
+                                    .read(updateAddressProvider.notifier)
+                                    .updateSelectedAddress(
+                                        phoneNumber!, address.type);
+                                if (mounted) {
+                                  ref
+                                      .read(selectedAddressProvider.notifier)
+                                      .state = address;
+                                }
+                              },
+                              onDelete: () async {
+                                await deleteAddressFromAPI(address, ref);
+                              },
+                            ),
                           );
                         },
                       ),
@@ -353,7 +320,7 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
                       size: 60,
                     ),
                   ),
-                  error: (error, stack) => Center(child: Text('Error: $error')),
+                  error: (error, stack) => SizedBox.shrink(),
                 ),
               ),
             ],
@@ -371,7 +338,7 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
           Expanded(
             child: Container(
               height: 1,
-              color: Colors.grey,
+              color: Colors.grey.shade300,
             ),
           ),
           Padding(
@@ -387,7 +354,7 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
           Expanded(
             child: Container(
               height: 1,
-              color: Colors.grey,
+              color: Colors.grey.shade300,
             ),
           ),
         ],
@@ -406,6 +373,7 @@ class Address {
   final String type;
   final double latitude;
   final double longitude;
+  final double distance;
   final bool selected;
 
   Address({
@@ -418,6 +386,7 @@ class Address {
     required this.type,
     required this.latitude,
     required this.longitude,
+    required this.distance,
     required this.selected,
   });
 
@@ -434,6 +403,7 @@ class Address {
       type: json['type'] ?? '',
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
+      distance: (json['distance'] as num).toDouble(),
       selected: json['selected'] ?? true,
     );
   }
@@ -450,6 +420,7 @@ class Address {
       'latitude': latitude,
       'longitude': longitude,
       'selected': selected,
+      'distance': distance,
     };
   }
 }
@@ -524,17 +495,11 @@ class _AddressCardState extends ConsumerState<AddressCard> {
               ref.invalidate(selectedSlotProviders);
               widget.onSelected();
               Navigator.pop(context);
-              // ignore: unused_result
               ref.refresh(showAddressProviders);
-              // ignore: unused_result
               ref.refresh(selectedSlotProviders);
-              // ignore: unused_result
               ref.refresh(savedAddressProvider);
-              // ignore: unused_result
               ref.refresh(totalDistanceProvider);
-              // ignore: unused_result
               ref.refresh(selectedRoadProvider);
-              // ignore: unused_result
               ref.refresh(typeProvider);
             } else {
               Fluttertoast.showToast(

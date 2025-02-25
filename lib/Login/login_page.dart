@@ -200,7 +200,7 @@ class _LoginFieldsState extends ConsumerState<LoginFields> {
                             borderSide: BorderSide.none,
                           ),
                         ),
-                        style: GoogleFonts.poppins(color: Colors.grey.shade500),
+                        style: GoogleFonts.poppins(color: Colors.black),
                       ),
                     ),
                     const SizedBox(height: 20),

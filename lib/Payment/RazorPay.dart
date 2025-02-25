@@ -55,12 +55,13 @@ class _RazorPayState extends ConsumerState<RazorPay> {
             ),
           );
         },
-        button: " My Orders",
+        button: 'My Orders',
+        color: Colors.green,
+        buttonTextColor: Colors.white,
+        buttonColor: Colors.green,
       ).show();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error saving order: $e")),
-      );
+      print("Error saving order: $e");
     }
   }
 
@@ -82,7 +83,11 @@ class _RazorPayState extends ConsumerState<RazorPay> {
             CupertinoModalPopupRoute(
               builder: (context) => CustomBottomNavigationBar(),
             ));
-      }, button: 'Home',
+      },
+      button: 'Home',
+      color: Colors.red,
+      buttonColor: Colors.red,
+      buttonTextColor: Colors.white,
     ).show();
   }
 

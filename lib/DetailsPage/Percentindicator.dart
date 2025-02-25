@@ -1,16 +1,20 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import '../MenuPage/menu_item.dart';
 
 class CircularProgressIndicatorWidget extends StatelessWidget {
   final double kealthyScore;
   final double radius;
   final double lineWidth;
+  final MenuItem menuItem;
 
   const CircularProgressIndicatorWidget({
     super.key,
     required this.kealthyScore,
-    this.radius = 35.0,
+    required this.menuItem,
+    this.radius = 30.0,
     this.lineWidth = 9.0,
   });
 
@@ -39,13 +43,6 @@ class CircularProgressIndicatorWidget extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          "Kealthy Points",
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 5),
         CircularPercentIndicator(
           radius: radius,
           lineWidth: lineWidth,
@@ -75,4 +72,13 @@ class CircularProgressIndicatorWidget extends StatelessWidget {
       ],
     );
   }
+
+  // void showScoreDialog(BuildContext context, MenuItem menuItem) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return ScoreDialog(menuItem: menuItem);
+  //     },
+  //   );
+  // }
 }

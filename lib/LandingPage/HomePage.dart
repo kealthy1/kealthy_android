@@ -6,7 +6,6 @@ import 'package:kealthy/LandingPage/Myprofile/Myprofile.dart';
 import 'package:kealthy/LandingPage/Widgets/Category.dart';
 import 'package:kealthy/LandingPage/Widgets/Kealthy_Bottom.dart';
 import '../Riverpod/NavBar.dart';
-import '../Services/DeliveryIn_Kakkanad.dart';
 import '../Services/FirestoreCart.dart';
 import '../Services/NotificationHandler.dart';
 import 'Cart_Container.dart';
@@ -25,7 +24,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     NotificationHandler.initialize(context, ref);
-    ref.watch(deliveryLimitProvider);
+    
     final currentIndex = ref.watch(bottomNavIndexProvider);
     final cartItems = ref.watch(sharedPreferencesCartProvider);
     final isVisible = ref.watch(cartVisibilityProvider);

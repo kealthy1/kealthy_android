@@ -101,7 +101,9 @@ class _OrderConfirmationState extends ConsumerState<OrderConfirmation> {
   }
 
   @override
-  Widget build(BuildContext context,) {
+  Widget build(
+    BuildContext context,
+  ) {
     final selectedPaymentMethod = ref.watch(paymentMethodProvider);
     final isLoading = ref.watch(CODloadingProvider);
     ref.watch(codpageprovider);
@@ -225,7 +227,7 @@ class _OrderConfirmationState extends ConsumerState<OrderConfirmation> {
                               : () async {
                                   // ignore: unused_result
                                   ref.refresh(rateProductProvider);
-                               
+
                                   // ignore: unused_result
                                   ref.refresh(searchQueryProvider);
                                   ref
@@ -301,7 +303,11 @@ class _OrderConfirmationState extends ConsumerState<OrderConfirmation> {
                                                   const OrdersTabScreen(),
                                             ),
                                           );
-                                        }, button: 'My Orders',
+                                        },
+                                        button: 'My Orders',
+                                        color: Colors.green,
+                                        buttonTextColor: Colors.white,
+                                        buttonColor: Colors.green,
                                       ).show();
                                     }
                                   } catch (e) {

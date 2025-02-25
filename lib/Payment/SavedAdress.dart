@@ -54,7 +54,7 @@ class SavedAddress extends ConsumerWidget {
     return addressAsyncValue.when(
       data: (savedAddressData) {
         if (savedAddressData == null) {
-          return const Center(child: Text('No address saved'));
+          return SizedBox.shrink();
         }
         final addressType = savedAddressData['type'];
         final name = savedAddressData['Name'];

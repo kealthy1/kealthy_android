@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'Percentindicator.dart';
+
 final averageStarsProvider =
     FutureProvider.family<double, String>((ref, productName) async {
   final response = await http.get(
@@ -94,9 +96,10 @@ class RedNutritionSection extends ConsumerWidget {
                   ],
                 ),
               ),
-              // CircularProgressIndicatorWidget(
-              //   kealthyScore: double.parse(menuItem.kealthyScore),
-              // )
+              CircularProgressIndicatorWidget(
+                kealthyScore: double.parse(menuItem.kealthyScore),
+                menuItem: menuItem,
+              )
             ],
           ),
         ),
@@ -219,7 +222,8 @@ class RedNutritionSection extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            if (menuItem.totalFat != 'Not Applicable')
+            if (menuItem.macros.isNotEmpty &&
+                menuItem.macros.any((macro) => macro != 'Not Applicable'))
               Expanded(
                 child: _buildDataContainer(
                   color: Colors.blue.shade50,
@@ -243,7 +247,8 @@ class RedNutritionSection extends ConsumerWidget {
               ),
             const SizedBox(width: 5),
             if (menuItem.ingredients.isNotEmpty &&
-                menuItem.ingredients.any((ingredients) => ingredients != ''))
+                menuItem.ingredients
+                    .any((ingredients) => ingredients != 'Not Applicable'))
               Expanded(
                 child: _buildDataContainer(
                   color: Colors.yellow.shade50,

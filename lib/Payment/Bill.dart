@@ -24,15 +24,13 @@ class BillDetails extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final totalDistanceAsync = ref.watch(totalDistanceProvider);
+  final totalDistanceAsync = ref.watch(totalDistanceProvider);
     final selectedSlotAsync = ref.watch(SlotProvider);
 
     return totalDistanceAsync.when(
       data: (totalDistance) {
         double discountedFee = 0;
         bool isFreeDelivery = false;
-
-        // Add ₹50 if selected slot is "Slot Delivery 📦"
         double additionalCharge = 0;
 
         Future<void> saveInstantDeliveryCharge(double charge) async {
@@ -41,52 +39,36 @@ class BillDetails extends ConsumerWidget {
         }
 
         selectedSlotAsync.whenData((selectedSlot) {
-          print("Slot $selectedSlot");
-          if (selectedSlot != null) {
-            if (selectedSlot.startsWith("Instant Delivery ⚡")) {
-              additionalCharge =
-                  50; // Adding ₹50 if the slot starts with "Instant Delivery ⚡"
-            } else {
-              additionalCharge =
-                  0; // Setting ₹0 if the slot does not start with "Instant Delivery ⚡"
-            }
-            saveInstantDeliveryCharge(additionalCharge);
+          if (selectedSlot != null && selectedSlot.startsWith("Instant Delivery ⚡")) {
+            additionalCharge = 50;
+          } else {
+            additionalCharge = 0;
           }
+          saveInstantDeliveryCharge(additionalCharge);
         });
 
         if (totalDistance != null) {
-          int roundedDistance = totalDistance.ceil();
-
-          // Calculate original fee (total distance at standard rates)
-
           // Delivery fee logic
           if (totalPrice >= 199) {
-            if (roundedDistance <= 7) {
+            if (totalDistance <= 7) {
               discountedFee = 0;
               isFreeDelivery = true;
-            } else if (roundedDistance <= 10) {
-              discountedFee = (roundedDistance - 7) * 8;
-            } else {
-              discountedFee = (3 * 8) + ((roundedDistance - 10) * 10);
+            } else if (totalDistance <= 15) {
+              discountedFee = (totalDistance - 7) * 8;
             }
           } else {
-            if (roundedDistance <= 5) {
-              discountedFee = 30;
-            } else if (roundedDistance <= 10) {
-              discountedFee = 30 + ((roundedDistance - 5) * 10);
-            } else {
-              discountedFee = 30 + (5 * 10) + ((roundedDistance - 10) * 10);
+            if (totalDistance <= 7) {
+              discountedFee = 50;
+            } else if (totalDistance <= 15) {
+              discountedFee = 50 + ((totalDistance - 7) * 10);
             }
           }
-
-          if (totalPrice < 199 && roundedDistance <= 5) {}
 
           _saveDeliveryFee(discountedFee);
         }
 
         double handlingFee = 5;
-        double totalToPay =
-            totalPrice + handlingFee + discountedFee + additionalCharge;
+        double totalToPay = totalPrice + handlingFee + discountedFee + additionalCharge;
 
         PaymentService().updateTotalToPay(totalToPay);
 
@@ -128,7 +110,7 @@ class BillDetails extends ConsumerWidget {
                               : (totalPrice < 199 &&
                                       totalDistance != null &&
                                       totalDistance.ceil() > 7)
-                                  ? 'Purchase for ₹${(199 - totalPrice).toStringAsFixed(0)} and pay delivery fee ₹${((totalDistance.ceil() - 7) * 8).toStringAsFixed(0)}/- Only'
+                                  ? 'Purchase for ₹${(199 - totalPrice).toStringAsFixed(0)} and pay delivery fee ₹${((totalDistance- 7) * 8).toStringAsFixed(0)}/- Only'
                                   : (totalPrice >= 199 &&
                                           totalDistance != null &&
                                           totalDistance.ceil() > 7)

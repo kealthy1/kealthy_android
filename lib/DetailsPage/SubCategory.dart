@@ -8,7 +8,7 @@ import 'package:kealthy/MenuPage/MenuPage.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../Services/Cache.dart';
-import '../Services/Notifications/FromFirestore.dart';
+import '../Notifications/FromFirestore.dart';
 
 class FoodCategoriesScreen extends StatelessWidget {
   final String category;
@@ -52,7 +52,11 @@ class FoodCategoriesScreen extends StatelessWidget {
                   }
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     print(category);
-                    return const Center(child: Text("No categories available"));
+                    return Center(
+                        child: Text(
+                      "Coming Soon",
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                    ));
                   }
 
                   final subcategories = snapshot.data!.docs;

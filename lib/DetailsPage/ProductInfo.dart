@@ -71,7 +71,7 @@ class ProductInfoContainer extends ConsumerWidget {
         SizedBox(
           height: 10,
         ),
-        if (fssai.isNotEmpty)
+        if (fssai.isNotEmpty && fssai.first != 'Not Applicable')
           Text(
             'FSSAI: ${fssai.join(", ")}',
             style: GoogleFonts.poppins(

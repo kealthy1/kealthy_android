@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../Riverpod/calorie_provider.dart';
+import '../Riverpod/calorie_provider.dart';
 
 final selectedActivityProvider =
     StateProvider<String>((ref) => "Sedentary (Little or no exercise)");

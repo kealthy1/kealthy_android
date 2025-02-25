@@ -50,42 +50,42 @@ class AvailableSlotsGenerator {
       currentTime.year,
       currentTime.month,
       currentTime.day,
-      6,
+      9,
     );
 
     DateTime todayEndBoundary = DateTime(
       currentTime.year,
       currentTime.month,
       currentTime.day,
-      21,
+      18,
     );
 
     DateTime endBoundary = DateTime(
       currentTime.year,
       currentTime.month,
       currentTime.day,
-      18,
+      15,
     );
 
     DateTime tomorrowStartBoundary = DateTime(
       currentTime.year,
       currentTime.month,
       currentTime.day + 1,
-      6,
+      9,
     );
 
     DateTime tomorrowEndBoundary = DateTime(
       currentTime.year,
       currentTime.month,
       currentTime.day + 1,
-      21,
+      18,
     );
 
     if (currentTime.isAfter(endBoundary)) {
       return {
         "slots": await getAvailableSlots(tomorrowStartBoundary,
             tomorrowEndBoundary, currentTime, etaMinutes),
-        "message": "No slots today. Book from 6 AM tomorrow!",
+        "message": "No slots today. Book from 9 AM tomorrow!",
       };
     } else if (currentTime.isBefore(todayStartBoundary)) {
       return {
@@ -97,7 +97,7 @@ class AvailableSlotsGenerator {
       return {
         "slots": await getAvailableSlots(
             todayStartBoundary, todayEndBoundary, currentTime, etaMinutes),
-        "message": "Available Time Slots For Today!",
+        "message": "Available Time Slot For Today!",
       };
     }
   }

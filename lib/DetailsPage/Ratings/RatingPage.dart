@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../Services/Notifications/FromFirestore.dart';
+import '../../Notifications/FromFirestore.dart';
 import '../NutritionInfo.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shimmer/shimmer.dart';
@@ -34,7 +34,8 @@ class ProductReviewWidget extends ConsumerWidget {
 
           return Scaffold(
             backgroundColor: Colors.white,
-            appBar: AppBar(centerTitle: true,
+            appBar: AppBar(
+              centerTitle: true,
               automaticallyImplyLeading: false,
               surfaceTintColor: Colors.white,
               title: Text(
@@ -76,44 +77,36 @@ class ProductReviewWidget extends ConsumerWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Container(
-                                      width: 80,
-                                      height: 80,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: Colors.grey.shade300,
+                                        width: 80,
+                                        height: 80,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: Colors.transparent,
+                                          ),
                                         ),
-                                      ),
-                                      child: imageUrl != null
-                                          ? ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(5),
-                                              child: CachedNetworkImage(
-                                                imageUrl: imageUrl,
-                                                fit: BoxFit.fill,
-                                                placeholder: (context, url) =>
-                                                    Shimmer.fromColors(
-                                                  baseColor: Colors.grey[300]!,
-                                                  highlightColor:
-                                                      Colors.grey[100]!,
-                                                  child: Container(
-                                                    color: Colors.grey[300],
-                                                  ),
-                                                ),
-                                                errorWidget: (context, error,
-                                                        stackTrace) =>
-                                                    const Icon(
-                                                  Icons.image_not_supported,
-                                                  color: Colors.grey,
-                                                ),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                          child: CachedNetworkImage(
+                                            imageUrl: imageUrl ?? '',
+                                            fit: BoxFit.fill,
+                                            placeholder: (context, url) =>
+                                                Shimmer.fromColors(
+                                              baseColor: Colors.grey[300]!,
+                                              highlightColor: Colors.grey[100]!,
+                                              child: Container(
+                                                color: Colors.grey[300],
                                               ),
-                                            )
-                                          : const Icon(
+                                            ),
+                                            errorWidget:
+                                                (context, error, stackTrace) =>
+                                                    const Icon(
                                               Icons.image_not_supported,
                                               color: Colors.grey,
-                                              size: 40,
                                             ),
-                                    ),
+                                          ),
+                                        )),
                                     const SizedBox(width: 16),
                                     Flexible(
                                       child: Column(
@@ -290,7 +283,7 @@ class ProductReviewWidget extends ConsumerWidget {
                                                 Colors.white),
                                           )
                                         : Text(
-                                            'Post Review',
+                                            'Submit Review',
                                             overflow: TextOverflow.ellipsis,
                                             style: GoogleFonts.poppins(
                                               color: Colors.white,

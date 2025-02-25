@@ -61,8 +61,8 @@ class OrderStatusNotifier extends StateNotifier<AsyncValue<bool>> {
   void dispose() {
     _orderRef?.onDisconnect();
     super.dispose();
+    }
   }
-}
 
 final orderStatusProvider =
     StateNotifierProvider<OrderStatusNotifier, AsyncValue<bool>>(

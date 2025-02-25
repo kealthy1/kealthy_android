@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,6 +11,7 @@ import '../../DetailsPage/Ratings/Providers.dart';
 import '../../DetailsPage/Ratings/Show_Review.dart';
 import '../../DetailsPage/SubCategory.dart';
 import '../../Services/Cache.dart';
+import '../Myprofile/Myprofile.dart';
 
 class Category {
   final String name;
@@ -43,10 +46,9 @@ class CategoryItem extends ConsumerWidget {
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
           onTap: () {
-            // ignore: unused_result
             ref.refresh(rateProductProvider);
             
-            // ignore: unused_result
+            ref.refresh(userProfileProvider);
             ref.refresh(orderStatusProvider);
             Navigator.push(
                 context,

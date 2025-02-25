@@ -1,9 +1,11 @@
+// ignore_for_file: unused_result
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:kealthy/LandingPage/Ai/ai.dart';
 import 'package:kealthy/LandingPage/Myprofile/Myprofile.dart';
-import 'package:kealthy/Orders/ordersTab.dart';
 import 'package:kealthy/Services/update.dart';
 import 'package:permission_handler/permission_handler.dart' as perm;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,8 +13,8 @@ import '../../Riverpod/BackButton.dart';
 import '../../Services/Location_Permission.dart';
 import '../../Services/NotificationHandler.dart';
 import '../../Services/fcm_permission.dart';
+import '../Ai/Floating_button.dart';
 import '../HomePage.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -63,15 +65,14 @@ class _CustomBottomNavigationBarState
     final List<Widget> pages = [
       const MyHomePage(),
       const ProfilePage(),
-      const OrdersTabScreen()
     ];
 
     final bottomNavItems = [
-      BottomNavigationBarItem(
+      const BottomNavigationBarItem(
         icon: Icon(CupertinoIcons.house_fill),
         label: 'Home',
       ),
-      BottomNavigationBarItem(
+      const BottomNavigationBarItem(
         icon: Icon(CupertinoIcons.person),
         label: 'Profile',
       ),
@@ -97,7 +98,25 @@ class _CustomBottomNavigationBarState
         }
       },
       child: Scaffold(
-        body: pages[currentIndex],
+        body: Stack(
+          children: [
+            pages[currentIndex],
+            Positioned(
+              top: MediaQuery.of(context).size.height * 0.7,
+              right: 11.0,
+              child: ReusableFloatingActionButton(
+                imageUrl: 'assets/nutri (2).png',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ChatScreen()),
+                  );
+                },
+                label: 'Ask Nutri',
+              ),
+            ),
+          ],
+        ),
         bottomNavigationBar: Theme(
           data: Theme.of(context).copyWith(
             highlightColor: Colors.transparent,

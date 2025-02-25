@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import '../main.dart';
+import 'Fcm_Botomsheet.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -18,6 +20,20 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     body: message.notification?.body ?? "",
     imageUrl: imageUrl,
   );
+
+  if (message.notification?.title == 'promotion' ||
+      message.data['type'] == 'promotion') {
+    Future.delayed(Duration.zero, () {
+      if (navigatorKey.currentContext != null) {
+        NotificationBottomSheet.show(
+          context: navigatorKey.currentContext!,
+          message: message,
+        );
+      } else {
+        print("Navigator context is null, cannot show bottom sheet.");
+      }
+    });
+  }
 }
 
 class NotificationService {
@@ -50,6 +66,32 @@ class NotificationService {
         body: message.notification?.body ?? "",
         imageUrl: imageUrl,
       );
+
+      if (message.notification?.title == 'promotion' ||
+          message.data['type'] == 'promotion') {
+        Future.delayed(Duration.zero, () {
+          if (navigatorKey.currentContext != null) {
+            NotificationBottomSheet.show(
+              context: navigatorKey.currentContext!,
+              message: message,
+            );
+          }
+        });
+      }
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      if (message.notification?.title == 'promotion' ||
+          message.data['type'] == 'promotion') {
+        Future.delayed(Duration.zero, () {
+          if (navigatorKey.currentContext != null) {
+            NotificationBottomSheet.show(
+              context: navigatorKey.currentContext!,
+              message: message,
+            );
+          }
+        });
+      }
     });
 
     final token = await _firebaseMessaging.getToken();
@@ -135,11 +177,12 @@ class NotificationService {
             vibrationPattern: vibrationPattern,
             styleInformation: imageUrl != null ? bigPictureStyle : bigTextStyle,
             enableVibration: true,
-            icon: 'drawable/ic_notification',
+            icon: '@drawable/ic_notification',
             largeIcon: largeIcon,
             ledColor: const Color.fromARGB(255, 246, 248, 246),
             ledOnMs: 1000,
             ledOffMs: 500,
+            channelShowBadge: true,
             showWhen: true,
             playSound: true,
             onlyAlertOnce: false),

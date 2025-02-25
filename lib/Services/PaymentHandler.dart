@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Payment/COD_Page.dart';
 import 'FirestoreCart.dart';
-import 'Notifications/Notificationsave_to_firestore.dart';
+import '../Notifications/Notificationsave_to_firestore.dart';
 import 'sharedpreferncesname.dart';
 
 class PaymentHandler {

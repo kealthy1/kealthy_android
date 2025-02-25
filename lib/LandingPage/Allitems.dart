@@ -344,11 +344,13 @@ class _AllItemsPageState extends ConsumerState<AllItemsPage> {
     return Center(
       child: isLoading
           ? LoadingAnimationWidget.inkDrop(color: Color(0xFF273847), size: 50)
-          : Text(
-              'No matching options found. Try a different search!',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: Colors.grey,
+          : Center(
+              child: Text(
+                'No matching options found. Try a different search!',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
               ),
             ),
     );

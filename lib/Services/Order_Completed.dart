@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/LandingPage/Widgets/floating_bottom_navigation_bar.dart';
 import 'package:lottie/lottie.dart';
 
@@ -8,8 +9,11 @@ class ReusableCountdownDialog {
   final WidgetRef ref;
   final String message;
   final String button;
+  final Color color;
   final String imagePath;
   final VoidCallback onRedirect;
+  final Color buttonColor;
+  final Color buttonTextColor;
 
   ReusableCountdownDialog({
     required this.context,
@@ -18,6 +22,9 @@ class ReusableCountdownDialog {
     required this.imagePath,
     required this.onRedirect,
     required this.button,
+    required this.color,
+    required this.buttonColor,
+    required this.buttonTextColor,
   });
 
   void show() {
@@ -50,27 +57,33 @@ class ReusableCountdownDialog {
                       Lottie.asset(
                         repeat: false,
                         imagePath,
-                        height: 300,
+                        height: 200,
                       ),
                       Text(
                         message,
-                        style: const TextStyle(
-                            fontSize: 22,
-                            color: Color(0xFF273847),
-                            fontFamily: "poppins"),
+                        style: GoogleFonts.poppins(
+                            color: color,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF273847)),
-                        onPressed: () {
-                          Navigator.pop(context);
-                          onRedirect();
-                        },
-                        child: Text(
-                          button,
-                          style: TextStyle(color: Colors.white),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.4,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: buttonColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          onPressed: () {
+                            onRedirect();
+                          },
+                          child: Text(
+                            button,
+                            style: TextStyle(color: buttonTextColor),
+                          ),
                         ),
                       ),
                     ],

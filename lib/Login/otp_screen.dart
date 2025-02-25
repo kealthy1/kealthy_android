@@ -134,15 +134,6 @@ class OTPScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: Color(0xFF273847),
-        automaticallyImplyLeading: false,
-        title: Text('Enter OTP',
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-            )),
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(

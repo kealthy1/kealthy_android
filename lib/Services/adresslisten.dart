@@ -36,7 +36,7 @@ class UpdateAddressNotifier extends StateNotifier<bool> {
       print("Error updating address: $e");
       return false;
     } finally {
-      state = false; // Reset loading state
+      state = false;
     }
   }
 }

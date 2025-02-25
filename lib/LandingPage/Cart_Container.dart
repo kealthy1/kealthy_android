@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -81,15 +83,11 @@ class CartContainer extends ConsumerWidget {
             ElevatedButton(
               onPressed: () async {
                 final prefs = await SharedPreferences.getInstance();
-                // ignore: unused_result
+                await prefs.remove("selectedAddressMessage");
                 ref.refresh(etaTimeProvider);
-                // ignore: unused_result
                 ref.refresh(distanceProvider);
-
                 await prefs.remove('selectedSlot');
-                // ignore: unused_result
                 ref.refresh(selectedETAProvider);
-                // ignore: unused_result
                 ref.refresh(totalDistanceProvider);
 
                 Navigator.push(

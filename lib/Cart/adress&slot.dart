@@ -60,13 +60,13 @@ class AdressSlot extends ConsumerWidget {
                           currentTime.year,
                           currentTime.month,
                           currentTime.day,
-                          6,
+                          9,
                         );
                         final endBoundary = DateTime(
                           currentTime.year,
                           currentTime.month,
                           currentTime.day,
-                          21,
+                          18,
                         );
 
                         print('Start Boundary: $startBoundary');
@@ -133,8 +133,8 @@ class AdressSlot extends ConsumerWidget {
                     },
                   ),
                   if (ref.watch(selectedETAProvider) == null &&
-                      DateTime.now().hour >= 6 &&
-                      DateTime.now().hour < 21)
+                      DateTime.now().hour >= 9 &&
+                      DateTime.now().hour < 18)
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 18.0, vertical: 5),

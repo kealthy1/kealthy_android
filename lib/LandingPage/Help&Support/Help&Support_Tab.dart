@@ -12,9 +12,11 @@ import 'on_going_Tickets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 final loadingProvider = StateProvider<bool>((ref) => false);
+final ticketOpenTriggerProvider = StateProvider<int>((ref) => 0);
 
 class SupportDeskScreen extends ConsumerStatefulWidget {
-  const SupportDeskScreen({super.key});
+   final int value;
+  const SupportDeskScreen({super.key,required this.value});
 
   @override
   _SupportDeskScreenState createState() => _SupportDeskScreenState();
@@ -27,7 +29,11 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);Future.microtask(() {
+    if (widget.value == 10) {
+      showOpenTicketBottomSheet(context,ref);
+    }
+  });
   }
 
   @override
@@ -96,7 +102,7 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        showOpenTicketBottomSheet(context);
+                        showOpenTicketBottomSheet(context,ref);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF273847),
@@ -227,7 +233,8 @@ class _SupportDeskScreenState extends ConsumerState<SupportDeskScreen>
   }
 }
 
-void showOpenTicketBottomSheet(BuildContext context) {
+void showOpenTicketBottomSheet(BuildContext context,WidgetRef ref) {
+   ref.read(ticketOpenTriggerProvider.notifier).state = 10;
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,

@@ -7,14 +7,10 @@ class ProductSuggestion {
   final String name;
   final double price;
   final String category;
-  final String time;
-  final String delivery;
-  final String description;
-  final double protein;
-  final double carbs;
-  final double kcal;
-  final double fat;
-  final double rating;
+
+  final String protein;
+  final String kcal;
+
   final List<String> imageUrls;
   final String whatIsIt;
   final String whatIsItUsedFor;
@@ -54,19 +50,14 @@ class ProductSuggestion {
   final String Type;
   final String Expiry;
   final String ImportedMarketedBy;
+  final List <String> ScoredBasedOn;
 
   ProductSuggestion({
     required this.name,
     required this.price,
     required this.category,
-    required this.time,
-    required this.delivery,
-    required this.description,
     required this.protein,
-    required this.carbs,
     required this.kcal,
-    required this.fat,
-    required this.rating,
     required this.imageUrls,
     required this.macros,
     required this.micros,
@@ -106,34 +97,89 @@ class ProductSuggestion {
     required this.Type,
     required this.Expiry,
     required this.ImportedMarketedBy,
+    required this.ScoredBasedOn,
   });
 
   factory ProductSuggestion.fromFirestore(Map<String, dynamic> data) {
     return ProductSuggestion(
       name: data['Name'] ?? '',
+      ScoredBasedOn: List<String>.from(data['Scored  Based On'] ?? []),
       price: _parseDouble(data['Price']),
       SOH: _parseDouble(data['SOH']),
       category: data['Category'] ?? '',
-      EAN: data['EAN'] ?? '',
-      time: data['Time'] ?? '',
-      delivery: data['Delivery'] ?? '',
-      description: data['Description'] ?? '',
-      protein: _parseDouble(data['Protein']),
-      carbs: _parseDouble(data['Carbs']),
-      kcal: _parseDouble(data['Kcal']),
-      fat: _parseDouble(data['Fat']),
-      rating: _parseDouble(data['Rating']),
+      protein: data['Protein (g)'],
+      kcal: data['Energy (kcal)'],
       imageUrls: List<String>.from(data['ImageUrl'] ?? []),
       FSSAI: List<String>.from(data['FSSAI'] ?? []),
+      EAN: data['EAN'] ?? '',
       macros: [
-        'Protein: ${data['Protein (g)'] ?? 'Not Applicable'}',
-        'Total Fat: ${data['Total Fat (g)'] ?? 'Not Applicable'}',
-        'Carbohydrates: ${data['Total Carbohydrates (g)'] ?? 'Not Applicable'}',
-        'Sugars: ${data['Sugars (g)'] ?? 'Not Applicable'}',
-        'Cholesterol: ${data['Cholesterol (mg)'] ?? 'Not Applicable'}',
-        'Added Sugars: ${data['Added Sugars (g)'] ?? 'Not Applicable'}',
+        if (data['Energy (kcal)'] != 'Not Applicable' &&
+            data['Energy (kcal)'] != null)
+          'Energy: ${data['Energy (kcal)']}',
+        if (data['Protein (g)'] != 'Not Applicable' &&
+            data['Protein (g)'] != null)
+          'Protein: ${data['Protein (g)']}',
+        if (data['Total Carbohydrates (g)'] != 'Not Applicable' &&
+            data['Total Carbohydrates (g)'] != null)
+          'Total Carbohydrates: ${data['Total Carbohydrates (g)']}',
+        if (data['Sugars (g)'] != 'Not Applicable' &&
+            data['Sugars (g)'] != null)
+          'Sugars: ${data['Sugars (g)']}',
+        if (data['Added Sugars (g)'] != 'Not Applicable' &&
+            data['Added Sugars (g)'] != null)
+          'Added Sugars: ${data['Added Sugars (g)']}',
+        if (data['Dietary Fiber (g)'] != 'Not Applicable' &&
+            data['Dietary Fiber (g)'] != null)
+          'Dietary Fiber: ${data['Dietary Fiber (g)']}',
+        if (data['Total Fat (g)'] != 'Not Applicable' &&
+            data['Total Fat (g)'] != null)
+          'Total Fat: ${data['Total Fat (g)']}',
+        if (data['Trans Fat (g)'] != 'Not Applicable' &&
+            data['Trans Fat (g)'] != null)
+          'Trans Fat: ${data['Trans Fat (g)']}',
+        if (data['Saturated Fat (g)'] != 'Not Applicable' &&
+            data['Saturated Fat (g)'] != null)
+          'Saturated Fat: ${data['Saturated Fat (g)']}',
+        if (data['Unsaturated Fat (g)'] != 'Not Applicable' &&
+            data['Unsaturated Fat (g)'] != null)
+          'Unsaturated Fat: ${data['Unsaturated Fat (g)']}',
+        if (data['Cholesterol (mg)'] != 'Not Applicable' &&
+            data['Cholesterol (mg)'] != null)
+          'Cholesterol: ${data['Cholesterol (mg)']}',
+        if (data['Caffeine Content (mg)'] != 'Not Applicable' &&
+            data['Caffeine Content (mg)'] != null)
+          'Caffeine Content: ${data['Caffeine Content (mg)']}',
       ],
-      micros: List<String>.from(data['Micronutrients'] ?? []),
+      micros: [
+        if (data['Sodium (mg)'] != 'Not Applicable' &&
+            data['Sodium (mg)'] != null)
+          'Sodium: ${data['Sodium (mg)']}',
+        if (data['Iron (mg)'] != 'Not Applicable' && data['Iron (mg)'] != null)
+          'Iron: ${data['Iron (mg)']}',
+        if (data['Calcium (mg)'] != 'Not Applicable' &&
+            data['Calcium (mg)'] != null)
+          'Calcium: ${data['Calcium (mg)']}',
+        if (data['Copper (mg)'] != 'Not Applicable' &&
+            data['Copper (mg)'] != null)
+          'Copper: ${data['Copper (mg)']}',
+        if (data['Magnesium (mg)'] != 'Not Applicable' &&
+            data['Magnesium (mg)'] != null)
+          'Magnesium: ${data['Magnesium (mg)']}',
+        if (data['Phosphorus (mg)'] != 'Not Applicable' &&
+            data['Phosphorus (mg)'] != null)
+          'Phosphorus: ${data['Phosphorus (mg)']}',
+        if (data['Potassium (mg)'] != 'Not Applicable' &&
+            data['Potassium (mg)'] != null)
+          'Potassium: ${data['Potassium (mg)']}',
+        if (data['Zinc (mg)'] != 'Not Applicable' && data['Zinc (mg)'] != null)
+          'Zinc: ${data['Zinc (mg)']}',
+        if (data['Manganese (mg)'] != 'Not Applicable' &&
+            data['Manganese (mg)'] != null)
+          'Manganese: ${data['Manganese (mg)']}',
+        if (data['Selenium (mcg)'] != 'Not Applicable' &&
+            data['Selenium (mcg)'] != null)
+          'Selenium: ${data['Selenium (mcg)']}',
+      ],
       ingredients: List<String>.from(data['Ingredients'] ?? []),
       whatIsIt: data['What is it?'] ?? '',
       whatIsItUsedFor: data['What is it used for?'] ?? '',
@@ -147,7 +193,7 @@ class ProductSuggestion {
       ecoFriendly: data['Eco-Friendly'] ?? '',
       energy: data['Energy (kcal)'] ?? 'Not Applicable',
       glutenFree: data['Gluten-free'] ?? 'Not Applicable',
-      kealthyScore: data['Kealthy Score'] ?? '',
+      kealthyScore: _parseDouble(data['Kealthy Score']).toString(),
       ketoFriendly: data['Keto Friendly'] ?? 'Not Applicable',
       lowGi: data['Low GI'] ?? 'Not Applicable',
       lowSugar:
@@ -192,14 +238,9 @@ class ProductSuggestion {
       name: name,
       price: price,
       category: category,
-      time: time,
-      delivery: delivery,
-      description: description,
+      ScoredBasedOn: ScoredBasedOn,
       protein: protein,
-      carbs: carbs,
       kcal: kcal,
-      fat: fat,
-      rating: rating,
       imageUrls: imageUrls,
       macros: macros,
       ingredients: ingredients,
