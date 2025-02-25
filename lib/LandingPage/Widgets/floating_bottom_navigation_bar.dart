@@ -13,7 +13,7 @@ import '../../Riverpod/BackButton.dart';
 import '../../Services/Location_Permission.dart';
 import '../../Services/NotificationHandler.dart';
 import '../../Services/fcm_permission.dart';
-import '../Ai/Floating_button.dart';
+import '../Ai/draggable.dart';
 import '../HomePage.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -104,16 +104,16 @@ class _CustomBottomNavigationBarState
             Positioned(
               top: MediaQuery.of(context).size.height * 0.7,
               right: 11.0,
-              child: ReusableFloatingActionButton(
-                imageUrl: 'assets/nutri (2).png',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ChatScreen()),
-                  );
-                },
-                label: 'Ask Nutri',
-              ),
+              child:DraggableFloatingActionButton(
+              imageUrl: 'assets/nutri (2).png',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ChatScreen()),
+                );
+              },
+              label: 'Ask Nutri',
+            )
             ),
           ],
         ),
