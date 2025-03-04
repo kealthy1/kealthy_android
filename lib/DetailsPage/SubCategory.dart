@@ -104,7 +104,7 @@ class CategoryCard extends ConsumerWidget {
       onTap: () {
         Navigator.push(
           context,
-          CupertinoModalPopupRoute(
+          MaterialPageRoute(
             builder: (context) => MenuPage(categoryName: title),
           ),
         );
@@ -117,12 +117,7 @@ class CategoryCard extends ConsumerWidget {
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
-              ),
-            ],
+            border: Border.all(color: Colors.grey[300]!),
             color: color,
             borderRadius: BorderRadius.circular(10),
           ),

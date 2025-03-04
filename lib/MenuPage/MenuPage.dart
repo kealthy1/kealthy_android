@@ -107,6 +107,7 @@ class VeganDietNotifier extends StateNotifier<List<MenuItem>> {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('Products')
           .where('Subcategory', isEqualTo: category)
+          .where('SOH', isNotEqualTo: 0)
           .get();
 
       return querySnapshot.docs

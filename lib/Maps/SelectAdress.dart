@@ -185,6 +185,8 @@ class _SelectAddressState extends ConsumerState<SelectAdress> {
             children: [
               GestureDetector(
                 onTap: () async {
+                  ref.refresh(isBottomSheetOpenProvider);
+
                   bool serviceEnabled =
                       await Geolocator.isLocationServiceEnabled();
 
@@ -596,20 +598,33 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                   ),
                   PopupMenuButton<String>(
                     color: Colors.white,
-                    onSelected: (String choice) {
+                    onSelected: (String choice) async {
                       if (choice == 'Edit') {
-                        Navigator.pushReplacement(
-                          context,
-                          CupertinoModalPopupRoute(
-                            builder: (context) => SelectLocationPage(
-                              name: widget.address.name,
-                              selectedRoad: widget.address.road,
-                              landmark: widget.address.landmark,
-                              type: widget.address.type,
-                              directions: widget.address.directions,
+                        bool serviceEnabled =
+                            await Geolocator.isLocationServiceEnabled();
+                        LocationPermission permission =
+                            await Geolocator.checkPermission();
+
+                        if (permission == LocationPermission.denied ||
+                            permission == LocationPermission.deniedForever) {
+                          openAppSettings();
+                        }
+                        if (!serviceEnabled) {
+                          checkAndRequestLocation(context);
+                        } else {
+                          Navigator.push(
+                            context,
+                            CupertinoModalPopupRoute(
+                              builder: (context) => SelectLocationPage(
+                                name: widget.address.name,
+                                selectedRoad: widget.address.road,
+                                landmark: widget.address.landmark,
+                                type: widget.address.type,
+                                directions: widget.address.directions,
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        }
                       } else if (choice == 'Delete') {
                         widget.onDelete();
                       }

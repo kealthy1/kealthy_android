@@ -101,10 +101,7 @@ class _CustomBottomNavigationBarState
         body: Stack(
           children: [
             pages[currentIndex],
-            Positioned(
-              top: MediaQuery.of(context).size.height * 0.7,
-              right: 11.0,
-              child:DraggableFloatingActionButton(
+            DraggableFloatingActionButton(
               imageUrl: 'assets/nutri (2).png',
               onTap: () {
                 Navigator.push(
@@ -113,7 +110,6 @@ class _CustomBottomNavigationBarState
                 );
               },
               label: 'Ask Nutri',
-            )
             ),
           ],
         ),

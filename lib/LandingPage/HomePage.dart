@@ -57,7 +57,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
           cartItems.isNotEmpty && currentIndex != profilePageIndex && isVisible
               ? AnimatedOpacity(
                   opacity: isVisible ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 200),
+                  duration: const Duration(milliseconds: 100),
                   child: const CartContainer(),
                 )
               : null,

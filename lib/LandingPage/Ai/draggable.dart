@@ -2,8 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'Floating_button.dart';
 
-final draggableFabPositionProvider =
-    StateProvider<Offset>((ref) => const Offset(11.0, 300.0));
+final draggableFabPositionProvider = StateProvider<Offset>((ref) {
+  final screenSize = WidgetsBinding.instance.window.physicalSize /
+      WidgetsBinding.instance.window.devicePixelRatio;
+
+  return Offset(
+    screenSize.width - 80,
+    (screenSize.height / 2) + 120, 
+  );
+});
+
 
 class DraggableFloatingActionButton extends ConsumerWidget {
   final String imageUrl;

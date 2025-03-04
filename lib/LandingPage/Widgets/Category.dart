@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:kealthy/LandingPage/Ai/draggable.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../DetailsPage/Ratings/Providers.dart';
 import '../../DetailsPage/Ratings/Show_Review.dart';
@@ -47,7 +48,7 @@ class CategoryItem extends ConsumerWidget {
           highlightColor: Colors.transparent,
           onTap: () {
             ref.refresh(rateProductProvider);
-            
+            ref.refresh(draggableFabPositionProvider);
             ref.refresh(userProfileProvider);
             ref.refresh(orderStatusProvider);
             Navigator.push(

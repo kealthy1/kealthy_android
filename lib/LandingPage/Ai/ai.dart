@@ -6,6 +6,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:kealthy/LandingPage/Ai/Suggetions.dart';
 
+final showHelpCenterProvider = StateProvider<bool>((ref) => true);
+
 class ChatMessage {
   final String message;
   final bool isUser;
@@ -126,10 +128,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget build(BuildContext context) {
     final chatMessages = ref.watch(chatProvider);
     final randomPrompts = ref.watch(promptProvider);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    final showHelpCenter = ref.watch(showHelpCenterProvider);
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: Colors.white,
       appBar: AppBar(
         surfaceTintColor: Colors.white,
@@ -157,16 +159,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               },
             ),
           ),
-          if (randomPrompts.isNotEmpty)
+          if (showHelpCenter)
             Padding(
               padding:
-                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                  const EdgeInsets.symmetric(vertical: 1.0, horizontal: 4.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   HelpCenterPage(),
                   SizedBox(
-                    height: 25,
+                    height: 5,
                   ),
                   Text(
                     "What can I help with?",
@@ -183,6 +185,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         child: GestureDetector(
                           onTap: () {
                             chatController.text = prompt;
+                            ref.read(showHelpCenterProvider.notifier).state =
+                                false;
                           },
                           child: Container(
                             margin: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -211,6 +215,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               children: [
                 Expanded(
                   child: TextField(
+                    onTap: () {
+                      ref.read(showHelpCenterProvider.notifier).state = false;
+                    },
                     minLines: 1,
                     maxLines: null,
                     cursorColor: Colors.black,

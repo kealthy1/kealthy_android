@@ -13,7 +13,7 @@ import 'Delivery_details.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+final isBottomSheetOpenProvider = StateProvider<bool>((ref) => false);
 final addressProvider = StateProvider<String?>((ref) => null);
 final mapControllerProvider = StateProvider<MapController?>((ref) => null);
 final suggestionsProvider = StateProvider<List<String>>((ref) {
@@ -414,10 +414,10 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
 
                                   final drivingDistance =
                                       await drivingDistanceFuture;
-                                  if (drivingDistance > 15) {
+                                  if (drivingDistance > 12) {
                                     Fluttertoast.showToast(
                                       msg:
-                                          "Above 15 km Location is not serviceable.",
+                                          "Above 12 km Location is not serviceable.",
                                       toastLength: Toast.LENGTH_SHORT,
                                       gravity: ToastGravity.BOTTOM,
                                     );
@@ -589,7 +589,11 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
     double latitude,
     double longitude,
     String directions,
-  ) {
+  ) {final isBottomSheetOpen = ref.read(isBottomSheetOpenProvider.notifier);
+  
+  if (isBottomSheetOpen.state) return;
+
+  isBottomSheetOpen.state = true; 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -612,6 +616,8 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
           directions: directions,
         ),
       ),
-    );
+    ).whenComplete(() {
+      isBottomSheetOpen.state = false;
+    });
   }
 }

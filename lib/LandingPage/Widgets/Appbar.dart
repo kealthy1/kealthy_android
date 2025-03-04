@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/Login/login_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Login/Guest_Alert.dart';
+import '../../Maps/fluttermap.dart';
 import '../../Maps/functions/Delivery_detailslocationprovider.dart';
 import '../../Maps/SelectAdress.dart';
 import '../../Orders/ordersTab.dart';
@@ -79,6 +82,10 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
       backgroundColor: Colors.white,
       title: GestureDetector(
         onTap: () async {
+          ref.refresh(currentlocationProviders);
+          ref.refresh(selectedPositionProvider);
+          ref.refresh(addressProvider);
+          ref.refresh(isFetchingLocationProvider);
           final prefs = await SharedPreferences.getInstance();
           final phoneNumber = prefs.getString('phoneNumber') ?? '';
 

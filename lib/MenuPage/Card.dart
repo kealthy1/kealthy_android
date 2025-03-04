@@ -25,7 +25,7 @@ class MenuItemCard extends ConsumerWidget {
         FocusScope.of(context).unfocus();
         Navigator.push(
           context,
-          CupertinoModalPopupRoute(
+          MaterialPageRoute(
             builder: (context) => HomePage(menuItem: menuItem),
           ),
         );
@@ -184,7 +184,7 @@ class MenuItemCard extends ConsumerWidget {
                       ),
                     ),
                   )
-                : const SizedBox(),
+                : const SizedBox.shrink(),
           )
         ],
       ),

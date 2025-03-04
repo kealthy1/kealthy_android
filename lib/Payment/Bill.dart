@@ -24,7 +24,7 @@ class BillDetails extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-  final totalDistanceAsync = ref.watch(totalDistanceProvider);
+    final totalDistanceAsync = ref.watch(totalDistanceProvider);
     final selectedSlotAsync = ref.watch(SlotProvider);
 
     return totalDistanceAsync.when(
@@ -39,7 +39,8 @@ class BillDetails extends ConsumerWidget {
         }
 
         selectedSlotAsync.whenData((selectedSlot) {
-          if (selectedSlot != null && selectedSlot.startsWith("Instant Delivery ⚡")) {
+          if (selectedSlot != null &&
+              selectedSlot.startsWith("Instant Delivery ⚡")) {
             additionalCharge = 50;
           } else {
             additionalCharge = 0;
@@ -68,7 +69,8 @@ class BillDetails extends ConsumerWidget {
         }
 
         double handlingFee = 5;
-        double totalToPay = totalPrice + handlingFee + discountedFee + additionalCharge;
+        double totalToPay =
+            totalPrice + handlingFee + discountedFee + additionalCharge;
 
         PaymentService().updateTotalToPay(totalToPay);
 
@@ -110,7 +112,7 @@ class BillDetails extends ConsumerWidget {
                               : (totalPrice < 199 &&
                                       totalDistance != null &&
                                       totalDistance.ceil() > 7)
-                                  ? 'Purchase for ₹${(199 - totalPrice).toStringAsFixed(0)} and pay delivery fee ₹${((totalDistance- 7) * 8).toStringAsFixed(0)}/- Only'
+                                  ? 'Purchase for ₹${(199 - totalPrice).toStringAsFixed(0)} and pay delivery fee ₹${((totalDistance - 7) * 8).toStringAsFixed(0)}/- Only'
                                   : (totalPrice >= 199 &&
                                           totalDistance != null &&
                                           totalDistance.ceil() > 7)
@@ -145,14 +147,16 @@ class BillDetails extends ConsumerWidget {
                       physics: const NeverScrollableScrollPhysics(),
                       children: [
                         _BillItem(
-                          amountColor: Colors.grey,
+                          isBold: true,
+                          amountColor: Colors.black,
                           title: 'Item Total',
                           amount: '₹${totalPrice.toStringAsFixed(0)}/-',
                         ),
                         const SizedBox(height: 5),
                         _BillItem(
+                          isBold: true,
                           amountColor:
-                              isFreeDelivery ? Colors.green : Colors.grey,
+                              isFreeDelivery ? Colors.green : Colors.black,
                           title:
                               'Delivery Fee | ${totalDistance != null ? totalDistance.toStringAsFixed(2) : 'N/A'} km',
                           amount: Row(
@@ -165,7 +169,7 @@ class BillDetails extends ConsumerWidget {
                                   '₹${(totalDistance != null ? (totalDistance * 10).toStringAsFixed(0) : '0')} /-',
                                   style: const TextStyle(
                                     decoration: TextDecoration.lineThrough,
-                                    color: Colors.grey,
+                                    color: Colors.black,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -173,7 +177,7 @@ class BillDetails extends ConsumerWidget {
                                 Text(
                                   '₹${(totalDistance * 10).toStringAsFixed(0)} ',
                                   style: GoogleFonts.poppins(
-                                      color: Colors.grey,
+                                      color: Colors.black,
                                       fontWeight: FontWeight.bold,
                                       decoration: TextDecoration.lineThrough,
                                       decorationColor: Colors.black,
@@ -192,7 +196,7 @@ class BillDetails extends ConsumerWidget {
                                   : Text(
                                       '₹${discountedFee.toStringAsFixed(0)}/-',
                                       style: GoogleFonts.poppins(
-                                        color: Colors.grey,
+                                        color: Colors.black,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -201,22 +205,24 @@ class BillDetails extends ConsumerWidget {
                         ),
                         const SizedBox(height: 5),
                         _BillItem(
-                          amountColor: Colors.grey,
+                          amountColor: Colors.black,
                           title: 'Handling Fee',
                           amount: '₹5/-',
+                          isBold: true,
                         ),
                         const SizedBox(height: 5),
                         if (additionalCharge > 0)
                           _BillItem(
-                            amountColor: Colors.grey,
+                            amountColor: Colors.black,
                             title: 'Instant Delivery Charge',
+                            isBold: true,
                             amount: '₹${additionalCharge.toStringAsFixed(0)}/-',
                           ),
                         const SizedBox(height: 5),
                         const Divider(),
                         const SizedBox(height: 20),
                         _BillItem(
-                          amountColor: Colors.grey,
+                          amountColor: Colors.black,
                           title: 'To Pay',
                           amount: '₹${totalToPay.toStringAsFixed(0)}/-',
                           isRightAligned: true,
@@ -275,7 +281,7 @@ class _BillItem extends StatelessWidget {
         Expanded(
           child: Text(
             title,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.montserrat(
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
             ),
           ),
