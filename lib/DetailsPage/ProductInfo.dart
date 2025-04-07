@@ -25,11 +25,11 @@ class ProductInfoContainer extends ConsumerWidget {
     final String bestBefore = _formatDate(menuItem.Expiry);
 
     final String disclaimer =
-        'The expiry date shown here is for indicative purposes only. Please refer to the information provided on the product package received at delivery for the actual expiry date';
+        'Please refer to the information provided on the product package received at delivery for the actual expiry date';
     final String customerService =
         'For Queries/Feedback/Complaints, contact our customer care executive at 8848673425.';
-    final String Address =
-        "Cotolore Enterprises LLP Floor No.: 1 Building No./Flat No.: 15/293 - C Peringala Road/Street: Muriyankara-Pinarmunda Milma Road City/Town/Village: Kunnathunad District: Ernakulam State: Kerala PIN Code: 683565";
+    final String address =
+        "Cotolore Enterprises LLP, 15/293 - C, Muriyankara-Pinarmunda Milma Road, Peringala (PO), Ernakulam, 683565, Kerala, India.";
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,7 +95,14 @@ class ProductInfoContainer extends ConsumerWidget {
                 SizedBox(
                   height: 10,
                 ),
-                _buildInfoItem('Best Before:', bestBefore),
+                Text(
+                  textAlign: TextAlign.justify,
+                  'Best Before: $bestBefore from the date of packaging',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: Colors.black,
+                  ),
+                ),
                 SizedBox(
                   height: 10,
                 ),
@@ -107,7 +114,7 @@ class ProductInfoContainer extends ConsumerWidget {
                 SizedBox(
                   height: 10,
                 ),
-                _buildInfoItem('Address:', Address),
+                _buildInfoItem('Address:', address),
               ],
             ),
           ),

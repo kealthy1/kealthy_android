@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -18,6 +17,7 @@ class MenuItemCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final averageStarsAsync = ref.watch(averageStarsProvider(menuItem.name));
+    final screenHeight = MediaQuery.of(context).size.height;
     return GestureDetector(
       onTap: () {
         // ignore: unused_result
@@ -72,12 +72,14 @@ class MenuItemCard extends ConsumerWidget {
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: Text(
+                  child: SizedBox(
+                    height: screenHeight * 0.08,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           menuItem.name,
                           style: GoogleFonts.poppins(
@@ -85,52 +87,52 @@ class MenuItemCard extends ConsumerWidget {
                                 fontSize: 13, fontWeight: FontWeight.bold),
                           ),
                         ),
-                      ),
-                      averageStarsAsync.when(
-                        data: (averageStars) => Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            ...List.generate(5, (index) {
-                              if (index < averageStars.floor()) {
-                                return Icon(Icons.star_outlined,
-                                    color: Colors.amber, size: 12);
-                              } else if (index == averageStars.floor() &&
-                                  averageStars % 1 != 0) {
-                                return const Icon(Icons.star_half,
-                                    color: Colors.amber, size: 12);
-                              } else {
-                                return const Icon(
-                                    Icons.star_border_purple500_rounded,
-                                    color: Colors.amber,
-                                    size: 12);
-                              }
-                            }),
-                            SizedBox(
-                              width: 3,
-                            ),
-                            Expanded(
-                              child: Text(
-                                '${averageStars.toStringAsFixed(1)} Ratings',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.black87,
-                                  fontSize: 10,
+                        averageStarsAsync.when(
+                          data: (averageStars) => Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              ...List.generate(5, (index) {
+                                if (index < averageStars.floor()) {
+                                  return Icon(Icons.star_outlined,
+                                      color: Colors.amber, size: 12);
+                                } else if (index == averageStars.floor() &&
+                                    averageStars % 1 != 0) {
+                                  return const Icon(Icons.star_half,
+                                      color: Colors.amber, size: 12);
+                                } else {
+                                  return const Icon(
+                                      Icons.star_border_purple500_rounded,
+                                      color: Colors.amber,
+                                      size: 12);
+                                }
+                              }),
+                              SizedBox(
+                                width: 3,
+                              ),
+                              Expanded(
+                                child: Text(
+                                  '${averageStars.toStringAsFixed(1)} Ratings',
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.black87,
+                                    fontSize: 10,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
+                          loading: () => const SizedBox.shrink(),
+                          error: (error, stack) => const SizedBox.shrink(),
                         ),
-                        loading: () => const SizedBox.shrink(),
-                        error: (error, stack) => const SizedBox.shrink(),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '₹ ${menuItem.price.toStringAsFixed(0)}/-',
-                        style: GoogleFonts.radioCanada(
-                          fontSize: 16,
-                          color: Colors.green,
+                        Spacer(),
+                        Text(
+                          '₹ ${menuItem.price.toStringAsFixed(0)}/-',
+                          style: GoogleFonts.radioCanada(
+                            fontSize: 16,
+                            color: Colors.green,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],

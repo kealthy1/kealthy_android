@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -24,7 +23,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     NotificationHandler.initialize(context, ref);
-    
+
     final currentIndex = ref.watch(bottomNavIndexProvider);
     final cartItems = ref.watch(sharedPreferencesCartProvider);
     final isVisible = ref.watch(cartVisibilityProvider);
@@ -83,7 +82,6 @@ Widget _buildHomePage(BuildContext context, WidgetRef ref) {
         SizedBox(height: screenHeight * 0.03),
         const CategoryGrid(),
         SizedBox(height: screenHeight * 0.03),
-     
         KealthyPage(),
         SizedBox(height: screenHeight * 0.03),
       ],

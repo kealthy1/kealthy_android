@@ -70,7 +70,7 @@ class PaymentHandler {
         double? itemPrice = prefs.getDouble('item_price_$index');
         String? EAN = prefs.getString('item_EAN_$index');
 
-        if (itemName == null || itemQuantity == null || itemPrice == null) {
+        if (itemQuantity == null) {
           break;
         }
 

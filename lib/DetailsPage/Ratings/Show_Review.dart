@@ -17,7 +17,7 @@ class OrderStatusNotifier extends StateNotifier<AsyncValue<bool>> {
       final prefs = await SharedPreferences.getInstance();
       String? orderId = prefs.getString('order_id');
 
-      if (orderId == null || orderId.isEmpty) {
+      if (orderId!.isEmpty) {
         state = const AsyncValue.data(true);
         return;
       }
@@ -61,8 +61,8 @@ class OrderStatusNotifier extends StateNotifier<AsyncValue<bool>> {
   void dispose() {
     _orderRef?.onDisconnect();
     super.dispose();
-    }
   }
+}
 
 final orderStatusProvider =
     StateNotifierProvider<OrderStatusNotifier, AsyncValue<bool>>(

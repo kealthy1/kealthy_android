@@ -6,7 +6,7 @@ import 'package:photo_view/photo_view_gallery.dart';
 import '../Services/Cache.dart';
 
 class ImageIndexNotifier extends StateNotifier<int> {
-  ImageIndexNotifier(int initialIndex) : super(initialIndex);
+  ImageIndexNotifier(super.initialIndex);
 
   void setIndex(int newIndex) {
     state = newIndex;

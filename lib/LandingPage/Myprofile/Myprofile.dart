@@ -201,7 +201,7 @@ class ProfilePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userProfile = ref.watch(userProfileProvider);
     final userName = userProfile.name;
-final userEmail = userProfile.email;
+    final userEmail = userProfile.email;
     return FutureBuilder<String?>(
       future: _getPhoneNumber(),
       builder: (context, snapshot) {
@@ -233,8 +233,10 @@ final userEmail = userProfile.email;
                       Navigator.push(
                         context,
                         CupertinoModalPopupRoute(
-                          builder: (context) =>
-                              EditProfilePage(nameFromConstructor: userName, EMAILFromConstructor: userEmail,),
+                          builder: (context) => EditProfilePage(
+                            nameFromConstructor: userName,
+                            EMAILFromConstructor: userEmail,
+                          ),
                         ),
                       );
                     },
@@ -382,8 +384,9 @@ final userEmail = userProfile.email;
                           'onTap': () => Navigator.push(
                               context,
                               CupertinoModalPopupRoute(
-                                  builder: (context) =>
-                                      const SupportDeskScreen(value: 0,)))
+                                  builder: (context) => const SupportDeskScreen(
+                                        value: 0,
+                                      )))
                         },
                       ];
 

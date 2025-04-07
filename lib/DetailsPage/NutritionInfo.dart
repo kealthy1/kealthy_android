@@ -6,8 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'Percentindicator.dart';
-
 final averageStarsProvider =
     FutureProvider.family<double, String>((ref, productName) async {
   final response = await http.get(
@@ -96,10 +94,10 @@ class RedNutritionSection extends ConsumerWidget {
                   ],
                 ),
               ),
-              CircularProgressIndicatorWidget(
-                kealthyScore: double.parse(menuItem.kealthyScore),
-                menuItem: menuItem,
-              )
+              // CircularProgressIndicatorWidget(
+              //   kealthyScore: double.parse(menuItem.kealthyScore),
+              //   menuItem: menuItem,
+              // )
             ],
           ),
         ),

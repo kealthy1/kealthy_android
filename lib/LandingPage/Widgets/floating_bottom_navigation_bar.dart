@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:kealthy/LandingPage/Ai/ai.dart';
 import 'package:kealthy/LandingPage/Myprofile/Myprofile.dart';
 import 'package:kealthy/Services/update.dart';
 import 'package:permission_handler/permission_handler.dart' as perm;
@@ -13,7 +12,7 @@ import '../../Riverpod/BackButton.dart';
 import '../../Services/Location_Permission.dart';
 import '../../Services/NotificationHandler.dart';
 import '../../Services/fcm_permission.dart';
-import '../Ai/draggable.dart';
+// import '../Ai/draggable.dart';
 import '../HomePage.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -101,16 +100,16 @@ class _CustomBottomNavigationBarState
         body: Stack(
           children: [
             pages[currentIndex],
-            DraggableFloatingActionButton(
-              imageUrl: 'assets/nutri (2).png',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ChatScreen()),
-                );
-              },
-              label: 'Ask Nutri',
-            ),
+            // DraggableFloatingActionButton(
+            //   imageUrl: 'assets/nutri (2).png',
+            //   onTap: () {
+            //     Navigator.push(
+            //       context,
+            //       MaterialPageRoute(builder: (context) => const ChatScreen()),
+            //     );
+            //   },
+            //   label: 'Ask Nutri',
+            // ),
           ],
         ),
         bottomNavigationBar: Theme(

@@ -52,12 +52,12 @@ class SharedPreferencesCartNotifier
     final prefs = await SharedPreferences.getInstance();
     List<String>? cartItemsJson = prefs.getStringList('cartItems');
 
-    if (cartItemsJson != null) {
+    if (cartItemsJson == null) {
+      state = [];
+    } else {
       state = cartItemsJson.map((itemJson) {
         return SharedPreferencesCartItem.fromJson(jsonDecode(itemJson));
       }).toList();
-    } else {
-      state = [];
     }
   }
 

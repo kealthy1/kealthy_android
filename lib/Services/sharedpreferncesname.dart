@@ -38,7 +38,7 @@ class SharedPreferencesHelper {
       int? itemQuantity = prefs.getInt('item_quantity_$index');
       double? itemPrice = prefs.getDouble('item_price_$index');
 
-      if (itemName == null || itemQuantity == null || itemPrice == null) {
+      if (itemQuantity == null) {
         break;
       }
 
@@ -51,7 +51,9 @@ class SharedPreferencesHelper {
     }
 
     print("Fetched order items:");
-    orderItems.forEach((item) => print(item));
+    for (var item in orderItems) {
+      print(item);
+    }
     return orderItems;
   }
 
@@ -79,7 +81,9 @@ class SharedPreferencesHelper {
     }
 
     print("Updated order items after removal:");
-    updatedOrderItems.forEach((item) => print(item));
+    for (var item in updatedOrderItems) {
+      print(item);
+    }
   }
 
   static Future<void> printAllValues() async {

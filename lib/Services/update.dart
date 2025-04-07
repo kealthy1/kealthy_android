@@ -44,22 +44,15 @@ class UpdateService {
         int? lastShownTime = prefs.getInt('update_alert_shown_time');
         int currentTime = DateTime.now().millisecondsSinceEpoch;
 
-        if (lastShownTime == null) {
-          // If lastShownTime does NOT exist, set the timestamp but DO NOT show the alert
-          print('No previous alert time found. Setting timestamp.');
-          await prefs.setInt('update_alert_shown_time', currentTime);
-        } else {
-          int timeDifference = currentTime - lastShownTime;
+        int timeDifference = currentTime - lastShownTime!;
 
-          if (timeDifference >= 10800000) {
-            // 3 hours in milliseconds
-            // If more than 3 hours have passed, show the alert continuously
-            print('More than 3 hours passed. Showing update alert.');
-            showUpdateDialog(context, localVersion, playStoreVersion);
-          } else {
-            print(
-                'Last alert was shown less than 3 hours ago. No alert shown.');
-          }
+        if (timeDifference >= 10800000) {
+          // 3 hours in milliseconds
+          // If more than 3 hours have passed, show the alert continuously
+          print('More than 3 hours passed. Showing update alert.');
+          showUpdateDialog(context, localVersion, playStoreVersion);
+        } else {
+          print('Last alert was shown less than 3 hours ago. No alert shown.');
         }
       }
     } catch (e) {

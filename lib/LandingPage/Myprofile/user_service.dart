@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 class UserModel {
   final String name;
   final String email;
@@ -22,7 +21,7 @@ class UserRepository {
 
   Future<UserModel> fetchUserDetails() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Fetch phoneNumber from SharedPreferences
     String? phoneNumber = prefs.getString("phoneNumber");
     if (phoneNumber == null) throw Exception("Phone number not found");
@@ -32,7 +31,8 @@ class UserRepository {
 
     if (selectedName != null) {
       // If selectedName exists, return stored name
-      return UserModel(name: selectedName, email: prefs.getString("email") ?? "");
+      return UserModel(
+          name: selectedName, email: prefs.getString("email") ?? "");
     }
 
     try {
@@ -59,7 +59,6 @@ class UserRepository {
     }
   }
 }
-
 
 final userRepositoryProvider = Provider((ref) => UserRepository());
 

@@ -16,7 +16,28 @@
 
 # Add Razorpay-related rules
 -keep class com.razorpay.** { *; }
--keepattributes Exceptions
+-dontwarn com.razorpay.**
 
-# Uncomment the following line if using Kotlin reflection
-#-keepclassmembers class * { @kotlin.Metadata *; }
+# GPay & Paisa SDK used by Razorpay
+-keep class com.google.android.apps.nbu.paisa.inapp.client.api.** { *; }
+-dontwarn com.google.android.apps.nbu.paisa.inapp.client.api.**
+
+# Kotlin metadata (if using Kotlin)
+-keepclassmembers class * {
+    @kotlin.Metadata *;
+}
+
+# Flutter deferred component & Play Core compatibility
+-keep class com.google.android.play.core.** { *; }
+-dontwarn com.google.android.play.core.**
+
+# Keep annotations that may be stripped by R8
+-keepattributes *Annotation*
+-keep class proguard.annotation.Keep { *; }
+-keep class proguard.annotation.KeepClassMembers { *; }
+-keepclassmembers class * {
+    @proguard.annotation.Keep <methods>;
+}
+-keepclassmembers class * {
+    @proguard.annotation.KeepClassMembers <fields>;
+}

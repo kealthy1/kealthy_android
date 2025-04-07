@@ -209,7 +209,7 @@ class MenuItem {
       Orgin: data['Orgin'] ?? '',
       ManufacturerAddress: data['Manufacturer Address'] ?? '',
       Manufactureddate: data['Manufactured date'] ?? '',
-      Expiry: data['Expiry'] ?? '',
+      Expiry: data['Best Before'] ?? '',
       ImportedMarketedBy: data['Imported&Marketed By'] ?? '',
     );
   }

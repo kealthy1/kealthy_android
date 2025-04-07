@@ -1,9 +1,10 @@
+// ignore_for_file: invalid_use_of_protected_member
+
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shimmer/shimmer.dart';
@@ -13,9 +14,11 @@ import 'Delivery_details.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
 final isBottomSheetOpenProvider = StateProvider<bool>((ref) => false);
 final addressProvider = StateProvider<String?>((ref) => null);
-final mapControllerProvider = StateProvider<MapController?>((ref) => null);
+final mapControllerProvider =
+    StateProvider<GoogleMapController?>((ref) => null);
 final suggestionsProvider = StateProvider<List<String>>((ref) {
   return [];
 });
@@ -130,7 +133,8 @@ class LocationNotifier extends StateNotifier<Position?> {
 
           final mapController = ref.read(mapControllerProvider);
           if (mapController != null) {
-            mapController.move(position, 18.0);
+            mapController
+                .animateCamera(CameraUpdate.newLatLngZoom(position, 18.0));
           }
 
           await _updateAddress(position);
@@ -167,13 +171,12 @@ class SelectLocationPage extends ConsumerStatefulWidget {
 
 class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
   late TextEditingController _searchController;
-  late MapController _mapController;
+  GoogleMapController? _mapController;
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    _mapController = MapController();
 
     Future.microtask(() {
       ref.read(mapControllerProvider.notifier).state = _mapController;
@@ -221,37 +224,41 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
       body: currentPosition != null
           ? Stack(
               children: [
-                FlutterMap(
-                  mapController: _mapController,
-                  options: MapOptions(
-                    initialCenter: selectedPosition ??
+                GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: selectedPosition ??
                         LatLng(currentPosition.latitude,
                             currentPosition.longitude),
-                    initialZoom: 18.0,
-                    onPositionChanged: (position, hasGesture) {
-                      if (hasGesture) {
-                        ref.read(selectedPositionProvider.notifier).state =
-                            position.center;
-                      }
-                    },
-                    onMapEvent: (event) {
-                      if (event is MapEventMoveEnd) {
-                        final center =
-                            ref.read(selectedPositionProvider.notifier).state;
-                        if (center != null) {
-                          ref
-                              .read(currentlocationProviders.notifier)
-                              ._updateAddress(center);
-                        }
-                      }
-                    },
+                    zoom: 18.0,
                   ),
-                  children: [
-                    TileLayer(
-                      urlTemplate:
-                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    ),
-                  ],
+                  onMapCreated: (controller) {
+                    _mapController = controller;
+                    ref.read(mapControllerProvider.notifier).state = controller;
+                  },
+                  onCameraMove: (position) {
+                    ref.read(selectedPositionProvider.notifier).state =
+                        position.target;
+                  },
+                  onCameraIdle: () async {
+                    final center = ref.read(selectedPositionProvider);
+                    if (center != null) {
+                      await ref
+                          .read(currentlocationProviders.notifier)
+                          ._updateAddress(center);
+                    }
+                  },
+                  myLocationButtonEnabled: false,
+                  myLocationEnabled: false,
+                  mapType: MapType.normal,
+                  mapToolbarEnabled: true,
+
+                  // markers: {
+                  //   if (selectedPosition != null)
+                  //     Marker(
+                  //       markerId: MarkerId("selected_location"),
+                  //       position: selectedPosition,
+                  //     ),
+                  // },
                 ),
                 const Center(
                   child: Icon(
@@ -301,45 +308,26 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
                                     side: const BorderSide(
                                         color: Color(0xFF273847))),
                                 onPressed: () async {
-                                  try {
-                                    ref
-                                        .read(
-                                            isFetchingLocationProvider.notifier)
-                                        .state = true;
+                                  ref
+                                      .read(isFetchingLocationProvider.notifier)
+                                      .state = true;
+                                  await ref
+                                      .read(currentlocationProviders.notifier)
+                                      ._getCurrentLocation();
+                                  ref
+                                      .read(isFetchingLocationProvider.notifier)
+                                      .state = false;
 
-                                    await ref
-                                        .read(currentlocationProviders.notifier)
-                                        ._getCurrentLocation();
-
-                                    final currentPosition = ref
-                                        .read(currentlocationProviders.notifier)
-                                        // ignore: invalid_use_of_protected_member
-                                        .state;
-
-                                    if (currentPosition != null) {
-                                      ref
-                                          .read(
-                                              currentlocationProviders.notifier)
-                                          .selectedPosition = LatLng(
-                                        currentPosition.latitude,
-                                        currentPosition.longitude,
-                                      );
-
-                                      _mapController.move(
-                                        LatLng(
-                                          currentPosition.latitude,
-                                          currentPosition.longitude,
-                                        ),
-                                        18.0,
-                                      );
-                                    }
-                                  } catch (e) {
-                                    print('Error fetching location: $e');
-                                  } finally {
-                                    ref
-                                        .read(
-                                            isFetchingLocationProvider.notifier)
-                                        .state = false;
+                                  final position = ref
+                                      .read(currentlocationProviders.notifier)
+                                      .state;
+                                  if (position != null &&
+                                      _mapController != null) {
+                                    _mapController!.animateCamera(
+                                      CameraUpdate.newLatLng(LatLng(
+                                          position.latitude,
+                                          position.longitude)),
+                                    );
                                   }
                                 },
                                 child: isFetchingLoaction
@@ -500,7 +488,6 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
                                         ref
                                             .read(placeSuggestionsProvider
                                                 .notifier)
-                                            // ignore: invalid_use_of_protected_member
                                             .state = [];
                                       }
                                     },
@@ -551,7 +538,6 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
                                       ref
                                           .read(
                                               placeSuggestionsProvider.notifier)
-                                          // ignore: invalid_use_of_protected_member
                                           .state = [];
                                       final placeId = suggestion['placeId'];
                                       await ref
@@ -589,11 +575,12 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
     double latitude,
     double longitude,
     String directions,
-  ) {final isBottomSheetOpen = ref.read(isBottomSheetOpenProvider.notifier);
-  
-  if (isBottomSheetOpen.state) return;
+  ) {
+    final isBottomSheetOpen = ref.read(isBottomSheetOpenProvider.notifier);
 
-  isBottomSheetOpen.state = true; 
+    if (isBottomSheetOpen.state) return;
+
+    isBottomSheetOpen.state = true;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

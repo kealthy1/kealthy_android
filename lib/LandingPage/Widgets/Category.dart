@@ -150,7 +150,9 @@ class CategoryGrid extends StatelessWidget {
 
         final categories = snapshot.data!.docs
             .map((doc) => Category.fromFirestore(doc.data()))
-            .toList();
+            .toList()
+          ..sort(
+              (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
         return LayoutBuilder(
           builder: (context, constraints) {

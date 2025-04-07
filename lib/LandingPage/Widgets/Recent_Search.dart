@@ -95,7 +95,7 @@ class _FoodMenuPagesState extends ConsumerState<FoodMenuPages> {
                       crossAxisCount: 2,
                       crossAxisSpacing: 10,
                       mainAxisSpacing: 10,
-                      childAspectRatio: 0.70,
+                      childAspectRatio: 0.67,
                     ),
                     itemCount:
                         menuItems.length + (notifier.showLoadAllButton ? 1 : 0),
@@ -154,123 +154,72 @@ class _FoodMenuPagesState extends ConsumerState<FoodMenuPages> {
                             ),
                           );
                         },
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(15),
-                                border: Border.all(color: Colors.grey.shade300),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: const BorderRadius.only(
-                                      topLeft: Radius.circular(15),
-                                      topRight: Radius.circular(15),
-                                    ),
-                                    child: AspectRatio(
-                                      aspectRatio: 1.0,
-                                      child: CachedNetworkImage(
-                                        cacheManager: DefaultCacheManager(),
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
-                                        imageUrl: menuItem.imageUrls[0],
-                                        placeholder: (context, url) =>
-                                            Shimmer.fromColors(
-                                          baseColor: Colors.grey[300]!,
-                                          highlightColor: Colors.grey[100]!,
-                                          child: Container(
-                                            color: Colors.grey[300],
-                                          ),
-                                        ),
-                                        errorWidget: (context, url, error) =>
-                                            const Icon(Icons.error),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: Column(
+                            children: [
+                              ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(15),
+                                  topRight: Radius.circular(15),
+                                ),
+                                child: AspectRatio(
+                                  aspectRatio: 1.0,
+                                  child: CachedNetworkImage(
+                                    cacheManager: DefaultCacheManager(),
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    imageUrl: menuItem.imageUrls[0],
+                                    placeholder: (context, url) =>
+                                        Shimmer.fromColors(
+                                      baseColor: Colors.grey[300]!,
+                                      highlightColor: Colors.grey[100]!,
+                                      child: Container(
+                                        color: Colors.grey[300],
                                       ),
                                     ),
+                                    errorWidget: (context, url, error) =>
+                                        const Icon(Icons.error),
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0, vertical: 8.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          overflow: TextOverflow.ellipsis,
-                                          menuItem.name,
-                                          style: GoogleFonts.montserrat(
-                                            color: Colors.black,
-                                            fontSize: 14,
-                                          ),
-                                          maxLines: 1,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          '₹ ${menuItem.price.toStringAsFixed(0)}/-',
-                                          overflow: TextOverflow.ellipsis,
-                                          style: GoogleFonts.montserrat(
-                                            color: Colors.black,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
-                            Align(
-                              alignment: Alignment.topRight,
-                              child: menuItem.SOH < 4
-                                  ? Transform.translate(
-                                      offset: const Offset(-1, -1),
-                                      child: ClipRRect(
-                                        borderRadius: const BorderRadius.only(
-                                          topRight: Radius.circular(10),
-                                        ),
-                                        child: Container(
-                                          height: 55,
-                                          width: 45,
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8.0, vertical: 4.0),
-                                          decoration: BoxDecoration(
-                                            color: const Color.fromARGB(
-                                                255, 201, 82, 74),
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                "Only",
-                                                style: GoogleFonts.poppins(
-                                                    fontSize: 10,
-                                                    color: Colors.white),
-                                              ),
-                                              Text(
-                                                menuItem.SOH.toStringAsFixed(0),
-                                                style: GoogleFonts.poppins(
-                                                    fontSize: 10,
-                                                    color: Colors.white),
-                                              ),
-                                              Text(
-                                                "Left",
-                                                style: GoogleFonts.poppins(
-                                                    fontSize: 10,
-                                                    color: Colors.white),
-                                              ),
-                                            ],
-                                          ),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0, vertical: 8.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        menuItem.name,
+                                        style: GoogleFonts.montserrat(
+                                          color: Colors.black,
+                                          fontSize: 14,
                                         ),
                                       ),
-                                    )
-                                  : const SizedBox(),
-                            )
-                          ],
+                                      Text(
+                                        '₹ ${menuItem.price.toStringAsFixed(0)}/-',
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.montserrat(
+                                          color: Colors.black,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },
