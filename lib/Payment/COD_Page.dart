@@ -172,172 +172,179 @@ class _OrderConfirmationState extends ConsumerState<OrderConfirmation> {
                 ),
               ],
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 5),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Total Bill',
-                            style: GoogleFonts.poppins(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w300,
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 5),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Total Bill',
+                              style: GoogleFonts.poppins(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w300,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 5,
+                            ),
+                            Icon(Icons.description_outlined,
+                                size: 24.0, color: Color(0xFF273847))
+                          ],
+                        ),
+                        Text(
+                          '₹${totalAmountToPay.toStringAsFixed(0)}/-',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  isLoading
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(18.0),
+                            child: CircularProgressIndicator(
+                              color: Color(0xFF273847),
+                              strokeWidth: 4.0,
                             ),
                           ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Icon(Icons.description_outlined,
-                              size: 24.0, color: Color(0xFF273847))
-                        ],
-                      ),
-                      Text(
-                        '₹${totalAmountToPay.toStringAsFixed(0)}/-',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 5),
-                isLoading
-                    ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(18.0),
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF273847),
-                            strokeWidth: 4.0,
-                          ),
-                        ),
-                      )
-                    : Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: ElevatedButton(
-                          onPressed: isLoading
-                              ? null
-                              : () async {
-                                  // ignore: unused_result
-                                  ref.refresh(rateProductProvider);
+                        )
+                      : Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: ElevatedButton(
+                            onPressed: isLoading
+                                ? null
+                                : () async {
+                                    // ignore: unused_result
+                                    ref.refresh(rateProductProvider);
 
-                                  // ignore: unused_result
-                                  ref.refresh(searchQueryProvider);
-                                  ref
-                                          .read(refreshTriggerProvider.notifier)
-                                          .state =
-                                      !ref.read(refreshTriggerProvider);
-                                  if (selectedPaymentMethod == null) {
-                                    Fluttertoast.showToast(
-                                      msg: "Please select a payment method.",
-                                      toastLength: Toast.LENGTH_SHORT,
-                                      gravity: ToastGravity.BOTTOM,
-                                      backgroundColor: Colors.red,
-                                      textColor: Colors.white,
-                                      fontSize: 16.0,
-                                    );
-                                    return;
-                                  }
-                                  ref.read(CODloadingProvider.notifier).state =
-                                      true;
+                                    // ignore: unused_result
+                                    ref.refresh(searchQueryProvider);
+                                    ref
+                                            .read(refreshTriggerProvider.notifier)
+                                            .state =
+                                        !ref.read(refreshTriggerProvider);
+                                    if (selectedPaymentMethod == null) {
+                                      Fluttertoast.showToast(
+                                        msg: "Please select a payment method.",
+                                        toastLength: Toast.LENGTH_SHORT,
+                                        gravity: ToastGravity.BOTTOM,
+                                        backgroundColor: Colors.red,
+                                        textColor: Colors.white,
+                                        fontSize: 16.0,
+                                      );
+                                      return;
+                                    }
+                                    ref
+                                        .read(CODloadingProvider.notifier)
+                                        .state = true;
 
-                                  final prefs =
-                                      await SharedPreferences.getInstance();
-                                  final double etaMinutes =
-                                      prefs.getDouble('selectedDistance') ?? 0;
-                                  final currentTime = DateTime.now();
-                                  currentTime.add(
-                                      Duration(minutes: etaMinutes.toInt()));
+                                    final prefs =
+                                        await SharedPreferences.getInstance();
+                                    final double etaMinutes =
+                                        prefs.getDouble('selectedDistance') ??
+                                            0;
+                                    final currentTime = DateTime.now();
+                                    currentTime.add(
+                                        Duration(minutes: etaMinutes.toInt()));
 
-                                  ref.read(CODloadingProvider.notifier).state =
-                                      true;
-                                  PaymentHandler paymentHandler =
-                                      PaymentHandler();
+                                    ref
+                                        .read(CODloadingProvider.notifier)
+                                        .state = true;
+                                    PaymentHandler paymentHandler =
+                                        PaymentHandler();
 
-                                  try {
-                                    if (selectedPaymentMethod ==
-                                        'Online Payment') {
-                                      Navigator.pushReplacement(
-                                          context,
-                                          SeamlessRevealRoute(
-                                            page: RazorPay(
-                                              totalAmountToPay:
-                                                  totalAmountToPay,
-                                            ),
-                                          ));
-                                    } else if (selectedPaymentMethod ==
-                                        'Cash on Delivery') {
-                                      await paymentHandler
-                                          .saveOrderDetails(ref);
-                                      await paymentHandler.clearCart(ref);
-                                      final prefs =
-                                          await SharedPreferences.getInstance();
-                                      prefs.setString(
-                                          'Rate', 'Your feedback message here');
-                                      prefs.setInt(
-                                          'RateTimestamp',
-                                          DateTime.now()
-                                              .millisecondsSinceEpoch);
+                                    try {
+                                      if (selectedPaymentMethod ==
+                                          'Online Payment') {
+                                        Navigator.pushReplacement(
+                                            context,
+                                            SeamlessRevealRoute(
+                                              page: RazorPay(
+                                                totalAmountToPay:
+                                                    totalAmountToPay,
+                                              ),
+                                            ));
+                                      } else if (selectedPaymentMethod ==
+                                          'Cash on Delivery') {
+                                        await paymentHandler
+                                            .saveOrderDetails(ref);
+                                        await paymentHandler.clearCart(ref);
+                                        final prefs = await SharedPreferences
+                                            .getInstance();
+                                        prefs.setString('Rate',
+                                            'Your feedback message here');
+                                        prefs.setInt(
+                                            'RateTimestamp',
+                                            DateTime.now()
+                                                .millisecondsSinceEpoch);
 
+                                        ref
+                                            .read(CODloadingProvider.notifier)
+                                            .state = false;
+                                        ReusableCountdownDialog(
+                                          context: context,
+                                          ref: ref,
+                                          message: "Order Placed Successfully",
+                                          imagePath:
+                                              "assets/Animation - 1731992471934.json",
+                                          onRedirect: () {
+                                            Navigator.pushReplacement(
+                                              context,
+                                              CupertinoModalPopupRoute(
+                                                builder: (context) =>
+                                                    const OrdersTabScreen(),
+                                              ),
+                                            );
+                                          },
+                                          button: 'My Orders',
+                                          color: Colors.green,
+                                          buttonTextColor: Colors.white,
+                                          buttonColor: Colors.green,
+                                        ).show();
+                                      }
+                                    } catch (e) {
                                       ref
                                           .read(CODloadingProvider.notifier)
                                           .state = false;
-                                      ReusableCountdownDialog(
-                                        context: context,
-                                        ref: ref,
-                                        message: "Order Placed Successfully",
-                                        imagePath:
-                                            "assets/Animation - 1731992471934.json",
-                                        onRedirect: () {
-                                          Navigator.pushReplacement(
-                                            context,
-                                            CupertinoModalPopupRoute(
-                                              builder: (context) =>
-                                                  const OrdersTabScreen(),
-                                            ),
-                                          );
-                                        },
-                                        button: 'My Orders',
-                                        color: Colors.green,
-                                        buttonTextColor: Colors.white,
-                                        buttonColor: Colors.green,
-                                      ).show();
+                                      Fluttertoast.showToast(
+                                        msg: "Error occurred: ${e.toString()}",
+                                        toastLength: Toast.LENGTH_SHORT,
+                                        gravity: ToastGravity.BOTTOM,
+                                        backgroundColor: Colors.red,
+                                        textColor: Colors.white,
+                                        fontSize: 16.0,
+                                      );
                                     }
-                                  } catch (e) {
-                                    ref
-                                        .read(CODloadingProvider.notifier)
-                                        .state = false;
-                                    Fluttertoast.showToast(
-                                      msg: "Error occurred: ${e.toString()}",
-                                      toastLength: Toast.LENGTH_SHORT,
-                                      gravity: ToastGravity.BOTTOM,
-                                      backgroundColor: Colors.red,
-                                      textColor: Colors.white,
-                                      fontSize: 16.0,
-                                    );
-                                  }
-                                },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF273847),
-                            minimumSize: const Size(50, 50),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFF273847),
+                              minimumSize: const Size(50, 50),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: Text(
+                              selectedPaymentMethod == 'Online Payment'
+                                  ? 'Make a Payment'
+                                  : 'Place Order',
+                              style: GoogleFonts.poppins(color: Colors.white),
                             ),
                           ),
-                          child: Text(
-                            'Place Order',
-                            style: GoogleFonts.poppins(color: Colors.white),
-                          ),
                         ),
-                      ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

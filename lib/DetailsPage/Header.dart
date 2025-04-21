@@ -36,7 +36,7 @@ class _ImageHeaderState extends ConsumerState<ImageHeader> {
   }
 
   @override
-  Widget build(BuildContext context ) {
+  Widget build(BuildContext context) {
     return SafeArea(
       child: AspectRatio(
         aspectRatio: 9 / 9,
@@ -44,7 +44,6 @@ class _ImageHeaderState extends ConsumerState<ImageHeader> {
           children: [
             GestureDetector(
               onTap: () {
-                
                 Navigator.push(
                   context,
                   MaterialPageRoute(

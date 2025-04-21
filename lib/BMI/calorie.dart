@@ -56,7 +56,7 @@ class _CalorieIntakePageState extends ConsumerState<CalorieIntakePage> {
           centerTitle: true,
           automaticallyImplyLeading: false,
           title: Text(
-            "Kealthy Calorie Tracker",
+            "Kealthy Calorie Calculator",
             style: GoogleFonts.poppins(color: Colors.black),
           ),
         ),

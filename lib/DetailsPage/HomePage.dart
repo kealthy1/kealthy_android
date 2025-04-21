@@ -84,10 +84,16 @@ class HomePage extends ConsumerWidget {
         ],
       ),
       bottomSheet: cartItems.isNotEmpty && isVisible
-          ? AnimatedOpacity(
-              opacity: isVisible ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 200),
-              child: const CartContainer(),
+          ? Padding(
+              padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewPadding.bottom
+                  // Add safe space
+                  ),
+              child: AnimatedOpacity(
+                opacity: isVisible ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 200),
+                child: const CartContainer(),
+              ),
             )
           : null,
     );

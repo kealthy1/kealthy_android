@@ -29,7 +29,6 @@ class FoodMenuNotifier extends StateNotifier<List<DocumentSnapshot>> {
           .collection('Products')
           .orderBy('Name')
           .limit(_initialLimit)
-          .where("SOH", isGreaterThan: 0)
           .get();
 
       state = snapshot.docs;
@@ -50,7 +49,6 @@ class FoodMenuNotifier extends StateNotifier<List<DocumentSnapshot>> {
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('Products')
           .orderBy('Name')
-          .where("SOH", isGreaterThan: 0)
           .get();
 
       state = snapshot.docs;

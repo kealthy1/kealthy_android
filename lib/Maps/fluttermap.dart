@@ -285,162 +285,167 @@ class _SelectLocationPageState extends ConsumerState<SelectLocationPage> {
                       borderRadius:
                           BorderRadius.vertical(top: Radius.circular(10)),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              'DELIVERING YOUR ORDER TO',
-                              style: GoogleFonts.poppins(
-                                color: Colors.blue,
-                                fontSize: 12,
+                    child: SafeArea(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'DELIVERING YOUR ORDER TO',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.blue,
+                                  fontSize: 12,
+                                ),
                               ),
-                            ),
-                            Spacer(),
-                            SizedBox(
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(10)),
-                                    side: const BorderSide(
-                                        color: Color(0xFF273847))),
-                                onPressed: () async {
-                                  ref
-                                      .read(isFetchingLocationProvider.notifier)
-                                      .state = true;
-                                  await ref
-                                      .read(currentlocationProviders.notifier)
-                                      ._getCurrentLocation();
-                                  ref
-                                      .read(isFetchingLocationProvider.notifier)
-                                      .state = false;
+                              Spacer(),
+                              SizedBox(
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10)),
+                                      side: const BorderSide(
+                                          color: Color(0xFF273847))),
+                                  onPressed: () async {
+                                    ref
+                                        .read(
+                                            isFetchingLocationProvider.notifier)
+                                        .state = true;
+                                    await ref
+                                        .read(currentlocationProviders.notifier)
+                                        ._getCurrentLocation();
+                                    ref
+                                        .read(
+                                            isFetchingLocationProvider.notifier)
+                                        .state = false;
 
-                                  final position = ref
-                                      .read(currentlocationProviders.notifier)
-                                      .state;
-                                  if (position != null &&
-                                      _mapController != null) {
-                                    _mapController!.animateCamera(
-                                      CameraUpdate.newLatLng(LatLng(
-                                          position.latitude,
-                                          position.longitude)),
+                                    final position = ref
+                                        .read(currentlocationProviders.notifier)
+                                        .state;
+                                    if (position != null &&
+                                        _mapController != null) {
+                                      _mapController!.animateCamera(
+                                        CameraUpdate.newLatLng(LatLng(
+                                            position.latitude,
+                                            position.longitude)),
+                                      );
+                                    }
+                                  },
+                                  child: isFetchingLoaction
+                                      ? const SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(
+                                            color: Color(0xFF273847),
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : const Icon(Icons.my_location,
+                                          color: Color(0xFF273847)),
+                                ),
+                              ),
+                            ],
+                          ),
+                          address != null
+                              ? Row(
+                                  children: [
+                                    Image.asset(
+                                      'assets/location_icon.png',
+                                      width: 40,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        address,
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.black,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Shimmer.fromColors(
+                                  baseColor: Colors.grey[300]!,
+                                  highlightColor: Colors.grey[100]!,
+                                  child: Container(
+                                    width: double.infinity,
+                                    height: 20,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          Align(
+                            alignment: Alignment.center,
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.85,
+                              height: 50,
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  final selectedPosition =
+                                      ref.watch(selectedPositionProvider);
+                                  final double restaurantLatitude =
+                                      10.010279427438405;
+                                  final double restaurantLongitude =
+                                      76.38426666931349;
+                                  if (selectedPosition != null) {
+                                    final Future<double> drivingDistanceFuture =
+                                        calculateDrivingDistance(
+                                      apiKey:
+                                          "AIzaSyD1MUoakZ0mm8WeFv_GK9k_zAWdGk5r1hA",
+                                      startLatitude: selectedPosition.latitude,
+                                      startLongitude:
+                                          selectedPosition.longitude,
+                                      endLatitude: restaurantLatitude,
+                                      endLongitude: restaurantLongitude,
+                                    );
+
+                                    final drivingDistance =
+                                        await drivingDistanceFuture;
+                                    if (drivingDistance > 12) {
+                                      Fluttertoast.showToast(
+                                        msg:
+                                            "Above 12 km Location is not serviceable.",
+                                        toastLength: Toast.LENGTH_SHORT,
+                                        gravity: ToastGravity.BOTTOM,
+                                      );
+                                      return;
+                                    }
+
+                                    _showAddressFormBottomSheet(
+                                      context,
+                                      widget.name,
+                                      widget.selectedRoad,
+                                      widget.landmark,
+                                      widget.type,
+                                      selectedPosition.latitude,
+                                      selectedPosition.longitude,
+                                      widget.directions,
                                     );
                                   }
                                 },
-                                child: isFetchingLoaction
-                                    ? const SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          color: Color(0xFF273847),
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Icon(Icons.my_location,
-                                        color: Color(0xFF273847)),
-                              ),
-                            ),
-                          ],
-                        ),
-                        address != null
-                            ? Row(
-                                children: [
-                                  Image.asset(
-                                    'assets/location_icon.png',
-                                    width: 40,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFF273847),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5),
                                   ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      address,
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.black,
-                                        fontSize: 20,
-                                      ),
-                                    ),
+                                ),
+                                child: Text(
+                                  'Add more address details',
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontSize: 15,
                                   ),
-                                ],
-                              )
-                            : Shimmer.fromColors(
-                                baseColor: Colors.grey[300]!,
-                                highlightColor: Colors.grey[100]!,
-                                child: Container(
-                                  width: double.infinity,
-                                  height: 20,
-                                  color: Colors.white,
-                                ),
-                              ),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        Align(
-                          alignment: Alignment.center,
-                          child: SizedBox(
-                            width: MediaQuery.of(context).size.width * 0.85,
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                final selectedPosition =
-                                    ref.watch(selectedPositionProvider);
-                                final double restaurantLatitude =
-                                    10.010279427438405;
-                                final double restaurantLongitude =
-                                    76.38426666931349;
-                                if (selectedPosition != null) {
-                                  final Future<double> drivingDistanceFuture =
-                                      calculateDrivingDistance(
-                                    apiKey:
-                                        "AIzaSyD1MUoakZ0mm8WeFv_GK9k_zAWdGk5r1hA",
-                                    startLatitude: selectedPosition.latitude,
-                                    startLongitude: selectedPosition.longitude,
-                                    endLatitude: restaurantLatitude,
-                                    endLongitude: restaurantLongitude,
-                                  );
-
-                                  final drivingDistance =
-                                      await drivingDistanceFuture;
-                                  if (drivingDistance > 12) {
-                                    Fluttertoast.showToast(
-                                      msg:
-                                          "Above 12 km Location is not serviceable.",
-                                      toastLength: Toast.LENGTH_SHORT,
-                                      gravity: ToastGravity.BOTTOM,
-                                    );
-                                    return;
-                                  }
-
-                                  _showAddressFormBottomSheet(
-                                    context,
-                                    widget.name,
-                                    widget.selectedRoad,
-                                    widget.landmark,
-                                    widget.type,
-                                    selectedPosition.latitude,
-                                    selectedPosition.longitude,
-                                    widget.directions,
-                                  );
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFF273847),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                              ),
-                              child: Text(
-                                'Add more address details',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 15,
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

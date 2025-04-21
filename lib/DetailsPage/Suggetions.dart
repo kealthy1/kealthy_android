@@ -66,12 +66,11 @@ class Suggestions extends ConsumerWidget {
 
   Widget _buildContent(
       BuildContext context, List<MenuItem> menuItems, WidgetRef ref) {
-    final baseNameFilter = menuItem.name.toLowerCase();
-
     final filteredItems = menuItems.where((item) {
-      final isNameMatched = item.name.toLowerCase().contains(baseNameFilter);
+      final isSameName =
+          item.name.trim().toLowerCase() == menuItem.name.trim().toLowerCase();
       final isDifferentEAN = item.EAN != menuItem.EAN;
-      return isNameMatched && isDifferentEAN;
+      return isSameName && isDifferentEAN;
     }).toList();
 
     final double containerWidth = MediaQuery.of(context).size.width * 0.15;
@@ -140,30 +139,6 @@ class Suggestions extends ConsumerWidget {
           ],
         ),
         SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              overflow: TextOverflow.ellipsis,
-              "Qty:",
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            SizedBox(width: 15),
-            Text(
-              overflow: TextOverflow.ellipsis,
-              item.qty,
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-                color: Colors.black,
-              ),
-            ),
-          ],
-        ),
       ],
     );
   }

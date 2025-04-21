@@ -31,36 +31,38 @@ class AdressPage extends ConsumerWidget {
           automaticallyImplyLeading: false,
           centerTitle: true,
           title: const Text(
-            'Confirm Address',
+            'Checkout',
             style: TextStyle(),
           ),
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: ConfirmOrder(),
-                    ),
-                    const DeliveryInstructionsSection(),
-                    BillDetails(
-                      totalPrice: totalPrice,
-                    ),
-                  ],
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        child: ConfirmOrder(),
+                      ),
+                      const DeliveryInstructionsSection(),
+                      BillDetails(
+                        totalPrice: totalPrice,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: PaymentSection(
-                totalAmountToPay: totalPrice,
-              ),
-            )
-          ],
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: PaymentSection(
+                  totalAmountToPay: totalPrice,
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );

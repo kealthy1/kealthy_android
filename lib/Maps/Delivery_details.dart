@@ -90,223 +90,226 @@ class _AddressFormState extends ConsumerState<AddressForm> {
     final address = ref.read(addressProvider);
 
     return SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: 10,
-          ),
-          Center(
-            child: Text(
-              'Complete Address Details',
-              style: GoogleFonts.poppins(
-                color: Colors.black,
-                fontSize: 18,
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 10,
+            ),
+            Center(
+              child: Text(
+                'Complete Address Details',
+                style: GoogleFonts.poppins(
+                  color: Colors.black,
+                  fontSize: 18,
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  width: MediaQuery.of(context).size.width,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(10.0),
-                    border: Border.all(color: Colors.black26),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    height: 10,
                   ),
-                  child: address != null
-                      ? Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 5),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  address,
-                                  style: const TextStyle(
-                                      fontSize: 13, color: Colors.black45),
-                                  overflow: TextOverflow.clip,
-                                ),
-                              ),
-                              Flexible(
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          side: const BorderSide(
-                                              color: Colors.black45))),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text(
-                                    'Change',
-                                    style: TextStyle(
-                                        fontSize: 11, color: Colors.black45),
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(10.0),
+                      border: Border.all(color: Colors.black26),
+                    ),
+                    child: address != null
+                        ? Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 5),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    address,
+                                    style: const TextStyle(
+                                        fontSize: 13, color: Colors.black45),
+                                    overflow: TextOverflow.clip,
                                   ),
                                 ),
-                              ),
-                            ],
+                                Flexible(
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            side: const BorderSide(
+                                                color: Colors.black45))),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text(
+                                      'Change',
+                                      style: TextStyle(
+                                          fontSize: 11, color: Colors.black45),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : const Text('Loading Address...'),
+                  ),
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  const Text(
+                    'Updated based on your map pin',
+                    style: TextStyle(fontSize: 11, color: Colors.black45),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: houseController,
+                    decoration: const InputDecoration(
+                      hintText: 'Name',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                    cursorColor: Colors.black,
+                    keyboardType: TextInputType.text,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: apartmentController,
+                    decoration: const InputDecoration(
+                      hintText: 'Flat / Room / area',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                    keyboardType: TextInputType.text,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: LandMarkController,
+                    decoration: const InputDecoration(
+                      hintText: 'Landmark (optional)',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                    keyboardType: TextInputType.text,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: directionsController,
+                    decoration: const InputDecoration(
+                      hintText: 'Directions',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                    maxLines: 2,
+                    keyboardType: TextInputType.multiline,
+                    textAlign: TextAlign.start,
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    'Save the address as',
+                    style: GoogleFonts.poppins(
+                      color: Colors.grey,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(child: _buildSaveButton(Icons.home, 'Home')),
+                      const SizedBox(width: 4),
+                      Expanded(
+                          child: _buildSaveButton(
+                              Icons.work_outline_rounded, 'Work')),
+                      const SizedBox(width: 4),
+                      Expanded(
+                          child: _buildSaveButton(Icons.more_horiz, 'Other')),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  issaved
+                      ? const Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Color(0xFF273847),
+                              strokeWidth: 5,
+                            ),
                           ),
                         )
-                      : const Text('Loading Address...'),
-                ),
-                const SizedBox(
-                  height: 5,
-                ),
-                const Text(
-                  'Updated based on your map pin',
-                  style: TextStyle(fontSize: 11, color: Colors.black45),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: houseController,
-                  decoration: const InputDecoration(
-                    hintText: 'Name',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black),
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                    ),
-                  ),
-                  cursorColor: Colors.black,
-                  keyboardType: TextInputType.text,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: apartmentController,
-                  decoration: const InputDecoration(
-                    hintText: 'Flat / Room / area',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black),
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                    ),
-                  ),
-                  keyboardType: TextInputType.text,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: LandMarkController,
-                  decoration: const InputDecoration(
-                    hintText: 'Landmark (optional)',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black),
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                    ),
-                  ),
-                  keyboardType: TextInputType.text,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: directionsController,
-                  decoration: const InputDecoration(
-                    hintText: 'Directions',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black),
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                    ),
-                  ),
-                  maxLines: 2,
-                  keyboardType: TextInputType.multiline,
-                  textAlign: TextAlign.start,
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Text(
-                  'Save the address as',
-                  style: GoogleFonts.poppins(
-                    color: Colors.grey,
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(child: _buildSaveButton(Icons.home, 'Home')),
-                    const SizedBox(width: 4),
-                    Expanded(
-                        child: _buildSaveButton(
-                            Icons.work_outline_rounded, 'Work')),
-                    const SizedBox(width: 4),
-                    Expanded(
-                        child: _buildSaveButton(Icons.more_horiz, 'Other')),
-                  ],
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                issaved
-                    ? const Center(
-                        child: SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF273847),
-                            strokeWidth: 5,
-                          ),
-                        ),
-                      )
-                    : SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            const double restaurantLatitude =
-                                10.010279427438405;
-                            const double restaurantLongitude =
-                                76.38426666931349;
-                            await _calculateDrivingDistanceAndSave(
-                                ref, restaurantLatitude, restaurantLongitude);
-                            // ignore: unused_result
-                            ref.refresh(etaTimeProvider);
-                            // ignore: unused_result
-                            ref.refresh(distanceProvider);
-                            FocusScope.of(context).unfocus();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF273847),
-                            padding: const EdgeInsets.symmetric(vertical: 20.0),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                      : SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              const double restaurantLatitude =
+                                  10.010279427438405;
+                              const double restaurantLongitude =
+                                  76.38426666931349;
+                              await _calculateDrivingDistanceAndSave(
+                                  ref, restaurantLatitude, restaurantLongitude);
+                              // ignore: unused_result
+                              ref.refresh(etaTimeProvider);
+                              // ignore: unused_result
+                              ref.refresh(distanceProvider);
+                              FocusScope.of(context).unfocus();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF273847),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 20.0),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            'SAVE AND PROCEED',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
+                            child: Text(
+                              'SAVE AND PROCEED',
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

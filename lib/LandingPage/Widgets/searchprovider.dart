@@ -50,7 +50,7 @@ class ProductSuggestion {
   final String Type;
   final String Expiry;
   final String ImportedMarketedBy;
-  final List <String> ScoredBasedOn;
+  final List<String> ScoredBasedOn;
 
   ProductSuggestion({
     required this.name,
@@ -322,7 +322,7 @@ class ProductSuggestionsNotifier
     try {
       final snapshot = await FirebaseFirestore.instance
           .collection('Products')
-          .where('SOH', isNotEqualTo: 0)
+          //.where('SOH', isNotEqualTo: 0)
           .get();
 
       final uniqueProducts = <String, ProductSuggestion>{};

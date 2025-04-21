@@ -16,7 +16,6 @@ class MenuItemCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final averageStarsAsync = ref.watch(averageStarsProvider(menuItem.name));
     final screenHeight = MediaQuery.of(context).size.height;
     return GestureDetector(
       onTap: () {
@@ -73,7 +72,7 @@ class MenuItemCard extends ConsumerWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
                   child: SizedBox(
-                    height: screenHeight * 0.08,
+                    height: screenHeight * 0.1,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
@@ -87,49 +86,26 @@ class MenuItemCard extends ConsumerWidget {
                                 fontSize: 13, fontWeight: FontWeight.bold),
                           ),
                         ),
-                        averageStarsAsync.when(
-                          data: (averageStars) => Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              ...List.generate(5, (index) {
-                                if (index < averageStars.floor()) {
-                                  return Icon(Icons.star_outlined,
-                                      color: Colors.amber, size: 12);
-                                } else if (index == averageStars.floor() &&
-                                    averageStars % 1 != 0) {
-                                  return const Icon(Icons.star_half,
-                                      color: Colors.amber, size: 12);
-                                } else {
-                                  return const Icon(
-                                      Icons.star_border_purple500_rounded,
-                                      color: Colors.amber,
-                                      size: 12);
-                                }
-                              }),
-                              SizedBox(
-                                width: 3,
-                              ),
-                              Expanded(
-                                child: Text(
-                                  '${averageStars.toStringAsFixed(1)} Ratings',
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.black87,
-                                    fontSize: 10,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          loading: () => const SizedBox.shrink(),
-                          error: (error, stack) => const SizedBox.shrink(),
-                        ),
                         Spacer(),
-                        Text(
-                          '₹ ${menuItem.price.toStringAsFixed(0)}/-',
-                          style: GoogleFonts.radioCanada(
-                            fontSize: 16,
-                            color: Colors.green,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              '₹ ${menuItem.price.toStringAsFixed(0)}/-',
+                              style: GoogleFonts.radioCanada(
+                                fontSize: 16,
+                                color: Colors.green,
+                              ),
+                            ),
+                            Spacer(),
+                            Text(
+                              overflow: TextOverflow.ellipsis,
+                              menuItem.qty,
+                              style: GoogleFonts.poppins(
+                                textStyle: TextStyle(
+                                    fontSize: 12, fontWeight: FontWeight.w400),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -148,42 +124,57 @@ class MenuItemCard extends ConsumerWidget {
                         topRight: Radius.circular(10),
                       ),
                       child: Container(
-                        height: 40,
-                        width: 35,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0, vertical: 4.0),
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 201, 82, 74),
-                        ),
-                        alignment: Alignment.center,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Only",
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 6,
-                              ),
-                            ),
-                            Text(
-                              menuItem.SOH.toStringAsFixed(0),
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              "Left",
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 6,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                          height: 46,
+                          width: 38,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 4.0),
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(255, 201, 82, 74),
+                          ),
+                          alignment: Alignment.center,
+                          child: // Put this where you currently build the “OUT OF STOCK” label
+                              Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: menuItem.SOH == 0
+                                /* ───────────── SOLD‑OUT ───────────── */
+                                ? [
+                                    Text('OUT',
+                                        style: GoogleFonts.poppins(
+                                            color: Colors.white,
+                                            fontSize: 6,
+                                            fontWeight: FontWeight.bold)),
+                                    Text('OF',
+                                        style: GoogleFonts.poppins(
+                                            color: Colors.white,
+                                            fontSize: 7,
+                                            fontWeight: FontWeight.bold)),
+                                    Text('STOCK',
+                                        style: GoogleFonts.poppins(
+                                            color: Colors.white,
+                                            fontSize: 6,
+                                            fontWeight: FontWeight.bold)),
+                                  ]
+                                /* ───────────── LOW‑STOCK ───────────── */
+                                : [
+                                    Text('ONLY',
+                                        style: GoogleFonts.poppins(
+                                            color: Colors.white,
+                                            fontSize: 6,
+                                            fontWeight: FontWeight.bold)),
+                                    Text(
+                                        //menuItem.SOH.toString(),
+                                        menuItem.SOH.toStringAsFixed(0),
+                                        style: GoogleFonts.poppins(
+                                            color: Colors.white,
+                                            fontSize: 7,
+                                            fontWeight: FontWeight.bold)),
+                                    Text('LEFT',
+                                        style: GoogleFonts.poppins(
+                                            color: Colors.white,
+                                            fontSize: 6,
+                                            fontWeight: FontWeight.bold)),
+                                  ],
+                          )),
                     ),
                   )
                 : const SizedBox.shrink(),

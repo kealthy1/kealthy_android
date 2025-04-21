@@ -1,259 +1,249 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../MenuPage/menu_item.dart';
-import '../Services/FirestoreCart.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 
+import '../MenuPage/menu_item.dart';
+import '../Services/FirestoreCart.dart';
+
+/// ─────────────────────────────────────────────────────────────────────────────
+///  ⭐ Average‑stars provider
+/// ─────────────────────────────────────────────────────────────────────────────
 final averageStarsProvider =
     FutureProvider.family<double, String>((ref, productName) async {
-  final response = await http.get(
-    Uri.parse('https://api-jfnhkjk4nq-uc.a.run.app/rate/$productName'),
-  );
+  final res = await http
+      .get(Uri.parse('https://api-jfnhkjk4nq-uc.a.run.app/rate/$productName'));
 
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
+  if (res.statusCode == 200) {
+    final data = jsonDecode(res.body);
     return double.parse(data['averageStars']);
-  } else {
-    throw Exception('Failed to fetch average stars');
   }
+  throw Exception('Failed to fetch average stars');
 });
 
+/// ─────────────────────────────────────────────────────────────────────────────
+///  🟥  RedNutritionSection
+/// ─────────────────────────────────────────────────────────────────────────────
 class RedNutritionSection extends ConsumerWidget {
   final MenuItem menuItem;
-
-  const RedNutritionSection({
-    required this.menuItem,
-    super.key,
-  });
+  const RedNutritionSection({super.key, required this.menuItem});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    /* ── Providers ────────────────────────────────────────────────────────── */
     final averageStarsAsync = ref.watch(averageStarsProvider(menuItem.name));
+    final cartNotifier = ref.read(sharedPreferencesCartProvider.notifier);
     final cartItems = ref.watch(sharedPreferencesCartProvider);
 
-    final cartNotifier = ref.read(sharedPreferencesCartProvider.notifier);
-
-    final isItemInCart = cartItems.any((item) => item.name == menuItem.name);
+    final isItemInCart = cartItems.any((it) => it.name == menuItem.name);
     final cartItem = isItemInCart
-        ? cartItems.firstWhere((item) => item.name == menuItem.name)
+        ? cartItems.firstWhere((it) => it.name == menuItem.name)
         : null;
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+
+    /* ── Helper: build the action pill ───────────────────────────────────── */
+    Widget _buildActionPill() {
+      final bool soldOut = menuItem.SOH == 0;
+
+      // 1️⃣  SOLD‑OUT PILL  (disabled)
+      if (soldOut) {
+        return Container(
+          height: 40,
+          width: MediaQuery.of(context).size.width * 0.30,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade400,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            'OUT OF STOCK',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        );
+      }
+
+      // 2️⃣  ITEM IN CART  ➜  show – qty +
+      if (isItemInCart) {
+        return Container(
+          height: 40,
+          width: MediaQuery.of(context).size.width * 0.30,
+          decoration: BoxDecoration(
+            color: const Color(0xFF273847),
+            borderRadius: BorderRadius.circular(10),
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              IconButton(
+                icon: const Icon(Icons.remove, color: Colors.white),
+                onPressed: () =>
+                    cartNotifier.decreaseItemQuantity(cartItem!.id),
+              ),
+              Text(
+                cartItem!.quantity.toString(),
+                style: GoogleFonts.poppins(color: Colors.white, fontSize: 16),
+              ),
+              IconButton(
+                icon: const Icon(Icons.add, color: Colors.white),
+                onPressed: () => cartNotifier.increaseItemQuantity(cartItem.id),
+              ),
+            ],
+          ),
+        );
+      }
+
+      // 3️⃣  DEFAULT ADD BUTTON
+      return SizedBox(
+        height: 40,
+        width: MediaQuery.of(context).size.width * 0.30,
+        child: ElevatedButton(
+          onPressed: () {
+            final newItem = SharedPreferencesCartItem(
+              id: menuItem.name,
+              name: menuItem.name,
+              price: menuItem.price,
+              quantity: 1,
+              imageUrl: menuItem.imageUrls[0],
+              EAN: menuItem.EAN,
+            );
+            cartNotifier.addItemToCart(newItem);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF273847),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          child: Text(
+            'ADD',
+            style: GoogleFonts.poppins(
+                fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+        ),
+      );
+    }
+
+    /* ── UI ───────────────────────────────────────────────────────────────── */
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        /* ── Title & rating ─────────────────────────────────────────────── */
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              /* Name & stars */
               Expanded(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      menuItem.name,
-                      style: GoogleFonts.poppins(
-                        color: Colors.black,
-                        fontSize: 20,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Expanded(
+                          child: Text('${menuItem.name} ${menuItem.qty}',
+                              style: GoogleFonts.poppins(
+                                  color: Colors.black, fontSize: 20)),
+                        ),
+                      ],
                     ),
                     averageStarsAsync.when(
-                      data: (averageStars) => Row(
+                      data: (stars) => Row(
                         children: [
-                          ...List.generate(5, (index) {
-                            if (index < averageStars.floor()) {
+                          ...List.generate(5, (i) {
+                            if (i < stars.floor()) {
                               return const Icon(Icons.star_outlined,
                                   color: Colors.amber, size: 15);
-                            } else if (index == averageStars.floor() &&
-                                averageStars % 1 != 0) {
+                            } else if (i == stars.floor() && stars % 1 != 0) {
                               return const Icon(Icons.star_half,
                                   color: Colors.amber, size: 15);
-                            } else {
-                              return const Icon(Icons.star_border,
-                                  color: Colors.amber, size: 15);
                             }
+                            return const Icon(Icons.star_border,
+                                color: Colors.amber, size: 15);
                           }),
-                          SizedBox(
-                            width: 3,
-                          ),
-                          Text(
-                            '${averageStars.toStringAsFixed(1)} Ratings',
-                            style: GoogleFonts.poppins(
-                              color: Colors.black87,
-                              fontSize: 12,
-                            ),
-                          ),
+                          const SizedBox(width: 3),
+                          Text('${stars.toStringAsFixed(1)} Ratings',
+                              style: GoogleFonts.poppins(
+                                  color: Colors.black87, fontSize: 12)),
                         ],
                       ),
                       loading: () => const SizedBox.shrink(),
-                      error: (error, stack) => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
                     ),
                   ],
                 ),
               ),
-              // CircularProgressIndicatorWidget(
-              //   kealthyScore: double.parse(menuItem.kealthyScore),
-              //   menuItem: menuItem,
-              // )
             ],
           ),
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+        /* ── Price & Action pill ────────────────────────────────────────── */
+        const SizedBox(height: 20),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              /* Price */
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Transform.translate(
-                        offset: Offset(0, -4),
-                        child: Text(
-                          "₹",
-                          style: TextStyle(
-                            fontSize: 10,
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 2,
-                      ),
-                      Text(
-                        "${menuItem.price.toStringAsFixed(0)} /-",
-                        style: GoogleFonts.poppins(
-                          fontSize: 24,
-                        ),
-                      ),
-                    ],
+                  Transform.translate(
+                    offset: const Offset(0, -4),
+                    child: const Text('₹', style: TextStyle(fontSize: 10)),
                   ),
-                  Container(
-                    height: 40,
-                    width: MediaQuery.of(context).size.width * 0.30,
-                    decoration: BoxDecoration(
-                      color: Color(0xFF273847),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Color(0xFF273847),
-                      ),
-                    ),
-                    child: isItemInCart
-                        ? Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.remove,
-                                  color: Colors.white,
-                                ),
-                                onPressed: () {
-                                  cartNotifier
-                                      .decreaseItemQuantity(cartItem!.id);
-                                },
-                              ),
-                              Text(cartItem!.quantity.toString(),
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                  )),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.add,
-                                  color: Colors.white,
-                                ),
-                                onPressed: () {
-                                  cartNotifier
-                                      .increaseItemQuantity(cartItem.id);
-                                },
-                              ),
-                            ],
-                          )
-                        : ElevatedButton(
-                            onPressed: () {
-                              print(menuItem.macros);
-                              final newCartItem = SharedPreferencesCartItem(
-                                name: menuItem.name,
-                                price: menuItem.price,
-                                quantity: 1,
-                                id: menuItem.name,
-                                imageUrl: menuItem.imageUrls[0],
-                                EAN: menuItem.EAN,
-                              );
-                              cartNotifier.addItemToCart(newCartItem);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                "ADD",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                  ),
+                  const SizedBox(width: 2),
+                  Text('${menuItem.price.toStringAsFixed(0)} /-',
+                      style: GoogleFonts.poppins(fontSize: 24)),
                 ],
               ),
-            ),
-            Text(
-              "(Inclusive of all taxes)",
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-              ),
-            ),
-          ],
+              /* Action pill */
+              _buildActionPill(),
+            ],
+          ),
         ),
+        Text('(Inclusive of all taxes)',
+            style: GoogleFonts.poppins(fontSize: 12)),
+
+        /* ── Nutrition / ingredients chips (unchanged) ─────────────────── */
         const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            if (menuItem.macros.isNotEmpty &&
-                menuItem.macros.any((macro) => macro != 'Not Applicable'))
+            if (menuItem.macros.any((m) => m != 'Not Applicable'))
               Expanded(
                 child: _buildDataContainer(
-                  color: Colors.blue.shade50,
                   context,
                   'Macros',
-                  menuItem.macros.where((macro) => macro != '').toList(),
+                  menuItem.macros.where((m) => m.isNotEmpty).toList(),
                   icon: Icons.energy_savings_leaf,
+                  color: Colors.blue.shade50,
                 ),
               ),
             const SizedBox(width: 5),
-            if (menuItem.micros.isNotEmpty &&
-                menuItem.micros.any((micro) => micro != 'Not Applicable'))
+            if (menuItem.micros.any((m) => m != 'Not Applicable'))
               Expanded(
                 child: _buildDataContainer(
-                  color: Colors.green.shade50,
                   context,
                   'Micros',
-                  menuItem.micros.where((micro) => micro != '').toList(),
+                  menuItem.micros.where((m) => m.isNotEmpty).toList(),
                   icon: Icons.grain,
+                  color: Colors.green.shade50,
                 ),
               ),
             const SizedBox(width: 5),
-            if (menuItem.ingredients.isNotEmpty &&
-                menuItem.ingredients
-                    .any((ingredients) => ingredients != 'Not Applicable'))
+            if (menuItem.ingredients.any((i) => i != 'Not Applicable'))
               Expanded(
                 child: _buildDataContainer(
-                  color: Colors.yellow.shade50,
                   context,
                   'Ingredients',
-                  menuItem.ingredients.map((ingredient) => ingredient).toList(),
+                  menuItem.ingredients,
                   icon: Icons.restaurant_menu,
+                  color: Colors.yellow.shade50,
                 ),
               ),
           ],

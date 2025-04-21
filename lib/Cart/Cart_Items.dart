@@ -13,7 +13,7 @@ import '../Payment/SavedAdress.dart';
 import '../Services/FirestoreCart.dart';
 import 'Categories.dart';
 
-final checkoutLoadingProvider = StateProvider<bool>((ref) => false);
+final checkoutLoadingProvider = StateProvider<bool>((ref) => true);
 final selectedETAProviders = StateProvider<DateTime?>((ref) => null);
 
 class ShowCart extends ConsumerWidget {
@@ -56,42 +56,44 @@ class ShowCart extends ConsumerWidget {
           ),
           elevation: 0.5,
         ),
-        body: cartItems.isEmpty
-            ? const Center(
-                child: CircleAvatar(
-                  radius: 180,
-                  backgroundColor: Colors.white,
-                  backgroundImage:
-                      AssetImage("assets/kealthycart-removebg-preview.png"),
-                ),
-              )
-            : Column(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-                      child: Column(
-                        children: [
-                          CategoryContainer(
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                          ),
-                          const SizedBox(height: 20),
-                        ],
+        body: SafeArea(
+          child: cartItems.isEmpty
+              ? const Center(
+                  child: CircleAvatar(
+                    radius: 180,
+                    backgroundColor: Colors.white,
+                    backgroundImage:
+                        AssetImage("assets/kealthycart-removebg-preview.png"),
+                  ),
+                )
+              : Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: screenWidth * 0.05),
+                        child: Column(
+                          children: [
+                            CategoryContainer(
+                              screenWidth: screenWidth,
+                              screenHeight: screenHeight,
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  _buildCheckoutSection(
-                    screenWidth,
-                    screenHeight,
-                    totalPrice,
-                    cartItems,
-                    context,
-                    ref,
-                  ),
-                ],
-              ),
+                    _buildCheckoutSection(
+                      screenWidth,
+                      screenHeight,
+                      totalPrice,
+                      cartItems,
+                      context,
+                      ref,
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }

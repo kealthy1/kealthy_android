@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import '../LandingPage/Cart_Container.dart';
 import '../Services/Cache.dart';
 import '../Services/FirestoreCart.dart';
 import 'Card.dart';
@@ -37,7 +36,6 @@ class VeganDietNotifier extends StateNotifier<List<MenuItem>> {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('Products')
           .where('Subcategory', isEqualTo: category)
-          .where('SOH', isNotEqualTo: 0)
           .get();
 
       state = querySnapshot.docs.map((doc) {
@@ -63,7 +61,6 @@ class VeganDietNotifier extends StateNotifier<List<MenuItem>> {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('Products')
           .where('Subcategory', isEqualTo: category)
-          .where('SOH', isNotEqualTo: 0)
           .get();
 
       final filteredMeals = querySnapshot.docs.map((doc) {
@@ -87,8 +84,6 @@ class VeganDietNotifier extends StateNotifier<List<MenuItem>> {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('Products')
           .where('Subcategory', isEqualTo: category)
-          .where('SOH', isNotEqualTo: 0)
-          .where('Type', isEqualTo: brandName)
           .get();
 
       state = querySnapshot.docs
@@ -106,7 +101,6 @@ class VeganDietNotifier extends StateNotifier<List<MenuItem>> {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('Products')
           .where('Subcategory', isEqualTo: category)
-          .where('SOH', isNotEqualTo: 0)
           .get();
 
       return querySnapshot.docs
@@ -239,7 +233,10 @@ class _MenuPageState extends ConsumerState<MenuPage> {
                           ),
                         )
                       : GridView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          padding: EdgeInsets.only(
+                              bottom: MediaQuery.of(context).viewPadding.bottom,
+                              left: 8,
+                              right: 8),
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
@@ -255,7 +252,6 @@ class _MenuPageState extends ConsumerState<MenuPage> {
                         ),
             ),
           ),
-          if (cartItems.isNotEmpty && isVisible) const CartContainer(),
         ],
       ),
     );
@@ -275,7 +271,6 @@ class _MenuPageState extends ConsumerState<MenuPage> {
           final querySnapshot = await FirebaseFirestore.instance
               .collection('Products')
               .where('Subcategory', isEqualTo: widget.categoryName)
-              .where('SOH', isNotEqualTo: 0)
               .get();
           print(widget.categoryName);
           return querySnapshot.docs

@@ -6,7 +6,6 @@ import 'package:kealthy/Maps/SelectAdress.dart';
 import 'package:kealthy/Payment/COD_Page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 final isLoadingProvider = StateProvider<bool>((ref) => false);
 
 class PaymentSection extends ConsumerWidget {
@@ -29,7 +28,6 @@ class PaymentSection extends ConsumerWidget {
             )
           : ElevatedButton(
               onPressed: () async {
-                
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 final selectedRoad = prefs.getString('selectedRoad');
 
@@ -75,7 +73,7 @@ class PaymentSection extends ConsumerWidget {
                 ),
               ),
               child: Text(
-                'Checkout',
+                'Proceed to Payment',
                 style: GoogleFonts.poppins(
                   color: Colors.white,
                 ),
