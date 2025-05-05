@@ -80,7 +80,7 @@ class PaymentHandler {
           'item_price': itemPrice,
           "item_EAN": EAN,
         });
-        unawaited(reduceItemStock(EAN!, itemQuantity));
+        // unawaited(reduceItemStock(EAN!, itemQuantity));
         index++;
       }
       unawaited(SharedPreferencesHelper.saveOrderItems(orderItems));

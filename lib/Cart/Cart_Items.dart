@@ -13,7 +13,7 @@ import '../Payment/SavedAdress.dart';
 import '../Services/FirestoreCart.dart';
 import 'Categories.dart';
 
-final checkoutLoadingProvider = StateProvider<bool>((ref) => true);
+final checkoutLoadingProvider = StateProvider<bool>((ref) => false);
 final selectedETAProviders = StateProvider<DateTime?>((ref) => null);
 
 class ShowCart extends ConsumerWidget {

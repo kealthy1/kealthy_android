@@ -131,17 +131,7 @@ class CategoryGrid extends StatelessWidget {
       stream: FirebaseFirestore.instance.collection('categories').snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
-              child: Container(
-                color: Colors.grey[300],
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
-              ),
-            ),
-          );
+          return Container();
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {

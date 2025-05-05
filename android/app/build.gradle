@@ -29,8 +29,14 @@ android {
         applicationId = "com.COTOLORE.Kealthy"
         minSdk = 23
         targetSdk = 35
-        versionCode 86
+        versionCode 88
         versionName = flutter.versionName
+    }
+    configurations.all {
+        resolutionStrategy {
+            force "androidx.core:core:1.13.1"
+            force "androidx.core:core-ktx:1.13.1"
+        }
     }
 
     signingConfigs {
@@ -57,6 +63,12 @@ android {
 
     flutter {
         source = "../.."
+    }
+}
+configurations.configureEach {
+    resolutionStrategy {
+        force "androidx.core:core:1.13.1"
+        force "androidx.core:core-ktx:1.13.1"
     }
 }
 

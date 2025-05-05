@@ -417,40 +417,43 @@ class ProfilePage extends ConsumerWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            ElevatedButton(
-                              onPressed: () => showDialog(
-                                context: context,
-                                builder: (context) =>
-                                    buildLogoutAlertDialog(context, ref),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 12, horizontal: 15),
-                                backgroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  side: BorderSide(color: Colors.grey.shade300),
-                                  borderRadius: BorderRadius.circular(10),
+                            // Only show the Logout button if the user is logged in
+                            if (phoneNumber.isNotEmpty) // User is logged in
+                              ElevatedButton(
+                                onPressed: () => showDialog(
+                                  context: context,
+                                  builder: (context) =>
+                                      buildLogoutAlertDialog(context, ref),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 12, horizontal: 15),
+                                  backgroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    side:
+                                        BorderSide(color: Colors.grey.shade300),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.power_settings_new_sharp,
+                                      color: Colors.red,
+                                    ),
+                                    SizedBox(
+                                      width: 5,
+                                    ),
+                                    Text(
+                                      'Logout',
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.red,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.power_settings_new_sharp,
-                                    color: Colors.red,
-                                  ),
-                                  SizedBox(
-                                    width: 5,
-                                  ),
-                                  Text(
-                                    'Logout',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.red,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ],
                         ),
                       ),
