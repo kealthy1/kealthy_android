@@ -1,97 +1,72 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kealthy/DetailsPage/Ratings/Alert.dart';
-import 'package:kealthy/Login/SplashScreen.dart';
-import 'package:kealthy/MenuPage/MenuPage.dart';
-import 'package:kealthy/Blogs/Blog.dart';
-import 'package:kealthy/Services/Connection.dart';
-import 'DetailsPage/NutritionInfo.dart';
-import 'DetailsPage/Ratings/Providers.dart';
-import 'DetailsPage/Ratings/Show_Review.dart';
-import 'LandingPage/Myprofile/Myprofile.dart';
-import 'LandingPage/Widgets/Carousel.dart';
-import 'LandingPage/Widgets/searchprovider.dart';
-import 'Maps/SelectAdress.dart';
-import 'Maps/fluttermap.dart';
-import 'Payment/SavedAdress.dart';
-import 'Riverpod/order_provider.dart';
-import 'Services/Fcm.dart';
-import 'Notifications/FromFirestore.dart';
-import 'Services/adresslisten.dart';
-import 'Services/updateinapp.dart';
-
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:kealthy/firebase_options.dart';
+import 'package:kealthy/view/notifications/fcm.dart';
+import 'package:kealthy/view/splash_screen/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  FirebaseFirestore.instance.settings = const Settings(
-    persistenceEnabled: true,
-    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-  );
-  await NotificationService.instance.initialize();
-  await ReviewService.instance.initialize(navigatorKey);
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  final container = ProviderContainer();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   try {
-    container.read(addressesProvider);
-    container.read(showAddressProviders);
-    container.read(selectedAddressProvider);
-    container.read(updateAddressProvider);
-    container.read(veganDietProvider);
-    container.read(selectedPositionProvider);
-    container.read(currentlocationProviders);
-    container.read(productProvider);
-    container.read(carouselProvider);
-    container.read(blogProvider);
-    container.read(orderProvider);
-    container.read(rateProductProvider);
-    container.read(averageStarsProvider(''));
-    container.read(orderStatusProvider);
-    container.read(firestoreNotificationProvider);
-    container.read(userProfileProvider);
-    print("Data prefetched successfully.");
+    await NotificationService.instance.initialize();
+    await NotificationService.instance.setupFlutterNotifications();
+    print("[MAIN] Notification service initialized successfully.");
   } catch (e) {
-    print("Error prefetching addresses: $e");
+    print("[MAIN] Error initializing notification service: $e");
   }
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   runApp(
     ProviderScope(
-      parent: container,
-      child: const MyApp(),
+      child: MyApp(navigatorKey: navigatorKey),
     ),
   );
 }
 
 class MyApp extends ConsumerWidget {
-  const MyApp({super.key});
+  final GlobalKey<NavigatorState> navigatorKey;
+
+  MyApp({super.key, required this.navigatorKey}) {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('[Foreground Message] Received: ${message.notification?.title}');
+
+      // Debug logging
+      print("FCM Message Data: ${message.data}");
+      print("FCM Notification: ${message.notification?.toMap()}");
+
+      // Extract image URL
+      final imageUrl = message.notification?.android?.imageUrl ??
+          message.notification?.apple?.imageUrl ??
+          message.data['image'] ??
+          "";
+
+      print("Extracted Image URL: $imageUrl");
+
+      NotificationService.instance.showNotification(
+        title: message.notification?.title ?? "No Title",
+        body: message.notification?.body ?? "No Body",
+        imageUrl: imageUrl,
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      InAppUpdateService().checkForUpdate(context);
-    });
-
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
       theme: ThemeData(
-        textSelectionTheme: TextSelectionThemeData(
-          selectionHandleColor: const Color(0xFF273847),
-        ),
-        bottomSheetTheme: const BottomSheetThemeData(
-          backgroundColor: Colors.white,
-          elevation: 0,
+        textTheme: GoogleFonts.poppinsTextTheme(
+          Theme.of(context).textTheme,
         ),
       ),
-      debugShowCheckedModeBanner: false,
-      title: 'Kealthy',
-      home: const ConnectivityWidget(
-        child: SplashScreen(),
-      ),
+      home: const SplashScreen(),
     );
   }
 }
