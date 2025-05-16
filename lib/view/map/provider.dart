@@ -8,8 +8,12 @@ import 'package:kealthy/view/BottomNavBar/bottom_nav_bar.dart';
 import 'package:kealthy/view/address/adress_model.dart';
 import 'package:kealthy/view/address/provider.dart';
 import 'package:kealthy/view/map/distance_service.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
+
+final showMapProvider = FutureProvider<bool>((ref) async {
+  await Future.delayed(const Duration(milliseconds: 300));
+  return true;
+});
 
 final isFetchingLocationProvider = StateProvider<bool>((ref) => false);
 

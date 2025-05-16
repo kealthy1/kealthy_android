@@ -187,23 +187,25 @@ class RatingPage extends ConsumerWidget {
           );
         },
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ElevatedButton(
-          onPressed: isSubmitting ? null : () => submitReviews(context, ref),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF273847),
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ElevatedButton(
+            onPressed: isSubmitting ? null : () => submitReviews(context, ref),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF273847),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
-          ),
-          child: Text(
-            "Submit Reviews",
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+            child: Text(
+              "Submit Reviews",
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),

@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:kealthy/view/Cart/slot_generator.dart';
 import 'package:kealthy/view/Toast/toast_helper.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ntp/ntp.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -67,15 +66,14 @@ class SlotSelectionContainer extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           selectedSlot != null
-                              ? 'Selected Slot : ${DateFormat('h:mm a').format(selectedSlot["start"]!)} - ${DateFormat('h:mm a').format(selectedSlot["end"]!)}'
+                              ? 'Selected Slot : ${DateFormat('MMM d').format(selectedSlot["start"]!)}, ${DateFormat('h:mm a').format(selectedSlot["start"]!)} - ${DateFormat('h:mm a').format(selectedSlot["end"]!)}'
                               : 'Preferred Delivery Time',
                           style: GoogleFonts.poppins(
-                            color: selectedSlot != null
-                                ? Colors.green
-                                : Colors.black,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
+                              color: selectedSlot != null
+                                  ? Colors.black
+                                  : Colors.black,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600),
                           overflow: TextOverflow.visible,
                         ),
                       ),
@@ -106,7 +104,8 @@ class SlotSelectionContainer extends ConsumerWidget {
               future: () async {
                 final generator =
                     AvailableSlotsGenerator(slotDurationMinutes: 180);
-                return await generator.getSlots(0);
+                final todaySlots = await generator.getSlots(0);
+                return todaySlots;
               }(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -125,10 +124,97 @@ class SlotSelectionContainer extends ConsumerWidget {
 
                 final message = snapshot.data?["message"] as String?;
 
+                final now = DateTime.now();
+                final today = DateTime(now.year, now.month, now.day);
+                final tomorrow = today.add(const Duration(days: 1));
+
+                final todaySlots = availableSlots.where((slot) {
+                  final date = slot["start"]!;
+                  return date.year == today.year &&
+                      date.month == today.month &&
+                      date.day == today.day;
+                }).toList();
+
+                final tomorrowSlots = availableSlots.where((slot) {
+                  final date = slot["start"]!;
+                  return date.year == tomorrow.year &&
+                      date.month == tomorrow.month &&
+                      date.day == tomorrow.day;
+                }).toList();
+
+                Widget buildSlotButtons(List<Map<String, DateTime>> slots) {
+                  return SingleChildScrollView(
+                    child: Wrap(
+                      spacing: 5,
+                      runSpacing: 10,
+                      children: slots.map((slot) {
+                        final formattedStartTime =
+                            DateFormat('h:mm a').format(slot["start"]!);
+                        final formattedEndTime =
+                            DateFormat('h:mm a').format(slot["end"]!);
+
+                        return GestureDetector(
+                          onTap: () async {
+                            final formattedStartTime =
+                                DateFormat('hh:mm a').format(slot["start"]!);
+                            final formattedEndTime =
+                                DateFormat('hh:mm a').format(slot["end"]!);
+                            final selectedSlotLabel =
+                                "${DateFormat('MMM d').format(slot["start"]!)}, $formattedStartTime - $formattedEndTime";
+
+                            final isAvailable =
+                                await isSlotAvailable(selectedSlotLabel);
+                            if (!isAvailable) {
+                              ToastHelper.showErrorToast(
+                                  'Slot not available. Please choose another slot');
+                              return;
+                            }
+
+                            ref.read(selectedSlotProvider.notifier).state =
+                                slot;
+                            ref.read(isExpandedProvider.notifier).state = false;
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setString(
+                                'selectedSlot', selectedSlotLabel);
+                          },
+                          child: IntrinsicWidth(
+                            stepWidth: 10,
+                            child: Container(
+                              width: MediaQuery.of(context).size.width * 0.37,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: (selectedSlot != null &&
+                                        selectedSlot["start"] ==
+                                            slot["start"] &&
+                                        selectedSlot["end"] == slot["end"])
+                                    ? const Color.fromARGB(255, 223, 240,
+                                        224) // ✅ Change color if selected
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(5),
+                                border: Border.all(color: Colors.black12),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '$formattedStartTime - $formattedEndTime',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  );
+                }
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 10),
                     if (message != null)
                       Text(
                         message,
@@ -139,75 +225,34 @@ class SlotSelectionContainer extends ConsumerWidget {
                         ),
                       ),
                     const SizedBox(height: 10),
-                    SingleChildScrollView(
-                      child: Wrap(
-                        spacing: 5,
-                        runSpacing: 10,
-                        children: availableSlots.map((slot) {
-                          final formattedStartTime =
-                              DateFormat('h:mm a').format(slot["start"]!);
-                          final formattedEndTime =
-                              DateFormat('h:mm a').format(slot["end"]!);
-
-                          return GestureDetector(
-                            onTap: () async {
-                              final formattedStartTime =
-                                  DateFormat('hh:mm a').format(slot["start"]!);
-                              final formattedEndTime =
-                                  DateFormat('hh:mm a').format(slot["end"]!);
-                              final selectedSlotLabel =
-                                  "$formattedStartTime - $formattedEndTime";
-
-                              final isAvailable =
-                                  await isSlotAvailable(selectedSlotLabel);
-                              if (!isAvailable) {
-                                ToastHelper.showErrorToast(
-                                    'Slot not available. Please choose another slot');
-                                return;
-                              }
-
-                              ref.read(selectedSlotProvider.notifier).state =
-                                  slot;
-                              ref.read(isExpandedProvider.notifier).state =
-                                  false;
-                              final prefs =
-                                  await SharedPreferences.getInstance();
-                              await prefs.setString(
-                                  'selectedSlot', selectedSlotLabel);
-                            },
-                            child: IntrinsicWidth(
-                              stepWidth: 10,
-                              child: Container(
-                                width: MediaQuery.of(context).size.width * 0.37,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 5, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: (selectedSlot != null &&
-                                          selectedSlot["start"] ==
-                                              slot["start"] &&
-                                          selectedSlot["end"] == slot["end"])
-                                      ? const Color.fromARGB(255, 223, 240,
-                                          224) // ✅ Change color if selected
-                                      : Colors.white,
-                                  borderRadius: BorderRadius.circular(5),
-                                  border: Border.all(color: Colors.black12),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    '$formattedStartTime - $formattedEndTime',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                    if (todaySlots.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Text(
+                            "Today’s Slots - ${DateFormat('MMM d, yyyy').format(today)}",
+                            style: GoogleFonts.poppins(
+                                fontSize: 13, fontWeight: FontWeight.w600)),
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Text("No slots for today. Book for tomorrow!",
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            )),
                       ),
+                    if (todaySlots.isNotEmpty) buildSlotButtons(todaySlots),
+                    if (tomorrowSlots.isNotEmpty) const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                          "Tomorrow’s Slots - ${DateFormat('MMM d, yyyy').format(tomorrow)}",
+                          style: GoogleFonts.poppins(
+                              fontSize: 13, fontWeight: FontWeight.w600)),
                     ),
+                    if (tomorrowSlots.isNotEmpty)
+                      buildSlotButtons(tomorrowSlots),
                   ],
                 );
               },

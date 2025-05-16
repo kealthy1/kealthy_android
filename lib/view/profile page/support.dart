@@ -45,19 +45,6 @@ class SupportPage extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: "Welcome,",
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFF273847),
-                            fontSize: 16,
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
                   const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

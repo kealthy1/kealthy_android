@@ -32,20 +32,34 @@ class ImageZoomPage extends ConsumerStatefulWidget {
   _ImageZoomPageState createState() => _ImageZoomPageState();
 }
 
-class _ImageZoomPageState extends ConsumerState<ImageZoomPage> {
-  late PageController _pageController;
+class _ImageZoomPageState extends ConsumerState<ImageZoomPage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
 
- @override
-void initState() {
-  super.initState();
-  _pageController = PageController(initialPage: widget.initialIndex);
-  
-  // Delay the provider update to avoid modifying it during widget build
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    ref.read(imageIndexProvider.notifier).setIndex(widget.initialIndex);
-  });
-}
-    
+  late PageController _pageController;
+  late List<ImageProvider> _cachedImages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: widget.initialIndex);
+    _cachedImages =
+        widget.imageUrls.map((url) => CachedNetworkImageProvider(url)).toList();
+
+    // Delay the provider update to avoid modifying it during widget build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(imageIndexProvider.notifier).setIndex(widget.initialIndex);
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    for (final provider in _cachedImages) {
+      precacheImage(provider, context);
+    }
+  }
 
   @override
   void dispose() {
@@ -55,6 +69,7 @@ void initState() {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     ref.watch(imageIndexProvider);
 
     return Scaffold(
@@ -84,12 +99,11 @@ void initState() {
               },
               builder: (context, index) {
                 return PhotoViewGalleryPageOptions(
-                  imageProvider: CachedNetworkImageProvider(widget.imageUrls[index]),
+                  imageProvider: _cachedImages[index],
                   minScale: PhotoViewComputedScale.contained,
                   maxScale: PhotoViewComputedScale.covered * 2.5,
                   heroAttributes: PhotoViewHeroAttributes(tag: index),
                   filterQuality: FilterQuality.high,
-                  
                 );
               },
             ),
@@ -120,12 +134,14 @@ void initState() {
                       _pageController.jumpToPage(index);
                     },
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200), // Smooth transition
+                      duration: const Duration(
+                          milliseconds: 200), // Smooth transition
                       margin: const EdgeInsets.symmetric(horizontal: 5),
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: isSelected ? Colors.orange : Colors.transparent,
+                          color:
+                              isSelected ? Colors.orange : Colors.transparent,
                           width: 1,
                         ),
                         borderRadius: BorderRadius.circular(8),

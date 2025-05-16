@@ -51,7 +51,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         child: Column(
           children: [
             SizedBox(
-              height: MediaQuery.of(context).padding.top + 20,
+              height: MediaQuery.of(context).padding.top + 30,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(

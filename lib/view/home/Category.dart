@@ -8,11 +8,21 @@ import 'package:kealthy/view/product/subcategories.dart';
 
 import 'package:shimmer/shimmer.dart';
 
-class HomeCategory extends ConsumerWidget {
+class HomeCategory extends ConsumerStatefulWidget {
   const HomeCategory({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeCategory> createState() => _HomeCategoryState();
+}
+
+class _HomeCategoryState extends ConsumerState<HomeCategory>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -28,6 +38,15 @@ class HomeCategory extends ConsumerWidget {
               'image': doc.data()['imageurl'],
             };
           }).toList();
+
+          if (categories != null) {
+            for (var category in categories) {
+              precacheImage(
+                CachedNetworkImageProvider(category['image'] as String),
+                context,
+              );
+            }
+          }
 
           return Center(
             child: Column(

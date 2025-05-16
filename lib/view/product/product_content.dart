@@ -230,11 +230,19 @@ class ProductContent extends ConsumerWidget {
 
                         return Row(
                           children: [
+                            Text(
+                              rating.toStringAsFixed(1),
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Colors.black54,
+                              ),
+                            ),
+
                             // Generate full stars
                             ...List.generate(
                               fullStars,
                               (index) => const Icon(Icons.star,
-                                  color: Colors.orange, size: 20),
+                                  color: Colors.orange, size: 16),
                             ),
 
                             // Show half-star if needed
@@ -249,16 +257,7 @@ class ProductContent extends ConsumerWidget {
                                   color: Colors.orange, size: 20),
                             ),
 
-                            const SizedBox(width: 5),
-
                             // Show the numeric rating next to stars
-                            Text(
-                              rating.toStringAsFixed(1),
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                color: Colors.black54,
-                              ),
-                            ),
                           ],
                         );
                       },

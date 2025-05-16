@@ -50,7 +50,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
+          backgroundColor: Colors.white,
           title: Text(
             "Edit Profile",
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
@@ -85,6 +87,11 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               TextField(
                 controller: _emailController,
                 onChanged: (value) {
+                  if (!value.contains('@gmail.com')) {
+                    ToastHelper.showErrorToast(
+                        "Please enter a valid email address");
+                    return;
+                  }
                   // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
                   ref.read(profileProvider.notifier).state =
                       profile.copyWith(email: value);
@@ -128,6 +135,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                           // Show a simple alert
                           ToastHelper.showErrorToast("Please fill all fields");
 
+                          ref.read(isSavingProvider.notifier).state = false;
+                          return;
+                        }
+                        if (!newEmail.contains('@gmail.com')) {
+                          ToastHelper.showErrorToast(
+                              "Please enter a valid email address");
                           ref.read(isSavingProvider.notifier).state = false;
                           return;
                         } else {

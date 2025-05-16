@@ -7,7 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/view/blog/blog.dart';
 import 'package:kealthy/view/home/Calorie.dart';
 import 'package:kealthy/view/home/bmi_calculator.dart';
-
 import 'package:shimmer/shimmer.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -26,42 +25,6 @@ final imageDataProvider = StateNotifierProvider<ImageNotifier, List<ImageData>>(
 
 final carouselIndexProvider = StateProvider<int>((ref) => 0);
 
-Future<void> _launchFacebook() async {
-  const fbAppUrl =
-      'fb://facewebmodal/f?href=https://www.facebook.com/profile.php?id=61571096468965&mibextid=ZbWKwL';
-  const fbWebUrl =
-      'https://www.facebook.com/profile.php?id=61571096468965&mibextid=ZbWKwL';
-
-  if (await canLaunchUrl(Uri.parse(fbAppUrl))) {
-    await launchUrl(Uri.parse(fbAppUrl));
-  } else {
-    await launchUrl(Uri.parse(fbWebUrl), mode: LaunchMode.externalApplication);
-  }
-}
-
-Future<void> _launchInstagram() async {
-  const fbAppUrl = 'instagram://user?username=kealthy.life';
-  const fbWebUrl =
-      'https://www.instagram.com/kealthy.life?igsh=MXVqa2hicG4ydzB5cQ==';
-
-  if (await canLaunchUrl(Uri.parse(fbAppUrl))) {
-    await launchUrl(Uri.parse(fbAppUrl));
-  } else {
-    await launchUrl(Uri.parse(fbWebUrl), mode: LaunchMode.externalApplication);
-  }
-}
-
-Future<void> _launchX() async {
-  const appUrl = 'twitter://user?screen_name=Kealthy_life';
-  const webUrl = 'https://x.com/Kealthy_life';
-
-  if (await canLaunchUrl(Uri.parse(appUrl))) {
-    await launchUrl(Uri.parse(appUrl));
-  } else {
-    await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication);
-  }
-}
-
 class ChangingImageWidget extends ConsumerStatefulWidget {
   const ChangingImageWidget({super.key});
 
@@ -79,6 +42,15 @@ class _ChangingImageWidgetState extends ConsumerState<ChangingImageWidget> {
     super.initState();
     _pageController = PageController(viewportFraction: 1.0);
     _startAutoScroll();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final imageList = ref.read(imageDataProvider);
+    for (final image in imageList) {
+      precacheImage(CachedNetworkImageProvider(image.imageUrl), context);
+    }
   }
 
   void _startAutoScroll() {
@@ -123,13 +95,24 @@ class _ChangingImageWidgetState extends ConsumerState<ChangingImageWidget> {
         );
         break;
       case 1:
-        _launchInstagram();
+        final instagramUrl = Uri.parse(
+            'https://www.instagram.com/kealthy.life?igsh=MXVqa2hicG4ydzB5cQ==');
+        if (await canLaunchUrl(instagramUrl)) {
+          await launchUrl(instagramUrl);
+        }
         break;
       case 2:
-        _launchX();
+        final twitterUrl = Uri.parse('https://x.com/Kealthy_life/');
+        if (await canLaunchUrl(twitterUrl)) {
+          await launchUrl(twitterUrl);
+        }
         break;
       case 3:
-        _launchFacebook();
+        final facebookUrl = Uri.parse(
+            'https://www.facebook.com/profile.php?id=61571096468965&mibextid=ZbWKwL');
+        if (await canLaunchUrl(facebookUrl)) {
+          await launchUrl(facebookUrl);
+        }
         break;
       case 4:
         Navigator.push(
@@ -166,7 +149,7 @@ class _ChangingImageWidgetState extends ConsumerState<ChangingImageWidget> {
                 color: Colors.grey[300],
                 borderRadius: BorderRadius.circular(20)),
             width: MediaQuery.of(context).size.width,
-            height: 150,
+            height: 180,
           ),
         ),
       );

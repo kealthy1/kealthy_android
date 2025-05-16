@@ -31,7 +31,7 @@ class OngoingTicketsPage extends ConsumerWidget {
         if (snapshot.docs.isEmpty) {
           return const Center(
             child: Text(
-              "No Active tickets found.",
+              "No active tickets found.",
               style: TextStyle(fontFamily: "poppins"),
             ),
           );

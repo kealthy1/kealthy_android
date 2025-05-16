@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
 
 /// 🔹 **State Providers**
+final newsletterSubscribedProvider = StateProvider<bool>((ref) => false);
 final hasShownReviewAlertProvider = StateProvider<bool>((ref) => false);
 final selectedItemProvider = StateProvider<CartItem?>((ref) => null);
 final tapPositionProvider = StateProvider<Offset?>((ref) => null);

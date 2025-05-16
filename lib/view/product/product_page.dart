@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +25,10 @@ class ProductPage extends StatefulWidget {
   State<ProductPage> createState() => _ProductPageState();
 }
 
-class _ProductPageState extends State<ProductPage> with WidgetsBindingObserver {
+class _ProductPageState extends State<ProductPage>
+    with WidgetsBindingObserver, AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   late final PageController _pageController;
 
   @override
@@ -44,6 +48,7 @@ class _ProductPageState extends State<ProductPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       appBar: AppBar(
         surfaceTintColor: Colors.white,
@@ -52,51 +57,58 @@ class _ProductPageState extends State<ProductPage> with WidgetsBindingObserver {
         elevation: 0,
       ),
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-              stream: FirebaseFirestore.instance
-                  .collection('Products')
-                  .doc(widget.productId)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(
-                      child: Text(
-                    'Error: ${snapshot.error}',
-                    style: GoogleFonts.poppins(),
-                  ));
-                }
-                if (!snapshot.hasData || !snapshot.data!.exists) {
-                  return Center(
-                      child: Column(
-                    children: [
-                      const Icon(CupertinoIcons.exclamationmark_circle,
-                          size: 50, color: Colors.black),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Product not found.',
-                        style: GoogleFonts.poppins(),
-                      ),
-                    ],
-                  ));
-                }
-                final docData = snapshot.data!.data()!;
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                stream: FirebaseFirestore.instance
+                    .collection('Products')
+                    .doc(widget.productId)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(
+                        child: Text(
+                      'Error: ${snapshot.error}',
+                      style: GoogleFonts.poppins(),
+                    ));
+                  }
+                  if (!snapshot.hasData || !snapshot.data!.exists) {
+                    return Center(
+                        child: Column(
+                      children: [
+                        const Icon(CupertinoIcons.exclamationmark_circle,
+                            size: 50, color: Colors.black),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Product not found.',
+                          style: GoogleFonts.poppins(),
+                        ),
+                      ],
+                    ));
+                  }
+                  final docData = snapshot.data!.data()!;
+                  final imageUrls = docData['ImageUrl'] ?? [];
+                  if (imageUrls.isNotEmpty && imageUrls[0] is String) {
+                    precacheImage(
+                        CachedNetworkImageProvider(imageUrls[0]), context);
+                  }
 
-                return ProductContent(
-                  docData: docData,
-                  pageController: _pageController,
-                  productId: widget.productId,
-                );
-              },
+                  return ProductContent(
+                    docData: docData,
+                    pageController: _pageController,
+                    productId: widget.productId,
+                  );
+                },
+              ),
             ),
-          ),
-          const CartContainer(),
-        ],
+            const CartContainer(),
+          ],
+        ),
       ),
     );
   }

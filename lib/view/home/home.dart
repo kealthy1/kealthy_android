@@ -30,7 +30,9 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   bool hasShownDialog = false;
   final bool _hasLocationPermission = false;
   late ScrollController _scrollController;
@@ -80,6 +82,7 @@ class _HomePageState extends ConsumerState<HomePage>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final cartItems = ref.read(cartProvider);
     final selectedAddress = ref.watch(selectedLocationProvider);
     final totalItems =
@@ -137,7 +140,10 @@ class _HomePageState extends ConsumerState<HomePage>
                       SizedBox(height: 10),
                       HomeCategory(),
                       SizedBox(height: 50),
-                      KealthyPage()
+                      KealthyPage(),
+                      // Newsletter subscription UI (redesigned) - show only if no email in SharedPreferences
+
+                      SizedBox(height: 100),
                     ],
                   ),
                 ),

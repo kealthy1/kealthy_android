@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/view/notifications/feedback.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 // StateNotifier for tracking whether to show the feedback alert
@@ -37,13 +36,26 @@ class OrderFeedbackAlert extends ConsumerStatefulWidget {
   ConsumerState<OrderFeedbackAlert> createState() => _OrderFeedbackAlertState();
 }
 
-class _OrderFeedbackAlertState extends ConsumerState<OrderFeedbackAlert> {
+class _OrderFeedbackAlertState extends ConsumerState<OrderFeedbackAlert>
+    with AutomaticKeepAliveClientMixin {
   String? latestOrderId;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
     _checkOrderCompletionTime();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    precacheImage(
+      const AssetImage('lib/assets/images/PHOTO-2025-02-15-15-01-53.jpg'),
+      context,
+    );
   }
 
   Future<void> _checkOrderCompletionTime() async {
@@ -64,6 +76,7 @@ class _OrderFeedbackAlertState extends ConsumerState<OrderFeedbackAlert> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final shouldShowAlert = ref.watch(reviewAlertProvider);
 
     if (!shouldShowAlert || latestOrderId == null) {
@@ -100,6 +113,7 @@ class _OrderFeedbackAlertState extends ConsumerState<OrderFeedbackAlert> {
               Image.asset(
                 'lib/assets/images/PHOTO-2025-02-15-15-01-53.jpg',
                 height: 100,
+                fit: BoxFit.cover,
               ),
               const SizedBox(height: 10),
               Text(
