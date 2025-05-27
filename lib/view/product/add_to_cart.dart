@@ -8,15 +8,18 @@ class AddToCartSection extends ConsumerWidget {
   final String productName;
   final int productPrice;
   final String productEAN;
-  final int soh; // Add Stock on Hand parameter
+  final int soh;
+  final String imageurl; // Add Stock on Hand parameter
+  // Add Stock on Hand parameter
 
-  const AddToCartSection({
-    super.key,
-    required this.productName,
-    required this.productPrice,
-    required this.productEAN,
-    required this.soh, // Include in constructor
-  });
+  const AddToCartSection(
+      {super.key,
+      required this.productName,
+      required this.productPrice,
+      required this.productEAN,
+      required this.soh,
+      required this.imageurl // Include in constructor
+      });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -63,6 +66,7 @@ class AddToCartSection extends ConsumerWidget {
                     name: productName,
                     price: productPrice,
                     ean: productEAN,
+                    imageUrl: imageurl,
                   ),
                 );
               },

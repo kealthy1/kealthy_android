@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/view/product/product_page.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -15,6 +14,7 @@ import 'package:shimmer/shimmer.dart';
 class Product {
   final String id;
   final String name;
+  final String qty;
   final String brandName;
   final String price;
   final List<dynamic> imageUrls;
@@ -22,6 +22,7 @@ class Product {
   Product({
     required this.id,
     required this.name,
+    required this.qty,
     required this.brandName,
     required this.price,
     required this.imageUrls,
@@ -32,6 +33,7 @@ class Product {
     return Product(
       id: doc.id,
       name: data['Name'] ?? 'Unknown Product',
+      qty: data['Qty']?.toString() ?? '0',
       price: data['Price']?.toString() ?? '0',
       brandName: data['Brand Name'] ?? '',
       imageUrls: data['ImageUrl'] is List ? data['ImageUrl'] as List : [],
@@ -41,6 +43,7 @@ class Product {
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
+        'qty': qty,
         'brandName': brandName,
         'price': price,
         'imageUrls': imageUrls,
@@ -50,6 +53,7 @@ class Product {
     return Product(
       id: json['id'],
       name: json['name'],
+      qty: json['qty'],
       brandName: json['brandName'],
       price: json['price'],
       imageUrls: List<dynamic>.from(json['imageUrls']),
@@ -201,7 +205,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       ),
       backgroundColor: Colors.white,
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 18),
         child: FutureBuilder<List<Product>>(
           future: _productsFuture,
           builder: (context, snapshot) {
@@ -319,80 +323,101 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                                     ),
                                   );
                                 },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(8),
-                                    boxShadow: const [
-                                      BoxShadow(
-                                          color: Colors.black12, blurRadius: 3)
-                                    ],
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: ClipRRect(
-                                          borderRadius:
-                                              const BorderRadius.vertical(
-                                                  top: Radius.circular(8)),
-                                          child: CachedNetworkImage(
-                                            imageUrl: imageUrl,
-                                            width: double.infinity,
-                                            fit: BoxFit.cover,
-                                            placeholder: (context, url) =>
-                                                Shimmer.fromColors(
-                                              baseColor: Colors.grey[300]!,
-                                              highlightColor: Colors.grey[100]!,
-                                              child: Container(
-                                                  color: Colors.white),
-                                            ),
-                                            errorWidget:
-                                                (context, url, error) =>
-                                                    Container(
-                                              color: Colors.grey.shade200,
-                                              child: const Icon(
-                                                  Icons.broken_image),
+                                child: IntrinsicHeight(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                            color: Colors.black12,
+                                            blurRadius: 3)
+                                      ],
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                const BorderRadius.vertical(
+                                                    top: Radius.circular(8)),
+                                            child: CachedNetworkImage(
+                                              imageUrl: imageUrl,
+                                              width: double.infinity,
+                                              fit: BoxFit.cover,
+                                              placeholder: (context, url) =>
+                                                  Shimmer.fromColors(
+                                                baseColor: Colors.grey[300]!,
+                                                highlightColor:
+                                                    Colors.grey[100]!,
+                                                child: Container(
+                                                    color: Colors.white),
+                                              ),
+                                              errorWidget:
+                                                  (context, url, error) =>
+                                                      Container(
+                                                color: Colors.grey.shade200,
+                                                child: const Icon(
+                                                    Icons.broken_image),
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8),
-                                        child: SizedBox(
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.07,
+                                        Padding(
+                                          padding: const EdgeInsets.all(8),
                                           child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              Text(
-                                                product.name,
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: GoogleFonts.poppins(
-                                                  color: Colors.black,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
+                                              SizedBox(
+                                                height: 50,
+                                                child: Text(
+                                                  product.name,
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 16,
+                                                    color: Colors.black,
+                                                  ),
                                                 ),
                                               ),
-                                              const Spacer(),
-                                              Text(
-                                                '₹ ${product.price}',
-                                                style: GoogleFonts.poppins(
-                                                  color: Colors.black,
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
+                                              const SizedBox(
+                                                  height:
+                                                      6), // reserve space for rating if needed
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    '₹ ${product.price}',
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 15,
+                                                      color:
+                                                          Colors.green.shade800,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                  const Spacer(),
+                                                  Text(
+                                                    product.qty,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 12,
+                                                      color: Colors.black,
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ],
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               );

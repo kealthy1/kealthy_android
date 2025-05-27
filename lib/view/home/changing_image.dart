@@ -70,6 +70,44 @@ class _ChangingImageWidgetState extends ConsumerState<ChangingImageWidget> {
     });
   }
 
+  Future<void> _launchFacebook() async {
+    const fbAppUrl =
+        'fb://facewebmodal/f?href=https://www.facebook.com/share/1938WAtaiE/';
+    const fbWebUrl =
+        'https://www.facebook.com/profile.php?id=61571096468965&mibextid=ZbWKwL';
+
+    if (await canLaunchUrl(Uri.parse(fbAppUrl))) {
+      await launchUrl(Uri.parse(fbAppUrl));
+    } else {
+      await launchUrl(Uri.parse(fbWebUrl),
+          mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _launchInstagram() async {
+    const fbAppUrl = 'instagram://user?username=kealthy.life';
+    const fbWebUrl =
+        'https://www.instagram.com/kealthy.life?igsh=MXVqa2hicG4ydzB5cQ==';
+
+    if (await canLaunchUrl(Uri.parse(fbAppUrl))) {
+      await launchUrl(Uri.parse(fbAppUrl));
+    } else {
+      await launchUrl(Uri.parse(fbWebUrl),
+          mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _launchX() async {
+    const appUrl = 'twitter://user?screen_name=Kealthy_life';
+    const webUrl = 'https://x.com/Kealthy_life';
+
+    if (await canLaunchUrl(Uri.parse(appUrl))) {
+      await launchUrl(Uri.parse(appUrl));
+    } else {
+      await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication);
+    }
+  }
+
   /// Stop scrolling when the user taps on an image
   void _stopAutoScroll() {
     _timer?.cancel(); // Stop the auto-scroll timer
@@ -95,35 +133,24 @@ class _ChangingImageWidgetState extends ConsumerState<ChangingImageWidget> {
         );
         break;
       case 1:
-        final instagramUrl = Uri.parse(
-            'https://www.instagram.com/kealthy.life?igsh=MXVqa2hicG4ydzB5cQ==');
-        if (await canLaunchUrl(instagramUrl)) {
-          await launchUrl(instagramUrl);
-        }
+        await _launchInstagram();
         break;
       case 2:
-        final twitterUrl = Uri.parse('https://x.com/Kealthy_life/');
-        if (await canLaunchUrl(twitterUrl)) {
-          await launchUrl(twitterUrl);
-        }
+        await _launchX();
         break;
       case 3:
-        final facebookUrl = Uri.parse(
-            'https://www.facebook.com/profile.php?id=61571096468965&mibextid=ZbWKwL');
-        if (await canLaunchUrl(facebookUrl)) {
-          await launchUrl(facebookUrl);
-        }
+        await _launchFacebook();
         break;
       case 4:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const CalorieIntakePage()),
+          MaterialPageRoute(builder: (context) => const BmiTrackerPage()),
         );
         break;
       case 5:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const BmiTrackerPage()),
+          MaterialPageRoute(builder: (context) => const CalorieIntakePage()),
         );
         break;
       default:
@@ -199,11 +226,12 @@ class _ChangingImageWidgetState extends ConsumerState<ChangingImageWidget> {
                             errorWidget: (context, url, error) =>
                                 const Icon(Icons.error, color: Colors.red),
                           ),
-                          Positioned.fill(
-                            child: Container(
-                              color: Colors.black.withOpacity(0.2),
+                          if (imageData.title.trim().isNotEmpty)
+                            Positioned.fill(
+                              child: Container(
+                                color: Colors.black.withOpacity(0.2),
+                              ),
                             ),
-                          ),
                           Positioned(
                             top: 10,
                             left: 10,

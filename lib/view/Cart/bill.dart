@@ -6,12 +6,14 @@ class BillDetailsWidget extends StatelessWidget {
   final double itemTotal;
   final double distanceInKm;
   final double instantDeliveryFee;
+  final double offerDiscount;
 
   const BillDetailsWidget({
     super.key,
     required this.itemTotal,
     required this.distanceInKm,
     required this.instantDeliveryFee,
+    this.offerDiscount = 0.0,
   });
 
   @override
@@ -30,8 +32,10 @@ class BillDetailsWidget extends StatelessWidget {
     double handlingFee = 5;
 
     // Total amount to pay
-    double finalTotalToPay =
-        itemTotal + discountedFee + instantDeliveryFee + handlingFee;
+    double finalTotalToPay = (itemTotal - offerDiscount) +
+        discountedFee +
+        instantDeliveryFee +
+        handlingFee;
 
     // Dynamic delivery message
     String deliveryMessage = _getDeliveryMessage(
@@ -147,6 +151,12 @@ class BillDetailsWidget extends StatelessWidget {
               RowTextWidget(
                   label: "Instant Delivery Fee",
                   value: "₹${instantDeliveryFee.toStringAsFixed(0)}"),
+            if (offerDiscount > 0)
+              RowTextWidget(
+                colr: Colors.green,
+                label: "🎉Saved",
+                value: "₹${offerDiscount.toStringAsFixed(0)}",
+              ),
             const Divider(),
             const SizedBox(height: 5),
 

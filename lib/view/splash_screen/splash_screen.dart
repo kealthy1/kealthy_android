@@ -44,9 +44,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       Navigator.pushReplacement(
         context,
         CupertinoModalPopupRoute(
-          builder: (_) => storedPhone.isNotEmpty
-              ? const InternetAwareWidget(child: BottomNavBar())
-              : const LoginFields(),
+          builder: (_) =>
+              storedPhone.isNotEmpty ? BottomNavBar() : const LoginFields(),
         ),
       );
     }

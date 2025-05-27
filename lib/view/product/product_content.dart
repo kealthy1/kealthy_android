@@ -11,7 +11,6 @@ import 'package:kealthy/view/product/product_page.dart';
 import 'package:kealthy/view/product/provider.dart';
 import 'package:kealthy/view/product/review_section.dart';
 import 'package:kealthy/view/product/text.dart';
-
 import 'package:shimmer/shimmer.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -34,6 +33,7 @@ class ProductContent extends ConsumerWidget {
     final productName = docData['Name'] ?? 'No Name';
     final productBrand = docData['Brand Name'] ?? 'No Name';
     final productQty = docData['Qty'] ?? '';
+    final baseProductName = productName.replaceAll(productQty, '').trim();
     final productPrice = (docData['Price'] is int || docData['Price'] is double)
         ? docData['Price']
         : int.tryParse(docData['Price']?.toString() ?? '0') ?? 0;
@@ -44,7 +44,11 @@ class ProductContent extends ConsumerWidget {
     final productWhatIs = docData['What is it?'] ?? '';
     final productUseFor = docData['What is it used for?'] ?? '';
     final productEAN = docData['EAN'] ?? '';
-    final productSource = docData['Imported&Marketed By'] ?? '';
+    final productImageUrl = (docData['ImageUrl'] is List<dynamic> &&
+            (docData['ImageUrl'] as List).isNotEmpty)
+        ? docData['ImageUrl'][0]
+        : '';
+    // final productSource = docData['Imported&Marketed By'] ?? '';
     final productOrigin = docData['Orgin'] ?? '';
     final productBestBefore = docData['Best Before'] ?? '';
     final productSoh = (docData['SOH'] is int)
@@ -198,7 +202,9 @@ class ProductContent extends ConsumerWidget {
                     /// Wrap the long text with `Expanded` or `Flexible`
                     Expanded(
                       child: Text(
-                        '$productName $productQty',
+                        productName.contains(productQty)
+                            ? productName
+                            : '$productName $productQty',
                         overflow: TextOverflow.visible,
                         style: GoogleFonts.poppins(
                           textStyle: const TextStyle(
@@ -318,6 +324,7 @@ class ProductContent extends ConsumerWidget {
                       productPrice: productPrice,
                       productEAN: productEAN,
                       soh: productSoh,
+                      imageurl: productImageUrl,
                     ),
                   ],
                 ),
@@ -397,10 +404,10 @@ class ProductContent extends ConsumerWidget {
                   children: [
                     const ReusableText(
                       text: 'Brand : ',
-                      fontSize: 20,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
-                    ReusableText(text: '$productBrand', fontSize: 20),
+                    ReusableText(text: '$productBrand', fontSize: 16),
                   ],
                 ),
 
@@ -411,9 +418,10 @@ class ProductContent extends ConsumerWidget {
                     StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                       stream: FirebaseFirestore.instance
                           .collection('Products')
-                          .where('Name', isEqualTo: productName)
-                          .where('Qty',
-                              isNotEqualTo: productQty) // Filter by Name
+                          .where('Name',
+                              isGreaterThanOrEqualTo: baseProductName)
+                          .where('Name', isLessThan: baseProductName + 'z')
+                          .where('Qty', isNotEqualTo: productQty)
                           .snapshots(),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
@@ -445,67 +453,55 @@ class ProductContent extends ConsumerWidget {
                             itemBuilder: (context, index) {
                               final product = relatedProducts[index].data();
                               final qty = product['Qty'];
-                              final imageUrl = product['ImageUrl']
-                                          is List<dynamic> &&
-                                      (product['ImageUrl'] as List).isNotEmpty
-                                  ? product['ImageUrl'][0]
-                                  : '';
 
                               return GestureDetector(
                                 onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => ProductPage(
-                                          productId: relatedProducts[index].id),
-                                    ),
-                                  );
+                                  if (relatedProducts[index].id != productId) {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ProductPage(
+                                            productId:
+                                                relatedProducts[index].id),
+                                      ),
+                                    );
+                                  }
                                 },
                                 child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     if (relatedProducts.isNotEmpty)
                                       Text(
-                                        'Similar Products :',
+                                        'Options :',
                                         style: GoogleFonts.poppins(
                                           textStyle: const TextStyle(
                                             fontSize: 15,
+                                            fontWeight: FontWeight.w600,
                                             color: Colors.black,
                                           ),
                                         ),
                                       ),
                                     const SizedBox(height: 10),
 
-                                    // Product image
-                                    Expanded(
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                            10), // adjust as needed
-                                        child: CachedNetworkImage(
-                                          imageUrl: imageUrl,
-                                          fit: BoxFit.contain,
-                                          placeholder: (context, url) =>
-                                              Shimmer.fromColors(
-                                            baseColor: Colors.grey[300]!,
-                                            highlightColor: Colors.grey[100]!,
-                                            child: Container(
-                                                color: Colors.grey[300]),
-                                          ),
-                                          errorWidget: (context, url, error) =>
-                                              const Icon(
-                                            Icons.broken_image,
-                                            size: 50,
-                                          ),
-                                        ),
+                                    // Replace product image with styled quantity box
+                                    Container(
+                                      width: 60,
+                                      height: 40,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                            color: Colors.grey.shade400),
                                       ),
-                                    ),
-                                    const SizedBox(height: 5),
-
-                                    Text(
-                                      '$qty',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 14,
-                                        color: Colors.black,
+                                      child: Text(
+                                        '$qty',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.black,
+                                        ),
+                                        textAlign: TextAlign.center,
                                       ),
                                     ),
                                   ],
@@ -519,7 +515,6 @@ class ProductContent extends ConsumerWidget {
                   ],
                 ),
 
-                const SizedBox(height: 10),
                 // "What is it?" section.
                 if (productWhatIs.isNotEmpty) ...[
                   Text(
@@ -527,13 +522,13 @@ class ProductContent extends ConsumerWidget {
                     style: GoogleFonts.poppins(
                       textStyle: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 20,
+                        fontSize: 16,
                         color: Colors.black,
                       ),
                     ),
                     textAlign: TextAlign.justify,
                   ),
-                  ReusableText(text: productWhatIs, fontSize: 18),
+                  ReusableText(text: productWhatIs, fontSize: 14),
                   const SizedBox(height: 20),
                 ],
                 if (productUseFor.isNotEmpty) ...[
@@ -541,15 +536,15 @@ class ProductContent extends ConsumerWidget {
                     'What is it used for?',
                     style: GoogleFonts.poppins(
                       textStyle: const TextStyle(
-                        fontSize: 20,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                     ),
                     textAlign: TextAlign.justify,
                   ),
-                  ReusableText(text: productUseFor, fontSize: 18),
-                  const SizedBox(height: 20),
+                  ReusableText(text: productUseFor, fontSize: 14),
+                  const SizedBox(height: 10),
                   Theme(
                     data: Theme.of(context).copyWith(
                       splashColor: Colors.transparent,
@@ -575,7 +570,7 @@ class ProductContent extends ConsumerWidget {
                             "Other Product Info",
                             style: GoogleFonts.poppins(
                               textStyle: const TextStyle(
-                                fontSize: 20,
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
                               ),
@@ -585,18 +580,19 @@ class ProductContent extends ConsumerWidget {
                               text: 'EAN Code: $productEAN', fontSize: 14),
                           if (fssiList.isNotEmpty)
                             ReusableText(
-                                text: 'FSSAI:\n${fssiList.join('\n')}',
+                                text: 'FSSAI: ${fssiList.join('\n')}',
                                 fontSize: 14)
                         ],
                       ),
 
                       children: [
                         const SizedBox(height: 10),
-                        Align(
+                        const Align(
                           alignment: Alignment.centerLeft,
                           child: ReusableText(
-                            text: 'Sourced & marketed by: $productSource',
-                            fontSize: 15,
+                            text:
+                                'Sourced & Marketed by: Cotolore Enterprises LLP, 15/293 - C, Muriyankara-Pinarmunda Milma Road, Peringala (PO), Ernakulam, 683565, Kerala, India.',
+                            fontSize: 14,
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -604,7 +600,7 @@ class ProductContent extends ConsumerWidget {
                           alignment: Alignment.centerLeft,
                           child: ReusableText(
                             text: 'Country of Origin: $productOrigin',
-                            fontSize: 15,
+                            fontSize: 14,
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -613,26 +609,26 @@ class ProductContent extends ConsumerWidget {
                           child: ReusableText(
                             text:
                                 'Best Within: $formattedDate from the date of packaging',
-                            fontSize: 15,
+                            fontSize: 14,
                           ),
                         ),
                         const SizedBox(height: 10),
                         const ReusableText(
                           text:
-                              'Disclaimer: Please refer to the information provided on the product package received at delivery for the actual expiry date.',
-                          fontSize: 15,
+                              'Disclaimer: The image(s) shown are representative of the actual product While every effort has been made to maintain accurate and up to date product related content, it is recommended to read product labels, batch and manufacturing/packing details along with warnings and directions before using or consuming a packed product.',
+                          fontSize: 14,
                         ),
                         const SizedBox(height: 10),
                         const ReusableText(
                           text:
                               'Customer Service: For Queries/Feedback/Complaints, contact our customer care executive at 8848673425.',
-                          fontSize: 15,
+                          fontSize: 14,
                         ),
                         const SizedBox(height: 10),
                         const ReusableText(
                           text:
                               'Address: Cotolore Enterprises LLP, 15/293 - C, Muriyankara-Pinarmunda Milma Road, Peringala (PO), Ernakulam, 683565, Kerala, India.',
-                          fontSize: 15,
+                          fontSize: 14,
                         ),
                         const SizedBox(height: 20),
                       ],
@@ -643,6 +639,7 @@ class ProductContent extends ConsumerWidget {
               ],
             ),
           ),
+          const SizedBox(height: 20),
         ],
       ),
     );

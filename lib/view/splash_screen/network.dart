@@ -23,15 +23,18 @@ class InternetAwareWidget extends StatelessWidget {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                child: Container(
-                  color: Colors.redAccent,
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    'You are offline',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 16,
+                child: SafeArea(
+                  child: Container(
+                    color: Colors.redAccent,
+                    padding: const EdgeInsets.all(8),
+                    child: Text(
+                      'You are offline',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 16,
+                        decoration: TextDecoration.none,
+                      ),
                     ),
                   ),
                 ),

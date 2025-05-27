@@ -4,11 +4,13 @@ import 'package:google_fonts/google_fonts.dart';
 class RowTextWidget extends StatelessWidget {
   final String label;
   final String value;
+  final Color? colr;
 
   const RowTextWidget({
     super.key,
     required this.label,
     required this.value,
+    this.colr,
   });
 
   @override

@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/firebase_options.dart';
 import 'package:kealthy/view/notifications/fcm.dart';
+import 'package:kealthy/view/splash_screen/network.dart';
 import 'package:kealthy/view/splash_screen/splash_screen.dart';
 
 void main() async {
@@ -71,6 +72,9 @@ class MyApp extends ConsumerWidget {
           Theme.of(context).textTheme,
         ),
       ),
+      builder: (context, child) {
+        return InternetAwareWidget(child: child ?? const SizedBox());
+      },
       home: const SplashScreen(),
     );
   }

@@ -2,8 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/view/Cart/address_model.dart';
 import 'package:kealthy/view/Cart/cart_controller.dart';
 import 'package:kealthy/view/Cart/instruction_container.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 double calculateDeliveryFee(double itemTotal, double distanceInKm) {
   // We'll keep everything as doubles—no rounding.
@@ -28,6 +29,36 @@ double calculateDeliveryFee(double itemTotal, double distanceInKm) {
   }
 
   return deliveryFee.roundToDouble();
+}
+
+final firstOrderProvider = AsyncNotifierProvider<FirstOrderNotifier, bool>(() {
+  return FirstOrderNotifier();
+});
+
+class FirstOrderNotifier extends AsyncNotifier<bool> {
+  @override
+  Future<bool> build() async {
+    return false; // default
+  }
+
+  Future<void> checkFirstOrder(String phoneNumber) async {
+    state = const AsyncLoading();
+    final url =
+        Uri.parse('https://api-jfnhkjk4nq-uc.a.run.app/orders/$phoneNumber');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        state = AsyncData(data.isEmpty); // true if no orders
+      } else if (response.statusCode == 404) {
+        state = const AsyncData(true); // First order
+      } else {
+        state = const AsyncData(false);
+      }
+    } catch (e) {
+      state = const AsyncData(false);
+    }
+  }
 }
 
 /// Calculates the final total with delivery fee, handling fee, and instant delivery.
