@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:kealthy/view/Cart/cart.dart';
 import 'package:kealthy/view/Cart/cart_controller.dart';
 import 'package:kealthy/view/Cart/checkout.dart';
 import 'package:kealthy/view/Cart/checkout_provider.dart';
@@ -27,6 +26,18 @@ class _TimePageState extends ConsumerState<TimePage> {
   void initState() {
     super.initState();
     checkTimeBoundaries(ref);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkFirstOrder(); // call async helper
+    });
+  }
+
+  Future<void> _checkFirstOrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    final phone = prefs.getString('phoneNumber') ?? '';
+
+    final firstOrderNotifier = ref.read(firstOrderProvider.notifier);
+    await firstOrderNotifier.checkFirstOrder(phone);
   }
 
   @override
@@ -315,8 +326,8 @@ class _TimePageState extends ConsumerState<TimePage> {
                       final selectedSlot = ref.read(selectedSlotProvider);
                       final selectedAddress =
                           ref.read(addressProvider).asData?.value;
-                      final isInstantDeliverySelected =
-                          ref.read(isInstantDeliverySelectedProvider);
+                      // final isInstantDeliverySelected =
+                      //     ref.read(isInstantDeliverySelectedProvider);
 
                       if (selectedAddress == null) {
                         Navigator.push(
@@ -330,9 +341,10 @@ class _TimePageState extends ConsumerState<TimePage> {
 
                       String deliveryTime = "";
 
-                      if (isInstantDeliverySelected) {
-                        deliveryTime = await calculateEstimatedDeliveryTime();
-                      } else if (selectedSlot != null) {
+                      // if (isInstantDeliverySelected) {
+                      //   deliveryTime = await calculateEstimatedDeliveryTime();
+                      // }
+                      if (selectedSlot != null) {
                         DateTime currentTime = await NTP.now();
                         DateTime slotStart = selectedSlot[
                             "start"]!; // ✅ Correctly extracting DateTime
@@ -352,17 +364,11 @@ class _TimePageState extends ConsumerState<TimePage> {
                         return;
                       }
 
-                      final prefs = await SharedPreferences.getInstance();
-                      final phone = prefs.getString('phoneNumber') ?? '';
-
-                      final firstOrderNotifier =
-                          ref.read(firstOrderProvider.notifier);
-                      await firstOrderNotifier.checkFirstOrder(phone);
-
                       final baseTotal =
                           calculateTotalPrice(ref.read(cartProvider));
-                      final double instantDeliveryfee =
-                          isInstantDeliverySelected ? 50.0 : 0.0;
+                      // final double instantDeliveryfee =
+                      //     isInstantDeliverySelected ? 50.0 : 0.0;
+                      const double instantDeliveryfee = 0.0;
                       Navigator.push(
                         context,
                         CupertinoPageRoute(

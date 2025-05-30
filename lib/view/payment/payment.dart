@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/view/Cart/cart_controller.dart';
 import 'package:kealthy/view/payment/dialogue_helper.dart';
 import 'package:kealthy/view/payment/services.dart';
-
 import 'Online_payment.dart';
 
 final selectedPaymentProvider =
@@ -57,45 +56,44 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
         ),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildPaymentOption(
-                context,
-                "Cash on Delivery",
-                Icons.currency_rupee,
-                selectedPaymentMethod == 'Cash on Delivery',
-                () => ref.read(selectedPaymentProvider.notifier).state =
-                    'Cash on Delivery',
-              ),
-              const SizedBox(height: 20),
-              _buildPaymentOption(
-                context,
-                "Online Payment",
-                Icons.credit_card,
-                selectedPaymentMethod == 'Online Payment',
-                () => ref.read(selectedPaymentProvider.notifier).state =
-                    'Online Payment',
-              ),
-              const Spacer(),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildPaymentOption(
+              context,
+              "Cash on Delivery",
+              Icons.currency_rupee,
+              selectedPaymentMethod == 'Cash on Delivery',
+              () => ref.read(selectedPaymentProvider.notifier).state =
+                  'Cash on Delivery',
+            ),
+            const SizedBox(height: 20),
+            _buildPaymentOption(
+              context,
+              "Online Payment",
+              Icons.credit_card,
+              selectedPaymentMethod == 'Online Payment',
+              () => ref.read(selectedPaymentProvider.notifier).state =
+                  'Online Payment',
+            ),
+            const Spacer(),
 
-              // Total Amount Display
-              _buildTotalAmount(),
+            // Total Amount Display
+            _buildTotalAmount(),
 
-              const SizedBox(height: 10),
+            const SizedBox(height: 10),
 
-              _buildActionButton(selectedPaymentMethod, isOrderSaving, context),
-              const SizedBox(height: 10),
-            ],
-          ),
+            _buildActionButton(selectedPaymentMethod, isOrderSaving, context),
+            const SizedBox(height: 10),
+          ],
         ),
       ),
     );
   }
 
+  /// Builds Payment Option Container
   Widget _buildPaymentOption(
     BuildContext context,
     String title,
@@ -170,6 +168,7 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
       String selectedPaymentMethod, bool isOrderSaving, BuildContext context) {
     return SizedBox(
       width: MediaQuery.of(context).size.width,
+      height: 50,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF41586C),
@@ -234,6 +233,7 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
               deliveryFee: widget.deliveryfee,
               instantDeliveryFee: widget.instantDeliveryFee,
               razorpayOrderId: razorpayOrderId,
+              orderType: 'Normal',
             ),
           ),
         );

@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:kealthy/view/Toast/toast_helper.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -121,6 +120,7 @@ class OrderService {
 
       final orderData = {
         "Name": address.name ?? 'Unknown Name',
+        "type": "Normal",
         "assignedto": "NotAssigned",
         "DA": "Waiting",
         "DAMOBILE": "Waiting",
@@ -166,6 +166,79 @@ class OrderService {
       print('Error saving order: $error');
       print('StackTrace: $stackTrace');
       rethrow; // or handle the error with a custom logic
+    }
+  }
+
+  /// Saves a subscription order in Firebase Realtime Database.
+  static Future<void> saveSubscriptionOrderToFirebase({
+    required dynamic address,
+    required double totalAmount,
+    required double deliveryFee,
+    required String packingInstructions,
+    required String deliveryInstructions,
+    required String deliveryTime,
+    required String paymentMethod,
+    required double instantDeliveryFee,
+  }) async {
+    try {
+      final database = FirebaseDatabase.instanceFor(
+        databaseURL: 'https://kealthy-90c55-dd236.firebaseio.com/',
+        app: Firebase.app(),
+      );
+      final prefs = await SharedPreferences.getInstance();
+      final phoneNumber = prefs.getString('phoneNumber') ?? 'Unknown';
+
+      // Generate Unique Subscription Order ID
+      final orderId = _generateOrderId();
+      await prefs.setString('subscription_order_id', orderId);
+      await prefs.setString('latest_order_id', orderId);
+
+      final orderTime = DateTime.now().toIso8601String();
+      await prefs.setString('order_completed_time', orderTime);
+
+      final String planTitle = prefs.getString('subscription_plan_title') ?? '';
+      final String productName =
+          prefs.getString('subscription_product_name') ?? '';
+      final String startDate = prefs.getString('subscription_start_date') ?? '';
+      final String endDate = prefs.getString('subscription_end_date') ?? '';
+      final String subscriptionQty = prefs.getString('subscription_qty') ?? '';
+
+      final orderData = {
+        "Name": address.name ?? 'Unknown Name',
+        "type": "subscription",
+        "assignedto": "NotAssigned",
+        "DA": "Waiting",
+        "DAMOBILE": "Waiting",
+        "createdAt": orderTime,
+        "distance": address.distance ?? 0.0,
+        "landmark": address.landmark ?? '',
+        "orderId": orderId,
+        "paymentmethod": 'Prepaid',
+        "fcm_token": prefs.getString("fcm_token") ?? '',
+        "phoneNumber": phoneNumber,
+        "selectedDirections": address.selectedInstruction ?? 0.0,
+        "selectedLatitude": address.selectedLatitude ?? 0.0,
+        "selectedLongitude": address.selectedLongitude ?? 0.0,
+        "selectedRoad": address.selectedRoad ?? '',
+        "selectedSlot": deliveryTime,
+        "selectedType": address.type ?? '',
+        "status": "Order Placed",
+        "totalAmountToPay": totalAmount,
+        "deliveryFee": deliveryFee,
+        "instantDeliveryfee": instantDeliveryFee,
+        "planTitle": planTitle,
+        "productName": productName,
+        "startDate": startDate,
+        "endDate": endDate,
+        "subscriptionQty": "$subscriptionQty L",
+      };
+
+      await database.ref().child('subscriptions').child(orderId).set(orderData);
+      print('Subscription order saved successfully with orderId = $orderId');
+    } catch (error, stackTrace) {
+      print('Error saving subscription order: $error');
+      print('StackTrace: $stackTrace');
+      rethrow;
     }
   }
 

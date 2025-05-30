@@ -10,16 +10,19 @@ import 'package:kealthy/view/address/adress.dart';
 import 'package:kealthy/view/address/provider.dart';
 import 'package:kealthy/view/home/Category.dart';
 import 'package:kealthy/view/home/changing_image.dart';
+import 'package:kealthy/view/home/deal_of_day.dart';
+import 'package:kealthy/view/home/deal_of_week.dart';
 import 'package:kealthy/view/home/kealthy_page.dart';
 import 'package:kealthy/view/home/provider.dart';
 import 'package:kealthy/view/home/title.dart';
 import 'package:kealthy/view/notifications/feedback_alert.dart';
 import 'package:kealthy/view/notifications/notification_page.dart';
+import 'package:kealthy/view/notifications/notification_tab.dart';
 import 'package:kealthy/view/notifications/rating_alert.dart';
 import 'package:kealthy/view/orders/myorders.dart';
 import 'package:kealthy/view/search/searchbar.dart';
 import 'package:kealthy/view/splash_screen/version_check.dart';
-
+import 'package:kealthy/view/subscription/sub_details.dart';
 import 'package:lottie/lottie.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -95,9 +98,10 @@ class _HomePageState extends ConsumerState<HomePage>
     print('Has cart items: $hasCartItems');
     print('Location: $selectedAddress');
 
-    ScrollController scrollController = ScrollController();
+    // Use the stateful _scrollController and showCartContainer for scroll behavior
+    ScrollController scrollController = _scrollController;
     ValueNotifier<bool> showCartContainer = ValueNotifier(true);
-
+    // Listen to scroll events and update showCartContainer accordingly
     scrollController.addListener(() {
       if (scrollController.position.userScrollDirection ==
           ScrollDirection.forward) {
@@ -123,33 +127,130 @@ class _HomePageState extends ConsumerState<HomePage>
             // Wrap the CustomScrollView with RefreshIndicator
             CustomScrollView(
               controller: scrollController,
-              slivers: const [
+              slivers: [
                 SliverToBoxAdapter(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(height: 10),
-                      SearchBarWidget(),
-                      SizedBox(height: 20),
-                      Padding(
+                      const SizedBox(height: 10),
+                      const SearchBarWidget(),
+                      const SizedBox(height: 20),
+                      const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 10),
                         child: ChangingImageWidget(),
                       ),
-                      SizedBox(height: 20),
-                      CenteredTitleWidget(title: "Categories"),
-                      SizedBox(height: 10),
-                      HomeCategory(),
-                      SizedBox(height: 50),
-                      KealthyPage(),
-                      // Newsletter subscription UI (redesigned) - show only if no email in SharedPreferences
-
-                      SizedBox(height: 100),
+                      const SizedBox(height: 20),
+                      const CenteredTitleWidget(title: "Categories"),
+                      const SizedBox(height: 10),
+                      const HomeCategory(),
+                      const SizedBox(height: 10),
+                      const CenteredTitleWidget(title: "Subscribe & Save"),
+                      // Subscription box padding inserted here
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const SubscriptionDetailsPage(),
+                              ),
+                            );
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10.0),
+                            child: Container(
+                              color: const Color(0xFFF4F4F5),
+                              child: Image.asset(
+                                'lib/assets/images/Never Run Out of Milk Again-5.png',
+                                height: 80,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const CenteredTitleWidget(
+                          title: "Hot Deals & Exclusive Offers"),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const DealOfTheDayPage()),
+                                );
+                              },
+                              child: SizedBox(
+                                width:
+                                    (MediaQuery.of(context).size.width - 48) /
+                                        2,
+                                child: Column(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      child: Container(
+                                        color: const Color(0xFFF4F4F5),
+                                        child: Image.asset(
+                                          'lib/assets/images/deal day.png',
+                                          height: 100,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const DealOfTheWeekPage()),
+                                );
+                              },
+                              child: SizedBox(
+                                width:
+                                    (MediaQuery.of(context).size.width - 48) /
+                                        2,
+                                child: Column(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      child: Container(
+                                        color: const Color(0xFFF4F4F5),
+                                        child: Image.asset(
+                                          'lib/assets/images/deal week.png',
+                                          height: 100,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const KealthyPage(),
+                      const SizedBox(height: 100),
                     ],
                   ),
                 ),
               ],
             ),
-
             const ReviewAlert(),
             Consumer(
               builder: (context, ref, child) {
@@ -159,12 +260,15 @@ class _HomePageState extends ConsumerState<HomePage>
             ValueListenableBuilder<bool>(
               valueListenable: showCartContainer,
               builder: (context, showCart, child) {
-                return AnimatedOpacity(
-                  opacity: showCart ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 300),
-                  child: const Align(
-                    alignment: Alignment.bottomCenter,
-                    child: CartContainer(),
+                return IgnorePointer(
+                  ignoring: !showCart,
+                  child: AnimatedOpacity(
+                    opacity: showCart ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 300),
+                    child: const Align(
+                      alignment: Alignment.bottomCenter,
+                      child: CartContainer(),
+                    ),
                   ),
                 );
               },
@@ -199,7 +303,7 @@ class _HomePageState extends ConsumerState<HomePage>
               future: getSelectedAddressOrCurrentLocation(ref),
               builder: (context, snapshot) {
                 String displayText;
-                bool showSubText = false; // Flag to control subText display
+                bool showSubText = false;
                 String subText = "";
 
                 if (locationPermission == LocationPermission.denied) {
@@ -339,7 +443,7 @@ class _HomePageState extends ConsumerState<HomePage>
               Navigator.push(
                 context,
                 CupertinoModalPopupRoute(
-                  builder: (context) => const NotificationsScreen(),
+                  builder: (context) => const NotificationTabPage(),
                 ),
               );
             },

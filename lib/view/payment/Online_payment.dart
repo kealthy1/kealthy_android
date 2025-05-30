@@ -1,12 +1,10 @@
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/view/Cart/cart_controller.dart';
 import 'package:kealthy/view/payment/dialogue_helper.dart';
 import 'package:kealthy/view/payment/services.dart';
-
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -20,6 +18,7 @@ class OnlinePaymentProcessing extends ConsumerStatefulWidget {
   final double deliveryFee;
   final double instantDeliveryFee;
   final String razorpayOrderId;
+  final String orderType;
 
   const OnlinePaymentProcessing({
     super.key,
@@ -31,6 +30,7 @@ class OnlinePaymentProcessing extends ConsumerStatefulWidget {
     required this.deliveryFee,
     required this.instantDeliveryFee,
     required this.razorpayOrderId,
+    required this.orderType,
   });
 
   @override
@@ -58,19 +58,34 @@ class _OnlinePaymentProcessingState
     await OrderService.removeRazorpayOrderId();
 
     // Payment succeeded, so let's save the order
-    await OrderService.saveOrderToFirebase(
-      address: widget.address,
-      totalAmount: widget.totalAmount,
-      deliveryFee: widget.deliveryFee,
-      packingInstructions: widget.packingInstructions,
-      deliveryInstructions: widget.deliveryInstructions,
-      deliveryTime: widget.deliverytime,
-      instantDeliveryFee: widget.instantDeliveryFee,
-      paymentMethod: "Online Payment",
-    );
+    if (widget.orderType == 'subscription') {
+      await OrderService.saveSubscriptionOrderToFirebase(
+        address: widget.address,
+        totalAmount: widget.totalAmount,
+        deliveryFee: widget.deliveryFee,
+        packingInstructions: widget.packingInstructions,
+        deliveryInstructions: widget.deliveryInstructions,
+        deliveryTime: widget.deliverytime,
+        instantDeliveryFee: widget.instantDeliveryFee,
+        paymentMethod: "Online Payment",
+      );
+    } else {
+      await OrderService.saveOrderToFirebase(
+        address: widget.address,
+        totalAmount: widget.totalAmount,
+        deliveryFee: widget.deliveryFee,
+        packingInstructions: widget.packingInstructions,
+        deliveryInstructions: widget.deliveryInstructions,
+        deliveryTime: widget.deliverytime,
+        instantDeliveryFee: widget.instantDeliveryFee,
+        paymentMethod: "Online Payment",
+      );
+    }
 
-    // Clear the cart
-    ref.read(cartProvider.notifier).clearCart();
+    // Clear the cart only if not a subscription
+    if (widget.orderType != 'subscription') {
+      ref.read(cartProvider.notifier).clearCart();
+    }
 
     // Show success dialog from the new helper
     PaymentDialogHelper.showPaymentSuccessDialog(context, ref);
@@ -161,10 +176,22 @@ class _OnlinePaymentProcessingState
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: const Center(
-          child: CupertinoActivityIndicator(
-        color: Color.fromARGB(255, 65, 88, 108),
-      )),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              '🔐 Secure • Private • Protected',
+              style: GoogleFonts.poppins(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

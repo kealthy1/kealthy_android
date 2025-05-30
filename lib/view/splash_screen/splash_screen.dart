@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/view/BottomNavBar/bottom_nav_bar.dart';
 import 'package:kealthy/view/Login/login_page.dart';
 import 'package:kealthy/view/splash_screen/maintanance.dart';
-import 'package:kealthy/view/splash_screen/network.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
