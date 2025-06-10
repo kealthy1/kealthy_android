@@ -1,5 +1,3 @@
-//
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -9,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/view/notifications/Rating.dart';
-
 import 'package:shimmer/shimmer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,7 +24,7 @@ final notificationProvider =
   final database = FirebaseFirestore.instance;
   yield* database
       .collection('Notifications')
-      .where('phoneNumber', isEqualTo: phoneNumber) // ✅ Filter by phone number
+      .where('phoneNumber', isEqualTo: phoneNumber)
       .orderBy('timestamp', descending: true)
       .snapshots()
       .map((snapshot) =>
@@ -73,11 +70,6 @@ class NotificationsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
-        title: const Text("Notifications"),
-      ),
       body: notificationsAsync.when(
         loading: () => const Center(
             child: CupertinoActivityIndicator(
@@ -85,10 +77,10 @@ class NotificationsScreen extends ConsumerWidget {
         )),
         error: (error, stackTrace) {
           print("Error fetching notifications: $error");
-          return _buildNoNotifications();
+          return buildNoNotifications();
         },
         data: (notifications) {
-          if (notifications.isEmpty) return _buildNoNotifications();
+          if (notifications.isEmpty) return buildNoNotifications();
 
           return ListView.builder(
             physics: const BouncingScrollPhysics(),
@@ -145,7 +137,7 @@ class NotificationsScreen extends ConsumerWidget {
 }
 
 /// **No Notifications UI**
-Widget _buildNoNotifications() {
+Widget buildNoNotifications() {
   return Center(
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,

@@ -12,6 +12,7 @@ import 'package:kealthy/view/profile%20page/provider.dart';
 import 'package:kealthy/view/profile%20page/refund_and_return.dart';
 import 'package:kealthy/view/profile%20page/share.dart';
 import 'package:kealthy/view/profile%20page/support.dart';
+import 'package:kealthy/view/subscription/sub_view_page.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -51,7 +52,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         child: Column(
           children: [
             SizedBox(
-              height: MediaQuery.of(context).padding.top + 30,
+              height: MediaQuery.of(context).padding.top + 20,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(
@@ -142,22 +143,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             ),
             const SizedBox(height: 40),
             // 🔹 Tiles
-            _buildTile(
-              context: context,
-              title: 'My Address',
-              icon: Icons.location_on_outlined,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  CupertinoPageRoute(builder: (context) => const AddressPage()),
-                );
-              },
-            ),
-            _divider(),
+
             _buildTile(
               context: context,
               title: 'Orders',
-              icon: Icons.shopping_bag_outlined,
+              icon: CupertinoIcons.bag,
               onTap: () {
                 Navigator.push(
                   context,
@@ -166,6 +156,33 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 );
               },
             ),
+            _divider(),
+            _buildTile(
+              context: context,
+              title: 'Subscriptions',
+              icon: CupertinoIcons.check_mark_circled,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  CupertinoPageRoute(
+                      builder: (context) =>
+                          const SubscriptionOrderDetailsPage()),
+                );
+              },
+            ),
+            _divider(),
+            _buildTile(
+              context: context,
+              title: 'My Address',
+              icon: CupertinoIcons.home,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  CupertinoPageRoute(builder: (context) => const AddressPage()),
+                );
+              },
+            ),
+
             _divider(),
             _buildTile(
               context: context,
@@ -325,7 +342,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
   Widget _divider() => const Padding(
         padding: EdgeInsets.symmetric(horizontal: 20),
-        child: Divider(),
+        child: Divider(
+          thickness: 0.1,
+        ),
       );
 
   Widget buildLogoutAlertDialog(BuildContext context) {

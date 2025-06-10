@@ -16,19 +16,18 @@ class NotificationTabPage extends StatelessWidget {
           surfaceTintColor: Colors.white,
           title: const Text('Notifications'),
           bottom: const TabBar(
-            labelColor: Colors.black,
             unselectedLabelColor: Colors.grey,
             indicatorColor: Colors.black,
             tabs: [
-              Tab(text: 'Rating'),
               Tab(text: 'Offers & Deals'),
+              Tab(text: 'Rate Us'),
             ],
           ),
         ),
         body: const TabBarView(
           children: [
-            NotificationsScreen(),
             OffersNotificationPage(),
+            NotificationsScreen(),
           ],
         ),
       ),
