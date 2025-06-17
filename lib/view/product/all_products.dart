@@ -101,12 +101,12 @@ class _AllProductsPageState extends ConsumerState<AllProductsPage>
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-              iconSize: 30,
+              iconSize: 26,
               onPressed: () {
                 ref.read(searchQueryProvider.notifier).state = '';
                 Navigator.pop(context);
               },
-              icon: const Icon(CupertinoIcons.back)),
+              icon: const Icon(Icons.arrow_back)),
           surfaceTintColor: Colors.white,
           title: Text(
             widget.subcategoryName,
@@ -407,15 +407,64 @@ class _AllProductsPageState extends ConsumerState<AllProductsPage>
                                             const Spacer(),
                                             Row(
                                               children: [
-                                                Text(
-                                                  '\u20B9$price/-',
-                                                  style: TextStyle(
-                                                    fontSize: 15,
-                                                    color:
-                                                        Colors.green.shade800,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
+                                                Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      if (data[
+                                                                  'offer_price'] !=
+                                                              null &&
+                                                          double.tryParse(data[
+                                                                      'offer_price']
+                                                                  .toString()) !=
+                                                              null &&
+                                                          double.parse(data[
+                                                                      'offer_price']
+                                                                  .toString()) >
+                                                              0)
+                                                        Row(
+                                                          children: [
+                                                            Text(
+                                                              '\u20B9$price',
+                                                              style:
+                                                                  const TextStyle(
+                                                                fontSize: 12,
+                                                                color:
+                                                                    Colors.red,
+                                                                decoration:
+                                                                    TextDecoration
+                                                                        .lineThrough,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                                width: 5),
+                                                            Text(
+                                                              '\u20B9${data['offer_price']}/-',
+                                                              style: TextStyle(
+                                                                fontSize: 15,
+                                                                color: Colors
+                                                                    .green
+                                                                    .shade800,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        )
+                                                      else
+                                                        Text(
+                                                          '\u20B9$price/-',
+                                                          style: TextStyle(
+                                                            fontSize: 15,
+                                                            color: Colors
+                                                                .green.shade800,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                    ]),
                                                 const Spacer(),
                                                 Text(productqty,
                                                     maxLines: 2,
@@ -458,7 +507,10 @@ class _AllProductsPageState extends ConsumerState<AllProductsPage>
                                           ),
                                           child: Container(
                                             height: 30,
-                                            width: 50,
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.15,
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 8.0, vertical: 4.0),
                                             decoration: BoxDecoration(

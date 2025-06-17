@@ -23,7 +23,7 @@ class RowTextWidget extends StatelessWidget {
           style: GoogleFonts.poppins(
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: colr,
           ),
         ),
         Text(
@@ -31,7 +31,7 @@ class RowTextWidget extends StatelessWidget {
           style: GoogleFonts.poppins(
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: colr,
           ),
         ),
       ],

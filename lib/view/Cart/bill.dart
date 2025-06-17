@@ -5,15 +5,17 @@ import 'package:kealthy/view/Cart/row_text.dart';
 class BillDetailsWidget extends StatelessWidget {
   final double itemTotal;
   final double distanceInKm;
-  final double instantDeliveryFee;
+  // final double instantDeliveryFee;
   final double offerDiscount;
+  final void Function(double)? onTotalCalculated;
 
   const BillDetailsWidget({
     super.key,
     required this.itemTotal,
     required this.distanceInKm,
-    required this.instantDeliveryFee,
+    // required this.instantDeliveryFee,
     this.offerDiscount = 0.0,
+    this.onTotalCalculated,
   });
 
   @override
@@ -31,11 +33,20 @@ class BillDetailsWidget extends StatelessWidget {
     // Fixed handling fee
     double handlingFee = 5;
 
+    // Product discount logic: Only apply discount if offerDiscount > 0
+    double productDiscount =
+        offerDiscount > 0 ? (itemTotal >= 100 ? 100 : itemTotal) : 0;
+    double adjustedItemTotal = itemTotal - productDiscount;
+
     // Total amount to pay
-    double finalTotalToPay = (itemTotal - offerDiscount) +
-        discountedFee +
-        instantDeliveryFee +
-        handlingFee;
+    double finalTotalToPay = adjustedItemTotal + discountedFee + handlingFee;
+
+    // Pass the calculated total up if callback is provided
+    if (onTotalCalculated != null) {
+      onTotalCalculated!(finalTotalToPay);
+      debugPrint(
+          '✅ Final To Pay passed to Checkout: ₹${finalTotalToPay.toStringAsFixed(0)}');
+    }
 
     // Dynamic delivery message
     String deliveryMessage = _getDeliveryMessage(
@@ -90,7 +101,19 @@ class BillDetailsWidget extends StatelessWidget {
                 label: "Item Total", value: "₹${itemTotal.toStringAsFixed(0)}"),
             const SizedBox(height: 5),
 
-            // Delivery Fee
+            if (offerDiscount > 0) ...[
+              RowTextWidget(
+                  label: "FIRST01 Offer",
+                  colr: Colors.green,
+                  value: "₹${productDiscount.toStringAsFixed(0)}"),
+              const SizedBox(height: 5),
+              RowTextWidget(
+                  label: "Discounted Price",
+                  colr: Colors.black,
+                  value: "₹${adjustedItemTotal.toStringAsFixed(0)}"),
+              const SizedBox(height: 5),
+            ],
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -147,16 +170,11 @@ class BillDetailsWidget extends StatelessWidget {
             const SizedBox(height: 5),
 
             // Instant Delivery Fee
-            if (instantDeliveryFee > 0)
-              RowTextWidget(
-                  label: "Instant Delivery Fee",
-                  value: "₹${instantDeliveryFee.toStringAsFixed(0)}"),
-            if (offerDiscount > 0)
-              RowTextWidget(
-                colr: Colors.green,
-                label: "🎉Saved",
-                value: "₹${offerDiscount.toStringAsFixed(0)}",
-              ),
+            // if (instantDeliveryFee > 0)
+            //   RowTextWidget(
+            //       label: "Instant Delivery Fee",
+            //       value: "₹${instantDeliveryFee.toStringAsFixed(0)}"),
+
             const Divider(),
             const SizedBox(height: 5),
 
@@ -221,10 +239,10 @@ class BillDetailsWidget extends StatelessWidget {
     } else if (itemTotal < 199 && distanceInKm <= 7) {
       return 'Purchase for ₹${neededForFreeDelivery.toStringAsFixed(0)} more to unlock Free Delivery!';
     } else if (itemTotal < 199 && distanceInKm > 7 && distanceInKm <= 15) {
-      return 'Purchase for ₹${neededForFreeDelivery.toStringAsFixed(0)} and pay delivery fee ₹${((distanceInKm - 7) * 8).toStringAsFixed(0)}/- Only';
+      return 'Purchase for ₹${neededForFreeDelivery.toStringAsFixed(0)} more and pay delivery fee ₹${((distanceInKm - 7) * 8).toStringAsFixed(0)}/- Only';
     } else if (itemTotal >= 199 && distanceInKm > 7) {
       double savings = originalFee - discountedFee;
-      return 'Unlocked A Discounted Delivery! 🎉 You saved ₹${savings.toStringAsFixed(0)} on This Order!';
+      return 'Unlocked A Discounted Delivery Fee ! You saved ₹${savings.toStringAsFixed(0)} on This Order!  🎉';
     }
     return '';
   }

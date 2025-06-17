@@ -368,7 +368,7 @@ class _TimePageState extends ConsumerState<TimePage> {
                           calculateTotalPrice(ref.read(cartProvider));
                       // final double instantDeliveryfee =
                       //     isInstantDeliverySelected ? 50.0 : 0.0;
-                      const double instantDeliveryfee = 0.0;
+                      //const double instantDeliveryfee = 0.0;
                       Navigator.push(
                         context,
                         CupertinoPageRoute(
@@ -376,7 +376,7 @@ class _TimePageState extends ConsumerState<TimePage> {
                             itemTotal: baseTotal,
                             cartItems: ref.read(cartProvider),
                             deliveryTime: deliveryTime,
-                            instantDeliveryfee: instantDeliveryfee,
+                            // instantDeliveryfee: instantDeliveryfee,
                           ),
                         ),
                       );

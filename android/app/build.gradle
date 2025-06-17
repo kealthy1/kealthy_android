@@ -29,7 +29,7 @@ android {
         applicationId = "com.COTOLORE.Kealthy"
         minSdk = 23
         targetSdk = 35
-        versionCode 95
+        versionCode 98
         versionName = flutter.versionName
     }
     configurations.all {
@@ -54,8 +54,8 @@ android {
     ndk {
          debugSymbolLevel = "FULL"
             }
-    minifyEnabled true
-    shrinkResources true
+    minifyEnabled false
+    shrinkResources false
     proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 }
 

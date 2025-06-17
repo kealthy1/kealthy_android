@@ -19,9 +19,17 @@ class DealOfTheWeekPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-          backgroundColor: Colors.white,
-          surfaceTintColor: Colors.white,
-          title: const Text('Deal of the Week')),
+        backgroundColor: const Color(0xFFE3F2FD),
+        surfaceTintColor: Colors.white,
+        title: Text(
+          'Deal of the Week',
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('Products')
@@ -219,7 +227,8 @@ class DealOfTheWeekPage extends StatelessWidget {
                                           '\u20B9$price',
                                           style: const TextStyle(
                                             fontSize: 13,
-                                            color: Colors.grey,
+                                            color: Color.fromARGB(
+                                                137, 219, 24, 24),
                                             decoration:
                                                 TextDecoration.lineThrough,
                                           ),

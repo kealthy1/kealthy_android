@@ -1,13 +1,12 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'dart:convert';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kealthy/view/Cart/cart_container.dart';
 import 'package:kealthy/view/Cart/cart_controller.dart';
 import 'package:kealthy/view/address/adress.dart';
 import 'package:kealthy/view/address/provider.dart';
+import 'package:kealthy/view/blog/blog.dart';
+import 'package:kealthy/view/blog/blogs_tile.dart';
 import 'package:kealthy/view/home/Category.dart';
 import 'package:kealthy/view/home/changing_image.dart';
 import 'package:kealthy/view/home/deal_of_day.dart';
@@ -24,6 +23,12 @@ import 'package:kealthy/view/orders/myorders.dart';
 import 'package:kealthy/view/search/searchbar.dart';
 import 'package:kealthy/view/splash_screen/version_check.dart';
 import 'package:kealthy/view/subscription/sub_details.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -54,7 +59,155 @@ class _HomePageState extends ConsumerState<HomePage>
       InAppUpdateService().checkForUpdate(context);
       ref.read(cartProvider.notifier).loadCartItems();
       checkLocationPermission(ref);
-      getSelectedAddressOrCurrentLocation(ref);
+      ref.read(locationDataProvider);
+
+      // Show combined deal alert dialog for deal of the day and week, up to two times per day
+      SharedPreferences.getInstance().then((prefs) {
+        final today = DateTime.now();
+        final todayString = "${today.year}-${today.month}-${today.day}";
+
+        final jsonString = prefs.getString('lastOfferDialogRecord');
+        Map<String, dynamic> record = {};
+        if (jsonString != null) {
+          record = Map<String, dynamic>.from(json.decode(jsonString));
+        }
+
+        final count =
+            (record['date'] == todayString) ? (record['count'] ?? 0) : 0;
+
+        if (count < 2) {
+          record = {'date': todayString, 'count': count + 1};
+          prefs.setString('lastOfferDialogRecord', json.encode(record));
+
+          FirebaseFirestore.instance
+              .collection('Products')
+              .get()
+              .then((snapshot) {
+            final docs = snapshot.docs;
+            final dealDay =
+                docs.where((doc) => (doc.data())['deal_of_the_day'] == true);
+            final dealWeek =
+                docs.where((doc) => (doc.data())['deal_of_the_week'] == true);
+
+            if (dealDay.isEmpty && dealWeek.isEmpty) return;
+
+            Future.delayed(const Duration(milliseconds: 500), () {
+              showGeneralDialog(
+                context: context,
+                barrierDismissible: true,
+                barrierLabel: "Deal Dialog",
+                transitionDuration: const Duration(milliseconds: 400),
+                pageBuilder: (context, anim1, anim2) => const SizedBox.shrink(),
+                transitionBuilder: (context, animation, secondaryAnimation, _) {
+                  final curvedValue =
+                      Curves.easeInOut.transform(animation.value) - 1.0;
+                  return Transform.translate(
+                    offset: Offset(0, curvedValue * -50),
+                    child: Opacity(
+                      opacity: animation.value,
+                      child: Dialog(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text("Hot Deals Available!",
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 16),
+                              if (dealDay.isNotEmpty)
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) =>
+                                              const DealOfTheDayPage()),
+                                    );
+                                  },
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(12),
+                                    margin: const EdgeInsets.only(bottom: 10),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFFF3E0),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: Colors.orange),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Image.asset(
+                                          'lib/assets/images/deal day.png',
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        const Text("🔥 Deal of the Day",
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold)),
+                                        const Text(
+                                            "Tap to check today’s offer"),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              if (dealWeek.isNotEmpty)
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) =>
+                                              const DealOfTheWeekPage()),
+                                    );
+                                  },
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE3F2FD),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border:
+                                          Border.all(color: Colors.lightBlue),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Image.asset(
+                                          'lib/assets/images/deal week.png',
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        const Text("🎉 Deal of the Week",
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold)),
+                                        const Text(
+                                            "Tap to explore this week’s deal"),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            });
+          });
+        }
+      });
     });
     WidgetsBinding.instance.addObserver(this);
 
@@ -131,12 +284,26 @@ class _HomePageState extends ConsumerState<HomePage>
 
     return Scaffold(
       appBar: AppBar(
-          automaticallyImplyLeading: false,
-          surfaceTintColor: Colors.white,
-          backgroundColor: Colors.white,
-          title: Column(
-            children: [_buildHeader(context, ref)],
-          )),
+        automaticallyImplyLeading: false,
+        toolbarHeight: MediaQuery.of(context).size.height * 0.15,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromRGBO(255, 255, 255, 1), // Light blue
+                Color.fromARGB(255, 244, 235, 235),
+
+                Color.fromARGB(255, 230, 223, 223), // Lighter blue// Pink shade
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+        ),
+        title: Column(
+          children: [_buildHeader(context, ref)],
+        ),
+      ),
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Stack(
@@ -149,8 +316,8 @@ class _HomePageState extends ConsumerState<HomePage>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 10),
-                      const SearchBarWidget(),
+                      const SizedBox(height: 20),
+                      const CenteredTitleWidget(title: "Fitness & Health"),
                       const SizedBox(height: 20),
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 10),
@@ -158,11 +325,10 @@ class _HomePageState extends ConsumerState<HomePage>
                       ),
                       const SizedBox(height: 20),
                       const CenteredTitleWidget(title: "Categories"),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 20),
                       const HomeCategory(),
                       const SizedBox(height: 10),
                       const CenteredTitleWidget(title: "Subscribe & Save"),
-                      // Subscription box padding inserted here
                       Padding(
                         padding: const EdgeInsets.all(16),
                         child: GestureDetector(
@@ -261,6 +427,55 @@ class _HomePageState extends ConsumerState<HomePage>
                           ],
                         ),
                       ),
+                      const CenteredTitleWidget(title: "Kealthy blogs"),
+                      const SizedBox(height: 10),
+                      // --- Begin: Blog Pagination Section ---
+                      Consumer(
+                        builder: (context, ref, _) {
+                          final blogPagination =
+                              ref.watch(blogPaginationProvider);
+                          // final blogNotifier = ref.read(blogPaginationProvider.notifier);
+
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                height: 260,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
+                                  itemCount: blogPagination.length,
+                                  itemBuilder: (context, index) {
+                                    final blog = blogPagination[index];
+                                    return SizedBox(
+                                      width: MediaQuery.of(context).size.width *
+                                          0.4,
+                                      child: BlogListTile(
+                                        blog: blog,
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            CupertinoPageRoute(
+                                              builder: (context) =>
+                                                  BlogDetailsPage(blog: blog),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                      // --- End: Blog Pagination Section ---
+// --- Begin: Blog Pagination Provider ---
+
+// --- End: Blog Pagination Provider ---
                       const KealthyPage(),
                       const SizedBox(height: 100),
                     ],
@@ -299,7 +514,6 @@ class _HomePageState extends ConsumerState<HomePage>
 
   Widget _buildHeader(BuildContext context, WidgetRef ref) {
     final liveOrdersAsync = ref.watch(liveOrdersProvider);
-    final locationPermission = ref.watch(locationPermissionProvider);
 
     return GestureDetector(
       onTap: () async {
@@ -308,235 +522,239 @@ class _HomePageState extends ConsumerState<HomePage>
           MaterialPageRoute(builder: (context) => const AddressPage()),
         );
       },
-      child: Row(
+      child: Column(
         children: [
-          const Icon(
-            CupertinoIcons.location_solid,
-            color: Colors.red,
-            size: 35,
-          ),
-          Expanded(
-            child: FutureBuilder<Map<String, String>>(
-              future: getSelectedAddressOrCurrentLocation(ref),
-              builder: (context, snapshot) {
-                String displayText;
-                bool showSubText = false;
-                String subText = "";
-
-                if (locationPermission == LocationPermission.denied) {
-                  displayText = "Location Disabled";
-                } else if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
-                  displayText = "Locating...";
-                } else if (snapshot.hasData) {
-                  final data = snapshot.data!;
-
-                  if (data.containsKey('addressType')) {
-                    // ✅ Selected Address: Show both fields
-                    displayText = data['addressType']!;
-                    subText = data['address']!;
-                    showSubText = true;
-                  } else {
-                    // ✅ Current Location: Show only one field
-                    displayText = data['address']!;
-                  }
-                } else {
-                  displayText = "Locating...";
-                }
-
-                return Consumer(
+          Row(
+            children: [
+              const Icon(
+                CupertinoIcons.location_solid,
+                color: Colors.red,
+                size: 35,
+              ),
+              Expanded(
+                child: Consumer(
                   builder: (context, ref, child) {
-                    final liveOrders =
-                        ref.watch(liveOrdersProvider).asData?.value ?? [];
-                    final hasLiveOrders = liveOrders.isNotEmpty;
+                    final locationData = ref.watch(locationDataProvider);
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          overflow: TextOverflow.ellipsis,
-                          displayText,
-                          style: GoogleFonts.poppins(
-                            color: Colors.black,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        if (showSubText)
-                          SizedBox(
-                            width: hasLiveOrders
-                                ? MediaQuery.of(context).size.width * 0.45
-                                : double
-                                    .infinity, // No width limit when no live order
-                            child: Text(
-                              subText,
-                              overflow: TextOverflow.ellipsis,
+                    return locationData.when(
+                      data: (data) {
+                        String displayText;
+                        String? subText;
+                        bool showSubText = false;
+
+                        if (data.isNotEmpty) {
+                          if (data.containsKey('addressType')) {
+                            // ✅ Selected Address: Show both fields
+                            displayText = data['addressType']!;
+                            subText = data['address']!;
+                            showSubText = true;
+                          } else {
+                            // ✅ Current Location: Show only one field
+                            displayText = data['address']!;
+                          }
+                        } else {
+                          displayText = "Locating...";
+                        }
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              displayText,
                               style: GoogleFonts.poppins(
-                                color: Colors.grey,
-                                fontSize: 12,
+                                color: Colors.black,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-          const SizedBox(
-            width: 20,
-          ),
-          liveOrdersAsync.when(
-            data: (liveOrders) {
-              final hasLiveOrders = liveOrders.isNotEmpty;
-
-              if (hasLiveOrders) {
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      CupertinoPageRoute(
-                        builder: (context) => const MyOrdersPage(),
+                            if (showSubText && subText != null)
+                              Text(
+                                subText,
+                                style: GoogleFonts.poppins(
+                                  color: Colors.black,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                      loading: () => Text(
+                        "Locating...",
+                        style: GoogleFonts.poppins(
+                          color: Colors.black,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
+                      error: (error, stack) => Text("Error: $error"),
                     );
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        ClipOval(
-                          child: Container(
-                            color: Colors.white,
-                            width: 50,
-                            height: 50,
-                            child: Lottie.asset(
-                              'lib/assets/animations/Delivery Boy.json',
-                              fit: BoxFit.cover,
-                            ),
+                ),
+              ),
+              const SizedBox(
+                width: 20,
+              ),
+              liveOrdersAsync.when(
+                data: (liveOrders) {
+                  final hasLiveOrders = liveOrders.isNotEmpty;
+
+                  if (hasLiveOrders) {
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                            builder: (context) => const MyOrdersPage(),
                           ),
-                        ),
-                        Positioned(
-                          top: 0,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              'Live',
-                              style: GoogleFonts.poppins(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            ClipOval(
+                              child: Container(
                                 color: Colors.white,
+                                width: 50,
+                                height: 50,
+                                child: Lottie.asset(
+                                  'lib/assets/animations/Delivery Boy.json',
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              } else {
-                return const SizedBox.shrink();
-              }
-            },
-            loading: () => const CupertinoActivityIndicator(
-              color: Colors.white,
-            ),
-            error: (error, stack) => const SizedBox.shrink(),
-          ),
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                CupertinoModalPopupRoute(
-                  builder: (context) => const NotificationTabPage(),
-                ),
-              );
-            },
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                const Icon(
-                  CupertinoIcons.bell,
-                  size: 30,
-                  color: Color(0xFF273847),
-                ),
-                Consumer(
-                  builder: (context, ref, child) {
-                    final ratingAsync = ref.watch(notificationProvider);
-                    final offersAsync = ref.watch(offersNotificationProvider);
-
-                    return ratingAsync.when(
-                      data: (ratingNotifications) {
-                        final filteredRatings =
-                            ratingNotifications.where((notification) {
-                          final orderId = notification['order_id'] ?? '';
-                          final orderExistsAsync =
-                              ref.watch(orderExistsProvider(orderId));
-                          return orderExistsAsync.when(
-                            data: (exists) => !exists,
-                            loading: () => false,
-                            error: (_, __) => false,
-                          );
-                        }).toList();
-
-                        return offersAsync.when(
-                          data: (offers) {
-                            final totalCount =
-                                filteredRatings.length + offers.length;
-
-                            if (totalCount > 0) {
-                              return Positioned(
-                                right: -3,
-                                top: -12,
-                                child: ScaleTransition(
-                                  scale: _badgeAnimation,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(5),
-                                    decoration: const BoxDecoration(
-                                      color: Colors.red,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    constraints: const BoxConstraints(
-                                      minWidth: 18,
-                                      minHeight: 18,
-                                    ),
-                                    child: Text(
-                                      totalCount.toString(),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
+                            Positioned(
+                              top: 0,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  'Live',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
                                   ),
                                 ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                },
+                loading: () => const CupertinoActivityIndicator(
+                  color: Colors.black,
+                ),
+                error: (error, stack) => const SizedBox.shrink(),
+              ),
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    CupertinoModalPopupRoute(
+                      builder: (context) => const NotificationTabPage(),
+                    ),
+                  );
+                },
+                icon: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(
+                      CupertinoIcons.bell,
+                      size: 30,
+                      color: Colors.black,
+                    ),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final ratingAsync = ref.watch(notificationProvider);
+                        final offersAsync =
+                            ref.watch(offersNotificationProvider);
+                        final dismissedOffers =
+                            ref.watch(dismissedOffersProvider);
+
+                        return ratingAsync.when(
+                          data: (ratingNotifications) {
+                            final filteredRatings =
+                                ratingNotifications.where((notification) {
+                              final orderId = notification['order_id'] ?? '';
+                              final orderExistsAsync =
+                                  ref.watch(orderExistsProvider(orderId));
+                              return orderExistsAsync.when(
+                                data: (exists) => !exists,
+                                loading: () => false,
+                                error: (_, __) => false,
                               );
-                            } else {
-                              return const SizedBox.shrink();
-                            }
+                            }).toList();
+
+                            return offersAsync.when(
+                              data: (offers) {
+                                final visibleOffersCount = offers
+                                    .where((offer) =>
+                                        !dismissedOffers.contains(offer['id']))
+                                    .length;
+                                final totalCount =
+                                    filteredRatings.length + visibleOffersCount;
+
+                                if (totalCount > 0) {
+                                  return Positioned(
+                                    right: -3,
+                                    top: -12,
+                                    child: ScaleTransition(
+                                      scale: _badgeAnimation,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(5),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.red,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        constraints: const BoxConstraints(
+                                          minWidth: 18,
+                                          minHeight: 18,
+                                        ),
+                                        child: Text(
+                                          totalCount.toString(),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  return const SizedBox.shrink();
+                                }
+                              },
+                              loading: () => const SizedBox.shrink(),
+                              error: (_, __) => const SizedBox.shrink(),
+                            );
                           },
                           loading: () => const SizedBox.shrink(),
                           error: (_, __) => const SizedBox.shrink(),
                         );
                       },
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, __) => const SizedBox.shrink(),
-                    );
-                  },
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+          const SizedBox(height: 10),
+          const SearchBarWidget(),
+          const SizedBox(height: 10),
         ],
       ),
     );

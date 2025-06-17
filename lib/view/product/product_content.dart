@@ -298,7 +298,7 @@ class ProductContent extends ConsumerWidget {
                                   '\u20B9$productPrice',
                                   style: const TextStyle(
                                     fontSize: 14,
-                                    color: Colors.black54,
+                                    color: Color.fromARGB(137, 219, 24, 24),
                                     decoration: TextDecoration.lineThrough,
                                   ),
                                 ),
@@ -319,7 +319,8 @@ class ProductContent extends ConsumerWidget {
                               hasOffer ? '$offerPrice/-' : '$productPrice/-',
                               style: const TextStyle(
                                 fontSize: 20,
-                                color: Colors.black,
+                                color: Color.fromARGB(255, 46, 125, 50),
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],

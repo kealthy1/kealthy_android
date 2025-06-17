@@ -6,8 +6,12 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/firebase_options.dart';
 import 'package:kealthy/view/notifications/fcm.dart';
+import 'package:kealthy/view/notifications/offer.dart';
 import 'package:kealthy/view/splash_screen/network.dart';
 import 'package:kealthy/view/splash_screen/splash_screen.dart';
+import 'package:kealthy/view/subscription/sub_details.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,8 +29,6 @@ void main() async {
     print("[MAIN] Error initializing notification service: $e");
   }
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-
-  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   runApp(
     ProviderScope(
@@ -65,6 +67,11 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
+      routes: {
+        // your home or starting pageAdd commentMore actions
+        '/offers': (context) => const OffersNotificationPage(),
+        '/subscription': (context) => const SubscriptionDetailsPage(),
+      },
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
       theme: ThemeData(
@@ -96,7 +103,7 @@ class MyApp extends ConsumerWidget {
       builder: (context, child) {
         return InternetAwareWidget(child: child ?? const SizedBox());
       },
-      home: const SplashScreen(),
+      home: SplashScreen(),
     );
   }
 }

@@ -6,7 +6,7 @@ import 'package:kealthy/view/Cart/bill.dart';
 import 'package:kealthy/view/Cart/cart_controller.dart';
 import 'package:kealthy/view/Cart/checkout_provider.dart';
 import 'package:kealthy/view/Cart/instruction_container.dart';
-import 'package:kealthy/view/payment/payment.dart';
+import 'package:kealthy/view/payment/payment.dart'; // <-- NEW
 
 // Asynchronous Provider for Address
 
@@ -15,19 +15,20 @@ class CheckoutPage extends ConsumerWidget {
   final double itemTotal;
   final List<CartItem> cartItems;
   final String deliveryTime;
-  final double instantDeliveryfee;
+  // final double instantDeliveryfee;
 
   const CheckoutPage({
     super.key,
     required this.itemTotal,
     required this.cartItems,
     required this.deliveryTime,
-    required this.instantDeliveryfee,
+    // required this.instantDeliveryfee,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final firstOrderAsync = ref.watch(firstOrderProvider);
+    double finalToPay = 0.0;
 
 // ignore: dead_code
     // Watch the addressProvider
@@ -312,7 +313,7 @@ class CheckoutPage extends ConsumerWidget {
                                         const SizedBox(width: 10),
                                         Expanded(
                                           child: Text(
-                                            "Congratulations! You get ₹100 off on your first order.",
+                                            "Congratulations! You get ₹${itemTotal >= 100 ? 100 : itemTotal.toStringAsFixed(0)} off on your first order.",
                                             style: GoogleFonts.poppins(
                                               color: Colors.green.shade800,
                                               fontSize: 12,
@@ -329,8 +330,12 @@ class CheckoutPage extends ConsumerWidget {
                                 BillDetailsWidget(
                                   itemTotal: itemTotal,
                                   distanceInKm: distanceInKm,
-                                  instantDeliveryFee: instantDeliveryfee,
-                                  offerDiscount: isFirstOrder ? 100.0 : 0.0,
+                                  offerDiscount: isFirstOrder
+                                      ? (itemTotal >= 100 ? 100.0 : itemTotal)
+                                      : 0.0,
+                                  onTotalCalculated: (value) {
+                                    finalToPay = value;
+                                  },
                                 ),
 
                                 const SizedBox(height: 150),
@@ -386,27 +391,19 @@ class CheckoutPage extends ConsumerWidget {
                       calculateDeliveryFee(itemTotal, distanceInKm);
 
                   // 2) Combine Normal + Instant
-                  final isFirstOrder =
-                      ref.read(firstOrderProvider).value ?? false;
-                  final double offerDiscount = isFirstOrder ? 100.0 : 0.0;
-
-                  final double finalTotalToPay = calculateFinalTotal(
-                    itemTotal - offerDiscount,
-                    distanceInKm,
-                    instantDeliveryfee,
-                  );
+                  // final double offerDiscount = isFirstOrder ? 100.0 : 0.0;
 
                   Navigator.push(
                     context,
                     CupertinoPageRoute(
                       builder: (context) => PaymentPage(
-                        totalAmount: finalTotalToPay,
+                        totalAmount: finalToPay,
                         instructions: instructions,
                         address: selectedAddress,
                         deliverytime: deliveryTime,
                         packingInstructions: packingInstructions,
                         deliveryfee: normalDeliveryFee,
-                        instantDeliveryFee: instantDeliveryfee,
+                        //instantDeliveryFee: instantDeliveryfee,
                       ),
                     ),
                   );

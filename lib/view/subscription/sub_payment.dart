@@ -160,7 +160,7 @@ class SubscriptionPaymentPage extends ConsumerWidget {
                           address: address,
                           deliverytime: formattedSlot,
                           deliveryFee: 0,
-                          instantDeliveryFee: 0,
+                          // instantDeliveryFee: 0,
                           razorpayOrderId: razorpayOrderId,
                           orderType: 'subscription',
                         ),
