@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/firebase_options.dart';
+import 'package:kealthy/view/BottomNavBar/bottom_nav_bar.dart';
 import 'package:kealthy/view/notifications/fcm.dart';
 import 'package:kealthy/view/notifications/offer.dart';
 import 'package:kealthy/view/splash_screen/network.dart';

@@ -30,6 +30,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -288,12 +289,12 @@ class _HomePageState extends ConsumerState<HomePage>
         toolbarHeight: MediaQuery.of(context).size.height * 0.15,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
+            // color: Color.fromARGB(255, 233, 210, 181), // pastel peach)
             gradient: LinearGradient(
               colors: [
-                Color.fromRGBO(255, 255, 255, 1), // Light blue
-                Color.fromARGB(255, 244, 235, 235),
+                Color.fromARGB(255, 249, 227, 201),
 
-                Color.fromARGB(255, 230, 223, 223), // Lighter blue// Pink shade
+                Color.fromARGB(255, 255, 255, 255), // Lighter blue// Pink shade
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -316,7 +317,6 @@ class _HomePageState extends ConsumerState<HomePage>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 20),
                       const CenteredTitleWidget(title: "Fitness & Health"),
                       const SizedBox(height: 20),
                       const Padding(
@@ -434,48 +434,122 @@ class _HomePageState extends ConsumerState<HomePage>
                         builder: (context, ref, _) {
                           final blogPagination =
                               ref.watch(blogPaginationProvider);
-                          // final blogNotifier = ref.read(blogPaginationProvider.notifier);
-
+                          // Infinite scroll with NotificationListener
                           return Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               SizedBox(
-                                height: 260,
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16),
-                                  itemCount: blogPagination.length,
-                                  itemBuilder: (context, index) {
-                                    final blog = blogPagination[index];
-                                    return SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.4,
-                                      child: BlogListTile(
-                                        blog: blog,
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            CupertinoPageRoute(
-                                              builder: (context) =>
-                                                  BlogDetailsPage(blog: blog),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    );
+                                height: 200,
+                                child: NotificationListener<ScrollNotification>(
+                                  onNotification:
+                                      (ScrollNotification scrollInfo) {
+                                    if (scrollInfo.metrics.pixels ==
+                                        scrollInfo.metrics.maxScrollExtent) {
+                                      ref
+                                          .read(blogPaginationProvider.notifier)
+                                          .fetchMoreBlogs();
+                                    }
+                                    return false;
                                   },
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16),
+                                    itemCount: blogPagination.length,
+                                    itemBuilder: (context, index) {
+                                      final blog = blogPagination[index];
+                                      return SizedBox(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.4,
+                                        child: BlogListTile(
+                                          blog: blog,
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              CupertinoPageRoute(
+                                                builder: (context) =>
+                                                    BlogDetailsPage(blog: blog),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                             ],
                           );
                         },
                       ),
-                      // --- End: Blog Pagination Section ---
-// --- Begin: Blog Pagination Provider ---
+                      const CenteredTitleWidget(title: "Connect with us"),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: () async {
+                                final url = Uri.parse(
+                                    'https://www.facebook.com/profile.php?id=61571096468965&mibextid=ZbWKwL');
+                                if (await canLaunchUrl(url)) {
+                                  await launchUrl(url,
+                                      mode: LaunchMode.externalApplication);
+                                }
+                              },
+                              // ignore: prefer_const_constructors
+                              child: Icon(Icons.facebook,
+                                  size: 40, color: Colors.black),
+                            ),
+                            const SizedBox(width: 20),
+                            GestureDetector(
+                              onTap: () async {
+                                final url = Uri.parse(
+                                    'https://www.instagram.com/kealthy.life?igsh=MXVqa2hicG4ydzB5cQ==');
+                                if (await canLaunchUrl(url)) {
+                                  await launchUrl(url,
+                                      mode: LaunchMode.externalApplication);
+                                }
+                              },
+                              child: Image.asset(
+                                  'lib/assets/images/instagram.png',
+                                  height: 40),
+                            ),
+                            const SizedBox(width: 20),
+                            GestureDetector(
+                              onTap: () async {
+                                final url =
+                                    Uri.parse('https://x.com/Kealthy_life/');
+                                if (await canLaunchUrl(url)) {
+                                  await launchUrl(url,
+                                      mode: LaunchMode.externalApplication);
+                                }
+                              },
+                              child: Image.asset('lib/assets/images/x.png',
+                                  height: 35),
+                            ),
+                            const SizedBox(width: 20),
+                            GestureDetector(
+                              onTap: () async {
+                                final url = Uri.parse(
+                                    'https://chat.whatsapp.com/BxNSEDXO6jfKmUl0EuZ6qt');
+                                if (await canLaunchUrl(url)) {
+                                  await launchUrl(url,
+                                      mode: LaunchMode.externalApplication);
+                                }
+                              },
+                              child: Image.asset(
+                                  'lib/assets/images/icons8-whatsapp.png',
+                                  height: 35),
+                            ),
+                          ],
+                        ),
+                      ),
 
-// --- End: Blog Pagination Provider ---
+                      const SizedBox(height: 50),
                       const KealthyPage(),
                       const SizedBox(height: 100),
                     ],

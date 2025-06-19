@@ -4,12 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:kealthy/view/blog/blog.dart';
 import 'package:kealthy/view/home/Calorie.dart';
 import 'package:kealthy/view/home/bmi_calculator.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ImageData {
   final String imageUrl;
@@ -42,6 +40,13 @@ class _ChangingImageWidgetState extends ConsumerState<ChangingImageWidget> {
     super.initState();
     _pageController = PageController(viewportFraction: 1.0);
     _startAutoScroll();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final imageList = ref.read(imageDataProvider);
+      for (final image in imageList) {
+        precacheImage(CachedNetworkImageProvider(image.imageUrl), context);
+      }
+    });
   }
 
   @override
@@ -70,44 +75,6 @@ class _ChangingImageWidgetState extends ConsumerState<ChangingImageWidget> {
     });
   }
 
-  Future<void> _launchFacebook() async {
-    const fbAppUrl =
-        'fb://facewebmodal/f?href=https://www.facebook.com/share/1938WAtaiE/';
-    const fbWebUrl =
-        'https://www.facebook.com/profile.php?id=61571096468965&mibextid=ZbWKwL';
-
-    if (await canLaunchUrl(Uri.parse(fbAppUrl))) {
-      await launchUrl(Uri.parse(fbAppUrl));
-    } else {
-      await launchUrl(Uri.parse(fbWebUrl),
-          mode: LaunchMode.externalApplication);
-    }
-  }
-
-  Future<void> _launchInstagram() async {
-    const fbAppUrl = 'instagram://user?username=kealthy.life';
-    const fbWebUrl =
-        'https://www.instagram.com/kealthy.life?igsh=MXVqa2hicG4ydzB5cQ==';
-
-    if (await canLaunchUrl(Uri.parse(fbAppUrl))) {
-      await launchUrl(Uri.parse(fbAppUrl));
-    } else {
-      await launchUrl(Uri.parse(fbWebUrl),
-          mode: LaunchMode.externalApplication);
-    }
-  }
-
-  Future<void> _launchX() async {
-    const appUrl = 'twitter://user?screen_name=Kealthy_life';
-    const webUrl = 'https://x.com/Kealthy_life';
-
-    if (await canLaunchUrl(Uri.parse(appUrl))) {
-      await launchUrl(Uri.parse(appUrl));
-    } else {
-      await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication);
-    }
-  }
-
   /// Stop scrolling when the user taps on an image
   void _stopAutoScroll() {
     _timer?.cancel(); // Stop the auto-scroll timer
@@ -129,25 +96,11 @@ class _ChangingImageWidgetState extends ConsumerState<ChangingImageWidget> {
       case 0:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const BlogListPage()),
-        );
-        break;
-      case 1:
-        await _launchInstagram();
-        break;
-      case 2:
-        await _launchX();
-        break;
-      case 3:
-        await _launchFacebook();
-        break;
-      case 4:
-        Navigator.push(
-          context,
           MaterialPageRoute(builder: (context) => const BmiTrackerPage()),
         );
         break;
-      case 5:
+
+      case 1:
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const CalorieIntakePage()),
@@ -165,20 +118,36 @@ class _ChangingImageWidgetState extends ConsumerState<ChangingImageWidget> {
     final imageDataList = ref.watch(imageDataProvider);
 
     if (imageDataList.isEmpty) {
-      // Show shimmer effect while loading images
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Shimmer.fromColors(
-          baseColor: Colors.grey[300]!,
-          highlightColor: Colors.grey[100]!,
-          child: Container(
-            decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(20)),
-            width: MediaQuery.of(context).size.width,
-            height: 180,
+      // Show shimmer and placeholder bubbles
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Container(
+                decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(20)),
+                width: MediaQuery.of(context).size.width,
+                height: 180,
+              ),
+            ),
           ),
-        ),
+          const SizedBox(height: 8.0),
+          SmoothPageIndicator(
+            controller: _pageController,
+            count: 2,
+            effect: const ExpandingDotsEffect(
+              dotHeight: 5,
+              dotWidth: 5,
+              activeDotColor: Color.fromARGB(255, 65, 88, 108),
+              dotColor: Color.fromARGB(255, 120, 142, 162),
+              spacing: 4.0,
+            ),
+          ),
+        ],
       );
     }
 
@@ -208,49 +177,57 @@ class _ChangingImageWidgetState extends ConsumerState<ChangingImageWidget> {
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          CachedNetworkImage(
-                            imageUrl: imageData.imageUrl,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: double.infinity,
-                            placeholder: (context, url) => Shimmer.fromColors(
-                              baseColor: Colors.grey[300]!,
-                              highlightColor: Colors.grey[100]!,
-                              child: Container(color: Colors.grey[300]),
-                            ),
-                            errorWidget: (context, url, error) =>
-                                const Icon(Icons.error, color: Colors.red),
+                    child: Container(
+                      height: 180,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.grey.shade400,
+                          width: 1,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                            18), // Slightly less than container
+                        child: CachedNetworkImage(
+                          imageUrl: imageData.imageUrl,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                          placeholder: (context, url) => Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.grey[100]!,
+                            child: Container(color: Colors.grey[300]),
                           ),
-                          if (imageData.title.trim().isNotEmpty)
-                            Positioned.fill(
-                              child: Container(
-                                color: Colors.black.withOpacity(0.2),
-                              ),
-                            ),
-                          Positioned(
-                            top: 10,
-                            left: 10,
-                            right: 10,
-                            child: Text(
-                              imageData.title,
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
-                              ),
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                          errorWidget: (context, url, error) =>
+                              const Icon(Icons.error, color: Colors.red),
+                        ),
                       ),
                     ),
                   ),
+
+                  //if (imageData.title.trim().isNotEmpty)
+                  // Positioned.fill(
+                  //   child: Container(
+                  //     color: Colors.black.withOpacity(0.2),
+                  //   ),
+                  // ),
+                  //   Positioned(
+                  //     top: 10,
+                  //     left: 10,
+                  //     right: 10,
+                  //     child: Text(
+                  //       imageData.title,
+                  //       style: GoogleFonts.poppins(
+                  //         color: Colors.white,
+                  //         fontWeight: FontWeight.w700,
+                  //         fontSize: 15,
+                  //       ),
+                  //       maxLines: 3,
+                  //       overflow: TextOverflow.ellipsis,
+                  //     ),
+                  //   ),
                 );
               },
             ),
@@ -259,10 +236,10 @@ class _ChangingImageWidgetState extends ConsumerState<ChangingImageWidget> {
         const SizedBox(height: 8.0),
         SmoothPageIndicator(
           controller: _pageController,
-          count: imageDataList.length,
+          count: imageDataList.isEmpty ? 5 : imageDataList.length,
           effect: const ExpandingDotsEffect(
-            dotHeight: 10,
-            dotWidth: 10,
+            dotHeight: 5,
+            dotWidth: 5,
             activeDotColor: Color.fromARGB(255, 65, 88, 108),
             dotColor: Color.fromARGB(255, 120, 142, 162),
             spacing: 4.0,
@@ -324,3 +301,41 @@ class ImageNotifier extends StateNotifier<List<ImageData>> {
     }
   }
 }
+
+//  Future<void> _launchFacebook() async {
+//     const fbAppUrl =
+//         'fb://facewebmodal/f?href=https://www.facebook.com/share/1938WAtaiE/';
+//     const fbWebUrl =
+//         'https://www.facebook.com/profile.php?id=61571096468965&mibextid=ZbWKwL';
+
+//     if (await canLaunchUrl(Uri.parse(fbAppUrl))) {
+//       await launchUrl(Uri.parse(fbAppUrl));
+//     } else {
+//       await launchUrl(Uri.parse(fbWebUrl),
+//           mode: LaunchMode.externalApplication);
+//     }
+//   }
+
+//   Future<void> _launchInstagram() async {
+//     const fbAppUrl = 'instagram://user?username=kealthy.life';
+//     const fbWebUrl =
+//         'https://www.instagram.com/kealthy.life?igsh=MXVqa2hicG4ydzB5cQ==';
+
+//     if (await canLaunchUrl(Uri.parse(fbAppUrl))) {
+//       await launchUrl(Uri.parse(fbAppUrl));
+//     } else {
+//       await launchUrl(Uri.parse(fbWebUrl),
+//           mode: LaunchMode.externalApplication);
+//     }
+//   }
+
+//   Future<void> _launchX() async {
+//     const appUrl = 'twitter://user?screen_name=Kealthy_life';
+//     const webUrl = 'https://x.com/Kealthy_life';
+
+//     if (await canLaunchUrl(Uri.parse(appUrl))) {
+//       await launchUrl(Uri.parse(appUrl));
+//     } else {
+//       await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication);
+//     }
+//   }

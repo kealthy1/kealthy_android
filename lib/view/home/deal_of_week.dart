@@ -7,9 +7,9 @@ import 'package:kealthy/view/Toast/toast_helper.dart';
 import 'package:kealthy/view/product/product_page.dart';
 import 'package:kealthy/view/product/provider.dart';
 import 'package:lottie/lottie.dart';
-import 'package:ntp/ntp.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ntp/ntp.dart';
 
 class DealOfTheWeekPage extends StatelessWidget {
   const DealOfTheWeekPage({super.key});
@@ -67,13 +67,18 @@ class DealOfTheWeekPage extends StatelessWidget {
             final offerSohRaw = data['offer_soh'];
             final offerEndDate = data['offer_end_date'];
             final offerSoh = int.tryParse(offerSohRaw.toString()) ?? 0;
+
             DateTime? endDate;
             if (offerEndDate is Timestamp) {
               endDate = offerEndDate.toDate();
             } else if (offerEndDate is String) {
               endDate = DateTime.tryParse(offerEndDate);
             }
-            return !(offerSoh == 0 && endDate != null && endDate.isBefore(now));
+
+            // ✅ Show only if BOTH conditions are valid
+            return !(offerSoh == 0 ||
+                endDate != null &&
+                    endDate.isBefore(DateTime(now.year, now.month, now.day)));
           }).toList();
           // Update expired/invalid offers in Firestore
           for (final doc in snapshot.data!.docs) {
@@ -87,9 +92,9 @@ class DealOfTheWeekPage extends StatelessWidget {
             } else if (offerEndDate is String) {
               endDate = DateTime.tryParse(offerEndDate);
             }
-            if (offerSoh == 0 &&
+            if (offerSoh == 0 ||
                 endDate != null &&
-                endDate.isBefore(DateTime(now.year, now.month, now.day))) {
+                    endDate.isBefore(DateTime(now.year, now.month, now.day))) {
               FirebaseFirestore.instance
                   .collection('Products')
                   .doc(doc.id)
@@ -135,9 +140,10 @@ class DealOfTheWeekPage extends StatelessWidget {
                   }
                   final offerSohRaw = data['offer_soh'];
                   final offerSoh = int.tryParse(offerSohRaw.toString()) ?? 0;
-                  if (offerSoh == 0 &&
+                  if (offerSoh == 0 ||
                       endDate != null &&
-                      endDate.isBefore(now)) {
+                          endDate.isBefore(
+                              DateTime(now.year, now.month, now.day))) {
                     ToastHelper.showErrorToast("Offer has expired.");
                     return;
                   }
@@ -222,28 +228,57 @@ class DealOfTheWeekPage extends StatelessWidget {
                                   ),
                                   const Spacer(),
                                   const SizedBox(width: 5),
-                                  offerPrice != null && offerPrice < price
-                                      ? Text(
-                                          '\u20B9$price',
-                                          style: const TextStyle(
-                                            fontSize: 13,
-                                            color: Color.fromARGB(
-                                                137, 219, 24, 24),
-                                            decoration:
-                                                TextDecoration.lineThrough,
-                                          ),
-                                        )
-                                      : const SizedBox(),
                                   Row(
                                     children: [
-                                      Text(
-                                        '\u20B9$offerPrice/-',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          color: Colors.green.shade800,
-                                          fontWeight: FontWeight.w600,
+                                      offerPrice != null && offerPrice < price
+                                          ? Text(
+                                              '\u20B9$price',
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.red,
+                                                decoration:
+                                                    TextDecoration.lineThrough,
+                                              ),
+                                            )
+                                          : const SizedBox(),
+                                      if (offerPrice != null &&
+                                          offerPrice < price)
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(left: 6.0),
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.arrow_downward,
+                                                  size: 16,
+                                                  color: Colors.red.shade700),
+                                              Text(
+                                                '${(((price - offerPrice) / price) * 100).round()}% off',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  color: Colors.red.shade700,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            '\u20B9$offerPrice/-',
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              color: Colors.green.shade800,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
                                       ),
+                                      // Discount percentage
                                       const Spacer(),
                                       Text(qty,
                                           maxLines: 2,

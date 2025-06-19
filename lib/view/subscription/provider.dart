@@ -24,16 +24,21 @@ Future<bool> isSlotAvailable(String selectedSlotLabel) async {
 
 Future<void> pickDate(BuildContext context, WidgetRef ref,
     {required bool isFrom}) async {
+  final DateTime now = DateTime.now();
+  final DateTime tomorrow = now.add(const Duration(days: 1));
+
   final DateTime? picked = await showDatePicker(
     context: context,
-    initialDate: DateTime.now(),
-    firstDate: DateTime.now(),
-    lastDate: DateTime.now().add(const Duration(days: 90)),
+    initialDate: tomorrow,
+    firstDate: tomorrow,
+    lastDate: now.add(const Duration(days: 365)),
+    builder: (context, child) => Theme(
+      data: ThemeData.light(), // Optional: customize theme
+      child: child!,
+    ),
   );
 
   if (picked != null) {
-    if (isFrom) {
-      ref.read(fromDateProvider.notifier).state = picked;
-    }
+    ref.read(fromDateProvider.notifier).state = picked;
   }
 }

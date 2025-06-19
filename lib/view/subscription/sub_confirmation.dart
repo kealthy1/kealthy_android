@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:kealthy/view/Cart/checkout_provider.dart';
-import 'package:kealthy/view/Cart/slot_generator.dart';
 import 'package:kealthy/view/Toast/toast_helper.dart';
 import 'package:kealthy/view/address/adress.dart';
 import 'package:kealthy/view/subscription/provider.dart';
@@ -45,19 +44,19 @@ class ConfirmationPage extends ConsumerWidget {
     print(
         '📆 Start Date: ${fromDate != null ? DateFormat('d MMMM y').format(fromDate) : 'Not selected'}');
     print('📆 End Date: $endDateText');
-    final total = (baseRate * selectedQty * durationDays).toStringAsFixed(0);
-    // const total = "1";
+    const double handlingCharge = 5;
+    final total = ((baseRate + handlingCharge) * selectedQty * durationDays)
+        .toStringAsFixed(0);
 
-    return SafeArea(
-      top: false,
-      child: Scaffold(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
         backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          title: const Text("Confirm Subscription"),
-          surfaceTintColor: Colors.white,
-        ),
-        body: LayoutBuilder(
+        title: const Text("Confirm Subscription"),
+        surfaceTintColor: Colors.white,
+      ),
+      body: SafeArea(
+        child: LayoutBuilder(
           builder: (context, constraints) => SingleChildScrollView(
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: constraints.maxHeight),
@@ -250,14 +249,7 @@ class ConfirmationPage extends ConsumerWidget {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 12, vertical: 12),
                                     child: FutureBuilder<Map<String, dynamic>>(
-                                      future: () async {
-                                        final generator =
-                                            AvailableSlotsGenerator(
-                                                slotDurationMinutes: 180);
-                                        final todaySlots =
-                                            await generator.getSlots(0);
-                                        return todaySlots;
-                                      }(),
+                                      future: getManualSlots(),
                                       builder: (context, snapshot) {
                                         if (snapshot.connectionState ==
                                             ConnectionState.waiting) {
@@ -272,124 +264,186 @@ class ConfirmationPage extends ConsumerWidget {
                                                     as Map<String, DateTime>)
                                                 .toList() ??
                                             [];
-                                        // Deduplicate available slots
-                                        final uniqueSlots = {
-                                          for (var slot in availableSlots)
-                                            '${slot["start"]}-${slot["end"]}':
-                                                slot
-                                        }.values.toList();
-                                        // Filter and order slots: 9AM–12PM, 12PM–3PM, 3PM–6PM
-                                        final slots9to12 =
-                                            uniqueSlots.where((slot) {
-                                          final hour = slot["start"]!.hour;
-                                          return hour >= 9 && hour < 12;
-                                        }).toList();
-
-                                        final slots12to3 =
-                                            uniqueSlots.where((slot) {
-                                          final hour = slot["start"]!.hour;
-                                          return hour >= 12 && hour < 15;
-                                        }).toList();
-
-                                        final slots3to6 =
-                                            uniqueSlots.where((slot) {
-                                          final hour = slot["start"]!.hour;
-                                          return hour >= 15 && hour < 18;
-                                        }).toList();
-
-                                        final slotsToShow = [
-                                          ...slots9to12,
-                                          ...slots12to3,
-                                          ...slots3to6
-                                        ].take(3).toList();
                                         return Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Wrap(
-                                              spacing: 10,
-                                              runSpacing: 10,
-                                              children: slotsToShow.map((slot) {
-                                                final formattedStart =
-                                                    DateFormat('h:mm a')
-                                                        .format(slot["start"]!);
-                                                final formattedEnd =
-                                                    DateFormat('h:mm a')
-                                                        .format(slot["end"]!);
-                                                final isSelected =
-                                                    selectedSlot?["start"] ==
-                                                            slot["start"] &&
-                                                        selectedSlot?["end"] ==
-                                                            slot["end"];
-
-                                                return GestureDetector(
-                                                  onTap: () async {
-                                                    final formattedStartTime =
-                                                        DateFormat('hh:mm a')
-                                                            .format(
-                                                                slot["start"]!);
-                                                    final formattedEndTime =
-                                                        DateFormat('hh:mm a')
-                                                            .format(
-                                                                slot["end"]!);
-                                                    final selectedSlotLabel =
-                                                        "$formattedStartTime - $formattedEndTime";
-
-                                                    final isAvailable =
-                                                        await isSlotAvailable(
-                                                            selectedSlotLabel);
-                                                    if (!isAvailable) {
-                                                      ToastHelper.showErrorToast(
-                                                          'Slot not available. Please choose another slot');
-                                                      return;
-                                                    }
-
-                                                    ref
-                                                        .read(
-                                                            selectedSlotProvider
-                                                                .notifier)
-                                                        .state = slot;
-                                                    ref
-                                                        .read(
-                                                            isSlotExpandedProvider
-                                                                .notifier)
-                                                        .state = false;
-                                                    final prefs =
-                                                        await SharedPreferences
-                                                            .getInstance();
-                                                    await prefs.setString(
-                                                        'selectedSlot',
-                                                        selectedSlotLabel);
-                                                  },
-                                                  child: Container(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 12,
-                                                        vertical: 10),
-                                                    decoration: BoxDecoration(
-                                                      color: isSelected
-                                                          ? const Color
-                                                              .fromARGB(255,
-                                                              223, 240, 224)
-                                                          : Colors.white,
-                                                      border: Border.all(
-                                                          color:
-                                                              Colors.black12),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
-                                                    ),
-                                                    child: Text(
+                                            const Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                  vertical: 8),
+                                              child: Text(
+                                                'Morning Slot',
+                                                style: TextStyle(
+                                                    fontSize: 13,
+                                                    fontWeight:
+                                                        FontWeight.w600),
+                                              ),
+                                            ),
+                                            ...availableSlots
+                                                .where((slot) =>
+                                                    slot["start"]!.hour == 6)
+                                                .map((slot) {
+                                              final formattedStart =
+                                                  DateFormat('h:mm a')
+                                                      .format(slot["start"]!);
+                                              final formattedEnd =
+                                                  DateFormat('h:mm a')
+                                                      .format(slot["end"]!);
+                                              final isSelected =
+                                                  selectedSlot?["start"] ==
+                                                          slot["start"] &&
+                                                      selectedSlot?["end"] ==
+                                                          slot["end"];
+                                              return GestureDetector(
+                                                onTap: () async {
+                                                  final formattedStartTime =
+                                                      DateFormat('hh:mm a')
+                                                          .format(
+                                                              slot["start"]!);
+                                                  final formattedEndTime =
+                                                      DateFormat('hh:mm a')
+                                                          .format(slot["end"]!);
+                                                  final selectedSlotLabel =
+                                                      "$formattedStartTime - $formattedEndTime";
+                                                  final isAvailable =
+                                                      await isSlotAvailable(
+                                                          selectedSlotLabel);
+                                                  if (!isAvailable) {
+                                                    ToastHelper.showErrorToast(
+                                                        'Slot not available. Please choose another slot');
+                                                    return;
+                                                  }
+                                                  ref
+                                                      .read(selectedSlotProvider
+                                                          .notifier)
+                                                      .state = slot;
+                                                  ref
+                                                      .read(
+                                                          isSlotExpandedProvider
+                                                              .notifier)
+                                                      .state = false;
+                                                  final prefs =
+                                                      await SharedPreferences
+                                                          .getInstance();
+                                                  await prefs.setString(
+                                                      'selectedSlot',
+                                                      selectedSlotLabel);
+                                                },
+                                                child: Container(
+                                                  margin: const EdgeInsets.only(
+                                                      bottom: 10),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 10),
+                                                  decoration: BoxDecoration(
+                                                    color: isSelected
+                                                        ? const Color.fromARGB(
+                                                            255, 223, 240, 224)
+                                                        : Colors.white,
+                                                    border: Border.all(
+                                                        color: Colors.black12),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                  child: Text(
                                                       "$formattedStart - $formattedEnd",
                                                       style: const TextStyle(
                                                           fontSize: 13,
                                                           fontWeight:
-                                                              FontWeight.w500),
-                                                    ),
-                                                  ),
-                                                );
-                                              }).toList(),
+                                                              FontWeight.w500)),
+                                                ),
+                                              );
+                                            }),
+                                            const Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                  vertical: 8),
+                                              child: Text(
+                                                'Evening Slot',
+                                                style: TextStyle(
+                                                    fontSize: 13,
+                                                    fontWeight:
+                                                        FontWeight.w600),
+                                              ),
                                             ),
+                                            ...availableSlots
+                                                .where((slot) =>
+                                                    slot["start"]!.hour == 15)
+                                                .map((slot) {
+                                              final formattedStart =
+                                                  DateFormat('h:mm a')
+                                                      .format(slot["start"]!);
+                                              final formattedEnd =
+                                                  DateFormat('h:mm a')
+                                                      .format(slot["end"]!);
+                                              final isSelected =
+                                                  selectedSlot?["start"] ==
+                                                          slot["start"] &&
+                                                      selectedSlot?["end"] ==
+                                                          slot["end"];
+                                              return GestureDetector(
+                                                onTap: () async {
+                                                  final formattedStartTime =
+                                                      DateFormat('hh:mm a')
+                                                          .format(
+                                                              slot["start"]!);
+                                                  final formattedEndTime =
+                                                      DateFormat('hh:mm a')
+                                                          .format(slot["end"]!);
+                                                  final selectedSlotLabel =
+                                                      "$formattedStartTime - $formattedEndTime";
+                                                  final isAvailable =
+                                                      await isSlotAvailable(
+                                                          selectedSlotLabel);
+                                                  if (!isAvailable) {
+                                                    ToastHelper.showErrorToast(
+                                                        'Slot not available. Please choose another slot');
+                                                    return;
+                                                  }
+                                                  ref
+                                                      .read(selectedSlotProvider
+                                                          .notifier)
+                                                      .state = slot;
+                                                  ref
+                                                      .read(
+                                                          isSlotExpandedProvider
+                                                              .notifier)
+                                                      .state = false;
+                                                  final prefs =
+                                                      await SharedPreferences
+                                                          .getInstance();
+                                                  await prefs.setString(
+                                                      'selectedSlot',
+                                                      selectedSlotLabel);
+                                                },
+                                                child: Container(
+                                                  margin: const EdgeInsets.only(
+                                                      bottom: 10),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 10),
+                                                  decoration: BoxDecoration(
+                                                    color: isSelected
+                                                        ? const Color.fromARGB(
+                                                            255, 223, 240, 224)
+                                                        : Colors.white,
+                                                    border: Border.all(
+                                                        color: Colors.black12),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                  child: Text(
+                                                      "$formattedStart - $formattedEnd",
+                                                      style: const TextStyle(
+                                                          fontSize: 13,
+                                                          fontWeight:
+                                                              FontWeight.w500)),
+                                                ),
+                                              );
+                                            }),
                                           ],
                                         );
                                       },
@@ -547,109 +601,149 @@ class ConfirmationPage extends ConsumerWidget {
             ),
           ),
         ),
-        bottomNavigationBar: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 6,
-                offset: Offset(0, -2),
-              ),
-            ],
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  const Text("Total Amount :",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const Spacer(),
-                  Text("₹$total",
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
-                ],
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 65, 88, 108),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: Offset(0, -2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                const Text("Total Amount :",
+                    style:
+                        TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                const Spacer(),
+                Text(
+                    "₹${(baseRate * selectedQty * durationDays).toStringAsFixed(0)}",
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w500)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Text("Handling Charge :",
+                    style: TextStyle(fontSize: 14, color: Colors.black54)),
+                const Spacer(),
+                Text("₹${(5 * selectedQty * durationDays).toStringAsFixed(0)}",
+                    style:
+                        const TextStyle(fontSize: 14, color: Colors.black54)),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                const Text("To Pay :",
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Spacer(),
+                Text("₹$total",
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 65, 88, 108),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  onPressed: () {
-                    if (fromDate == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please select the start date.'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      return;
-                    }
-
-                    final selectedSlot = ref.read(selectedSlotProvider);
-                    if (selectedSlot == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please select a delivery slot.'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      return;
-                    }
-
-                    final address = ref.read(addressProvider).asData?.value;
-                    if (address == null ||
-                        address.name.isEmpty ||
-                        address.selectedRoad.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content:
-                              Text('Please select or add a delivery address.'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      return;
-                    }
-
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SubscriptionPaymentPage(
-                          title: title,
-                          startDate: fromDate,
-                          endDate: endDateText,
-                          quantity: selectedQty,
-                          slot: selectedSlot,
-                          address: address,
-                          totalAmount: double.parse(total),
-                          productName: productName,
-                        ),
+                ),
+                onPressed: () {
+                  if (fromDate == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please select the start date.'),
+                        backgroundColor: Colors.red,
                       ),
                     );
-                  },
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: const Text("Confirm Subscription"),
-                ),
+                    return;
+                  }
+
+                  final selectedSlot = ref.read(selectedSlotProvider);
+                  if (selectedSlot == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please select a delivery slot.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  final address = ref.read(addressProvider).asData?.value;
+                  if (address == null ||
+                      address.name.isEmpty ||
+                      address.selectedRoad.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content:
+                            Text('Please select or add a delivery address.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SubscriptionPaymentPage(
+                        title: title,
+                        startDate: fromDate,
+                        endDate: endDateText,
+                        quantity: selectedQty,
+                        slot: selectedSlot,
+                        address: address,
+                        totalAmount: double.parse(total),
+                        productName: productName,
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.check_circle_outline),
+                label: const Text("Confirm Subscription"),
               ),
-              const SizedBox(height: 12),
-            ],
-          ),
+            ),
+            const SizedBox(height: 12),
+          ],
         ),
       ),
     );
   }
+}
+
+// Helper to manually return slots for 6-9am and 3-6pm
+Future<Map<String, dynamic>> getManualSlots() async {
+  final now = DateTime.now();
+  final start6am = DateTime(now.year, now.month, now.day, 6, 0);
+  final end9am = DateTime(now.year, now.month, now.day, 9, 0);
+  final start3pm = DateTime(now.year, now.month, now.day, 15, 0);
+  final end6pm = DateTime(now.year, now.month, now.day, 18, 0);
+
+  return {
+    "slots": [
+      {"start": start6am, "end": end9am},
+      {"start": start3pm, "end": end6pm},
+    ]
+  };
 }

@@ -404,6 +404,33 @@ class _AllProductsPageState extends ConsumerState<AllProductsPage>
                                             const SizedBox(
                                               height: 10,
                                             ),
+                                            // Discount percentage row (arrow and percent) above price/qty rowAdd commentMore actions
+                                            if (data['offer_price'] != null &&
+                                                double.tryParse(
+                                                        data['offer_price']
+                                                            .toString()) !=
+                                                    null &&
+                                                double.parse(data['offer_price']
+                                                        .toString()) >
+                                                    0)
+                                              Row(
+                                                children: [
+                                                  Icon(Icons.arrow_downward,
+                                                      size: 16,
+                                                      color:
+                                                          Colors.red.shade700),
+                                                  Text(
+                                                    '${(((double.parse(price.toString()) - double.parse(data['offer_price'].toString())) / double.parse(price.toString())) * 100).round()}% off',
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color:
+                                                          Colors.red.shade700,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             const Spacer(),
                                             Row(
                                               children: [

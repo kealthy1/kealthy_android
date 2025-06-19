@@ -288,6 +288,25 @@ class ProductContent extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Price display with offer logic
+                        if (hasOffer)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0, top: 2),
+                            child: Row(
+                              children: [
+                                Text(
+                                  '${(((productPrice - offerPrice) / productPrice) * 100).round()}% ',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.redAccent,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const Icon(Icons.arrow_downward,
+                                    color: Colors.redAccent, size: 16),
+                              ],
+                            ),
+                          ),
+
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
