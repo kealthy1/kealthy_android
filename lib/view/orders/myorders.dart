@@ -24,7 +24,10 @@ class MyOrdersPage extends StatelessWidget {
             unselectedLabelColor: Colors.grey,
             tabs: [
               Tab(
-                icon: const Icon(Icons.delivery_dining_outlined),
+                icon: const Image(
+                  image: AssetImage('lib/assets/images/delivery-man.png'),
+                  width: 40,
+                ),
                 child: Text(
                   'Live Orders',
                   style: GoogleFonts.poppins(
@@ -36,7 +39,10 @@ class MyOrdersPage extends StatelessWidget {
                 ),
               ),
               Tab(
-                icon: const Icon(Icons.check_circle_sharp),
+                icon: const Image(
+                  image: AssetImage('lib/assets/images/shopping-bag.png'),
+                  width: 40,
+                ),
                 child: Text(
                   'Past Orders',
                   style: GoogleFonts.poppins(

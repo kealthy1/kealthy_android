@@ -17,6 +17,8 @@ class SubscriptionPaymentPage extends ConsumerWidget {
   final dynamic address;
   final double totalAmount;
   final String productName;
+  final bool isAlternateDay;
+  final double itemPrice;
 
   const SubscriptionPaymentPage({
     super.key,
@@ -28,6 +30,8 @@ class SubscriptionPaymentPage extends ConsumerWidget {
     required this.address,
     required this.totalAmount,
     required this.productName,
+    required this.isAlternateDay,
+    required this.itemPrice,
   });
 
   @override
@@ -74,6 +78,9 @@ class SubscriptionPaymentPage extends ConsumerWidget {
                         "Start Date: ${DateFormat('MMMM d, y').format(startDate)}"),
                     Text("End Date: $endDate"),
                     Text("Quantity: $quantity L"),
+                    Text(
+                      "Alternate Days: ${isAlternateDay ? "Yes" : "No"}",
+                    ),
                     const SizedBox(height: 12),
                     const Text("Delivery Slot",
                         style: TextStyle(fontWeight: FontWeight.bold)),
@@ -127,6 +134,7 @@ class SubscriptionPaymentPage extends ConsumerWidget {
                     print(
                         'Address: ${address.name}, ${address.selectedRoad}, Type: ${address.type}');
                     print('Total Amount: $totalAmount');
+                    print('Alternate Day Preference: $isAlternateDay');
 
                     final prefs = await SharedPreferences.getInstance();
                     await prefs.setString('subscription_plan_title', title);
@@ -135,8 +143,10 @@ class SubscriptionPaymentPage extends ConsumerWidget {
                     await prefs.setString('subscription_start_date',
                         DateFormat('d MMMM y').format(startDate));
                     await prefs.setString('subscription_end_date', endDate);
-                    await prefs.setString(
-                        'subscription_qty', quantity.toString());
+                    await prefs.setDouble(
+                        'subscription_qty', quantity.toDouble());
+                    await prefs.setBool('subscription_type', isAlternateDay);
+                    await prefs.setDouble('subscription_item_price', itemPrice);
 
                     final formattedSlot =
                         '${DateFormat('h:mm a').format(slot['start']!)} - ${DateFormat('h:mm a').format(slot['end']!)}';

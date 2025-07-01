@@ -81,11 +81,15 @@ class SubscriptionOrderDetailsPage extends ConsumerWidget {
                       buildRow('Order ID', orderData['orderId'] ?? ''),
                       buildRow('Plan Title', orderData['planTitle'] ?? ''),
                       buildRow('Product', orderData['productName'] ?? ''),
-                      buildRow('Qty', orderData['subscriptionQty'] ?? ''),
+                      buildRow('Qty', "${orderData['subscriptionQty']} L"),
                       buildRow('Start Date', orderData['startDate'] ?? ''),
                       buildRow('End Date', orderData['endDate'] ?? ''),
                       buildRow('Slot', orderData['selectedSlot'] ?? ''),
                       buildRow('Phone Number', orderData['phoneNumber'] ?? ''),
+                      buildRow(
+                        'Alternate Day',
+                        orderData['alternateDay'] == true ? 'Yes' : 'No',
+                      ),
                       Container(
                         margin: const EdgeInsets.only(top: 12),
                         padding: const EdgeInsets.symmetric(vertical: 10),

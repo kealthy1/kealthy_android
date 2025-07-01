@@ -23,88 +23,95 @@ class CartContainer extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    return Container(
-      height: 85,
-      padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Color.fromARGB(255, 255, 255, 255), // Light blue
-            Color.fromARGB(255, 244, 235, 235), // Lighter blue
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 3,
-            spreadRadius: 5,
+    return GestureDetector(
+      onTap: () {
+        // Navigate to Cart page when tapped
+        Navigator.push(
+          context,
+          CupertinoPageRoute(
+            builder: (context) => const CartPage(),
           ),
-        ],
-        color: Color.fromARGB(
-            255, 243, 240, 240), // This will be overridden by the gradient
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(10),
-          topRight: Radius.circular(10),
+        );
+      },
+      child: Container(
+        height: 70,
+        padding: const EdgeInsets.all(16),
+        decoration: const BoxDecoration(
+          // color: Colors.white,
+          gradient: LinearGradient(
+            colors: [
+              Color.fromARGB(255, 255, 255, 255), // Light blue
+              Color.fromARGB(255, 255, 239, 221), // Lighter blue
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 3,
+              spreadRadius: 5,
+            ),
+          ],
+          // color: Color.fromARGB(
+          //     255, 243, 240, 240), // This will be overridden by the gradient
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(10),
+            topRight: Radius.circular(10),
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: Row(
+          children: [
+            Image.asset(
+              'lib/assets/images/bag.png',
+              width: 30,
+              color: Colors.black,
+            ),
+            const SizedBox(width: 10),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(
                 'Cart',
                 style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: const Color.fromARGB(255, 65, 88, 108),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
                 ),
               ),
               Text(
                 '$totalItems item(s) selected',
                 style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: const Color.fromARGB(255, 65, 88, 108),
+                  fontSize: 12,
+                  color: Colors.black,
                 ),
               ),
-            ],
-          ),
-          const Spacer(),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                CupertinoPageRoute(
-                  builder: (context) => const CartPage(),
+            ]),
+            const Spacer(),
+            const SizedBox(width: 10),
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Color.fromARGB(255, 255, 255, 255),
+                    Color.fromARGB(255, 255, 255, 255),
+                    // Lighter blue
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(255, 65, 88, 108),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                shape: BoxShape.circle,
+                color: Colors
+                    .grey.shade200, // Change if you want a different background
+              ),
+              child: const Icon(
+                Icons.arrow_forward_ios,
+                color: Colors.black,
+                size: 18, // slightly smaller inside circle
               ),
             ),
-            child: Text(
-              'Go to Cart',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          IconButton(
-              icon: const Icon(CupertinoIcons.delete,
-                  color: Color.fromARGB(255, 65, 88, 108)),
-              onPressed: () {
-                for (var item in cartItems) {
-                  ref.read(cartProvider.notifier).removeItem(item.name);
-                }
-              }),
-        ],
+          ],
+        ),
       ),
     );
   }

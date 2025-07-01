@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kealthy/view/Toast/toast_helper.dart';
+import 'package:kealthy/view/product/all_products.dart';
 import 'package:kealthy/view/product/product_page.dart';
 import 'package:kealthy/view/product/provider.dart';
 import 'package:lottie/lottie.dart';
@@ -135,10 +136,10 @@ class DealOfTheDayPage extends StatelessWidget {
                   }
                   final offerSohRaw = data['offer_soh'];
                   final offerSoh = int.tryParse(offerSohRaw.toString()) ?? 0;
-                  if (offerSoh == 0 &&
+                  if (offerSoh == 0 ||
                       endDate != null &&
-                      endDate
-                          .isBefore(DateTime(now.year, now.month, now.day))) {
+                          endDate.isBefore(
+                              DateTime(now.year, now.month, now.day))) {
                     ToastHelper.showErrorToast("Offer has expired.");
                     return;
                   }
@@ -223,28 +224,36 @@ class DealOfTheDayPage extends StatelessWidget {
                                   ),
                                   const Spacer(),
                                   const SizedBox(width: 5),
-                                  offerPrice != null && offerPrice < price
-                                      ? Text(
-                                          '\u20B9$price',
-                                          style: const TextStyle(
-                                            fontSize: 13,
-                                            color: Color.fromARGB(
-                                                137, 219, 24, 24),
-                                            decoration:
-                                                TextDecoration.lineThrough,
-                                          ),
-                                        )
-                                      : const SizedBox(),
                                   Row(
                                     children: [
-                                      Text(
-                                        '\u20B9$offerPrice/-',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          color: Colors.green.shade800,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                      offerPrice != null && offerPrice < price
+                                          ? Text(
+                                              '\u20B9$price',
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.red,
+                                                decoration:
+                                                    TextDecoration.lineThrough,
+                                              ),
+                                            )
+                                          : const SizedBox(),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            '\u20B9$offerPrice/-',
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              color: Colors.green.shade800,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
                                       ),
+                                      // Discount percentage
                                       const Spacer(),
                                       Text(qty,
                                           maxLines: 2,
@@ -266,8 +275,8 @@ class DealOfTheDayPage extends StatelessWidget {
                       ),
                     ),
                     Positioned(
-                      top: 5,
-                      left: 5,
+                      top: 0,
+                      left: 0,
                       child: Consumer(
                         builder: (context, ref, child) {
                           final averageStarsAsync = ref.watch(
@@ -277,17 +286,14 @@ class DealOfTheDayPage extends StatelessWidget {
                               if (rating == 0.0) {
                                 return const SizedBox(); // Hide badge if rating is 0
                               }
-                              return ClipRRect(
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
+                              return ClipPath(
+                                clipper: LeftRibbonClipper(),
                                 child: Container(
-                                  height: 30,
-                                  width: 50,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0, vertical: 4.0),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.5),
+                                  height: 25,
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.13,
+                                  decoration: const BoxDecoration(
+                                    color: Color.fromARGB(255, 67, 168, 70),
                                   ),
                                   alignment: Alignment.center,
                                   child: Row(
@@ -314,6 +320,26 @@ class DealOfTheDayPage extends StatelessWidget {
                         },
                       ),
                     ),
+                    if (offerPrice != null && offerPrice < price)
+                      Positioned(
+                        bottom: 115,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade700,
+                          ),
+                          child: Text(
+                            '${(((price - offerPrice) / price) * 100).round()}% off',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               );

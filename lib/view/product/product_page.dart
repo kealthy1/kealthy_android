@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:kealthy/view/Cart/cart_container.dart';
+import 'package:kealthy/view/Cart/cart_controller.dart';
 import 'package:kealthy/view/product/alert_dialogue.dart';
 import 'package:kealthy/view/product/product_content.dart';
 
@@ -55,6 +55,59 @@ class _ProductPageState extends State<ProductPage>
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black),
         elevation: 0,
+        actions: [
+          Consumer(
+            builder: (context, ref, _) {
+              final cartItems = ref.watch(cartProvider);
+              final itemCount = cartItems.fold<int>(
+                  0, (total, item) => total + item.quantity);
+
+              return Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Stack(
+                  children: [
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) {
+                        return ScaleTransition(scale: animation, child: child);
+                      },
+                      child: IconButton(
+                        key: ValueKey<int>(itemCount),
+                        icon: const Icon(CupertinoIcons.cart, size: 30),
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/cart');
+                        },
+                      ),
+                    ),
+                    if (itemCount > 0)
+                      Positioned(
+                        right: 3,
+                        top: -2,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints:
+                              const BoxConstraints(minWidth: 18, minHeight: 18),
+                          child: Text(
+                            '$itemCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
       ),
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -106,7 +159,7 @@ class _ProductPageState extends State<ProductPage>
                 },
               ),
             ),
-            const CartContainer(),
+            // const CartContainer(),
           ],
         ),
       ),

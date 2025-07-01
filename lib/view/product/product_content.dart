@@ -19,12 +19,14 @@ class ProductContent extends ConsumerWidget {
 
   final Map<String, dynamic> docData;
   final String productId;
+  final double? rating;
 
   const ProductContent({
     super.key,
     required this.docData,
     required this.pageController,
     required this.productId,
+    this.rating,
   });
 
   @override
@@ -225,60 +227,84 @@ class ProductContent extends ConsumerWidget {
                     // KealthyScoreSection(productIdOrName: productId),
                   ],
                 ),
-                Consumer(
-                  builder: (context, ref, child) {
-                    final averageStarsAsync =
-                        ref.watch(averageStarsProvider(productName));
+                // Rating/Stars display
+                (() {
+                  if (rating != null) {
+                    if (rating == 0.0) {
+                      return const SizedBox(); // Hide stars if rating is 0
+                    }
 
-                    return averageStarsAsync.when(
-                      data: (rating) {
-                        if (rating == 0.0) {
-                          return const SizedBox(); // Hide stars if rating is 0
-                        }
+                    int fullStars = rating!.floor();
+                    bool hasHalfStar = rating! - fullStars >= 0.5;
 
-                        int fullStars = rating
-                            .floor(); // Get integer part (e.g., 3 from 3.8)
-                        bool hasHalfStar = rating - fullStars >=
-                            0.5; // Check if it needs a half-star
+                    return Row(
+                      children: [
+                        Text(
+                          rating!.toStringAsFixed(1),
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        ...List.generate(
+                            fullStars,
+                            (index) => const Icon(Icons.star,
+                                color: Colors.orange, size: 16)),
+                        if (hasHalfStar)
+                          const Icon(Icons.star_half,
+                              color: Colors.orange, size: 20),
+                        ...List.generate(
+                          5 - fullStars - (hasHalfStar ? 1 : 0),
+                          (index) => const Icon(Icons.star_border,
+                              color: Colors.orange, size: 20),
+                        ),
+                      ],
+                    );
+                  } else {
+                    return Consumer(
+                      builder: (context, ref, child) {
+                        final averageStarsAsync =
+                            ref.watch(averageStarsProvider(productName));
+                        return averageStarsAsync.when(
+                          data: (rating) {
+                            if (rating == 0.0) {
+                              return const SizedBox(); // Hide stars if rating is 0
+                            }
 
-                        return Row(
-                          children: [
-                            Text(
-                              rating.toStringAsFixed(1),
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                color: Colors.black54,
-                              ),
-                            ),
+                            int fullStars = rating.floor();
+                            bool hasHalfStar = rating - fullStars >= 0.5;
 
-                            // Generate full stars
-                            ...List.generate(
-                              fullStars,
-                              (index) => const Icon(Icons.star,
-                                  color: Colors.orange, size: 16),
-                            ),
-
-                            // Show half-star if needed
-                            if (hasHalfStar)
-                              const Icon(Icons.star_half,
-                                  color: Colors.orange, size: 20),
-
-                            // Show empty stars to keep alignment
-                            ...List.generate(
-                              5 - fullStars - (hasHalfStar ? 1 : 0),
-                              (index) => const Icon(Icons.star_border,
-                                  color: Colors.orange, size: 20),
-                            ),
-
-                            // Show the numeric rating next to stars
-                          ],
+                            return Row(
+                              children: [
+                                Text(
+                                  rating.toStringAsFixed(1),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                                ...List.generate(
+                                    fullStars,
+                                    (index) => const Icon(Icons.star,
+                                        color: Colors.orange, size: 16)),
+                                if (hasHalfStar)
+                                  const Icon(Icons.star_half,
+                                      color: Colors.orange, size: 20),
+                                ...List.generate(
+                                  5 - fullStars - (hasHalfStar ? 1 : 0),
+                                  (index) => const Icon(Icons.star_border,
+                                      color: Colors.orange, size: 20),
+                                ),
+                              ],
+                            );
+                          },
+                          loading: () => Container(),
+                          error: (error, _) => const Text('N/A'),
                         );
                       },
-                      loading: () => Container(),
-                      error: (error, _) => const Text('N/A'),
                     );
-                  },
-                ),
+                  }
+                })(),
 
                 const SizedBox(height: 20),
                 Row(
@@ -289,24 +315,24 @@ class ProductContent extends ConsumerWidget {
                       children: [
                         // Price display with offer logic
                         if (hasOffer)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 8.0, top: 2),
-                            child: Row(
-                              children: [
-                                Text(
-                                  '${(((productPrice - offerPrice) / productPrice) * 100).round()}% ',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.redAccent,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const Icon(Icons.arrow_downward,
-                                    color: Colors.redAccent, size: 16),
-                              ],
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade700,
+                            ),
+                            child: Text(
+                              '${(((productPrice - offerPrice) / productPrice) * 100).round()}% off',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-
+                        const SizedBox(
+                          height: 10,
+                        ),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [

@@ -216,7 +216,10 @@ class OrderService {
           prefs.getString('subscription_product_name') ?? '';
       final String startDate = prefs.getString('subscription_start_date') ?? '';
       final String endDate = prefs.getString('subscription_end_date') ?? '';
-      final String subscriptionQty = prefs.getString('subscription_qty') ?? '';
+      final double subscriptionQty = prefs.getDouble('subscription_qty') ?? 0.0;
+      final bool subscriptionType = prefs.getBool('subscription_type') ?? false;
+      final double itemPrice =
+          prefs.getDouble('subscription_item_price') ?? 0.0;
 
       final orderData = {
         "Name": address.name ?? 'Unknown Name',
@@ -246,7 +249,9 @@ class OrderService {
         "productName": productName,
         "startDate": startDate,
         "endDate": endDate,
-        "subscriptionQty": "$subscriptionQty L",
+        "subscriptionQty": subscriptionQty,
+        "alternateDay": subscriptionType,
+        "itemPrice": itemPrice,
       };
 
       await database.ref().child('subscriptions').child(orderId).set(orderData);

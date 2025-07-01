@@ -193,7 +193,7 @@ class BlogListTile extends ConsumerWidget {
                     ? blog.imageUrls[0]
                     : 'https://via.placeholder.com/150',
                 width: double.infinity,
-                height: screenWidth * 0.2,
+                height: screenWidth * 0.19,
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
                   color: Colors.grey[200],
@@ -201,7 +201,7 @@ class BlogListTile extends ConsumerWidget {
                 errorWidget: (context, url, error) => const Icon(Icons.error),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Text(
               blog.title,
               style: GoogleFonts.poppins(
@@ -211,57 +211,56 @@ class BlogListTile extends ConsumerWidget {
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
+            //const SizedBox(height: 1),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                GestureDetector(
-                  onTap: () async {
-                    try {
-                      await blogNotifier.toggleLikeAsync();
-                    } catch (e) {
-                      if (e
-                          .toString()
-                          .contains("User phone number not found")) {
-                        CustomAlertDialog.show(
-                          context: context,
-                          title: "Login Required",
-                          message:
-                              "You need to log in to like this blog and save your preferences.",
-                          confirmText: "Login",
-                          onConfirm: () {
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const LoginFields()),
-                              (route) => false,
-                            );
-                          },
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('An error occurred: $e'),
-                          ),
-                        );
+                IconButton(
+                    onPressed: () async {
+                      try {
+                        await blogNotifier.toggleLikeAsync();
+                      } catch (e) {
+                        if (e
+                            .toString()
+                            .contains("User phone number not found")) {
+                          CustomAlertDialog.show(
+                            context: context,
+                            title: "Login Required",
+                            message:
+                                "You need to log in to like this blog and save your preferences.",
+                            confirmText: "Login",
+                            onConfirm: () {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const LoginFields()),
+                                (route) => false,
+                              );
+                            },
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('An error occurred: $e'),
+                            ),
+                          );
+                        }
                       }
-                    }
-                  },
-                  child: Icon(
-                    CupertinoIcons.hand_thumbsup_fill,
-                    color: likesState.isLiked
-                        ? const Color(0xFF273847)
-                        : Colors.grey,
-                  ),
-                ),
-                const SizedBox(
-                  width: 4,
-                ),
+                    },
+                    icon: Icon(
+                      //size: 10,
+                      likesState.isLiked
+                          ? CupertinoIcons.hand_thumbsup_fill
+                          : CupertinoIcons.hand_thumbsup,
+                      color: likesState.isLiked
+                          ? const Color(0xFF273847)
+                          : Colors.grey,
+                    )),
                 if (likesState.likesCount > 0)
                   Text(
                     blogNotifier.formatLikesCount(likesState.likesCount),
                     style: GoogleFonts.poppins(
-                      fontSize: 13,
+                      fontSize: 12,
                       color: likesState.isLiked
                           ? const Color(0xFF273847)
                           : Colors.grey,

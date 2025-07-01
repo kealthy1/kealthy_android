@@ -10,6 +10,8 @@ import 'package:kealthy/view/subscription/provider.dart';
 import 'package:kealthy/view/subscription/sub_payment.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+final isAlternateDayProvider = StateProvider<bool>((ref) => false);
+
 class ConfirmationPage extends ConsumerWidget {
   final String title;
   final String description;
@@ -37,8 +39,14 @@ class ConfirmationPage extends ConsumerWidget {
                     '0') ??
             0
         : 0;
-    final endDate =
-        fromDate?.add(Duration(days: durationDays + additionalDays));
+    final isAlternate = ref.watch(isAlternateDayProvider);
+    final endDate = fromDate?.add(
+      Duration(
+        days: isAlternate
+            ? ((durationDays - 1) * 2) + 1 + additionalDays
+            : durationDays + additionalDays - 1,
+      ),
+    );
     final endDateText =
         endDate != null ? DateFormat('d MMMM y').format(endDate) : '';
     print(
@@ -161,6 +169,8 @@ class ConfirmationPage extends ConsumerWidget {
                           ),
                         ),
                       ),
+                      // Alternate Day Checkbox
+
                       const SizedBox(height: 12),
                       if (fromDate != null) ...[
                         const Text(
@@ -190,6 +200,26 @@ class ConfirmationPage extends ConsumerWidget {
                               ),
                             ],
                           ),
+                        ),
+                        CheckboxListTile(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20)),
+                          value: isAlternate,
+                          checkColor: Colors.white,
+                          activeColor: Colors.green,
+                          title: Text(
+                            "Prefer Alternate Days",
+                            style: GoogleFonts.poppins(
+                                color: Colors.black,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500),
+                          ),
+                          contentPadding: EdgeInsets.zero,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          onChanged: (value) {
+                            ref.read(isAlternateDayProvider.notifier).state =
+                                value ?? false;
+                          },
                         ),
                         // Delivery Slot Selection Section
                         const SizedBox(height: 20),
@@ -493,14 +523,18 @@ class ConfirmationPage extends ConsumerWidget {
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
+                                      onTap: () async {
+                                        final result =
+                                            await Navigator.pushReplacement(
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
                                                 const AddressPage(),
                                           ),
                                         );
+                                        if (result == true) {
+                                          ref.invalidate(addressProvider);
+                                        }
                                       },
                                       child: Row(
                                         children: [
@@ -636,10 +670,11 @@ class ConfirmationPage extends ConsumerWidget {
             const SizedBox(height: 4),
             Row(
               children: [
-                const Text("Handling Charge :",
-                    style: TextStyle(fontSize: 14, color: Colors.black54)),
+                Text("Handling Charge : ₹5 x $durationDays Days",
+                    style:
+                        const TextStyle(fontSize: 14, color: Colors.black54)),
                 const Spacer(),
-                Text("₹${(5 * selectedQty * durationDays).toStringAsFixed(0)}",
+                Text("₹${(5 * durationDays).toStringAsFixed(0)}",
                     style:
                         const TextStyle(fontSize: 14, color: Colors.black54)),
               ],
@@ -716,6 +751,8 @@ class ConfirmationPage extends ConsumerWidget {
                         address: address,
                         totalAmount: double.parse(total),
                         productName: productName,
+                        isAlternateDay: isAlternate,
+                        itemPrice: baseRate,
                       ),
                     ),
                   );

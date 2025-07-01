@@ -3,11 +3,14 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kealthy/view/Cart/cart_container.dart';
 import 'package:kealthy/view/Cart/cart_controller.dart';
+import 'package:kealthy/view/Login/login_page.dart';
 import 'package:kealthy/view/address/adress.dart';
 import 'package:kealthy/view/address/provider.dart';
 import 'package:kealthy/view/blog/blog.dart';
+import 'package:kealthy/view/blog/blog_list.dart';
 import 'package:kealthy/view/blog/blogs_tile.dart';
 import 'package:kealthy/view/home/Category.dart';
+import 'package:kealthy/view/home/category_tab.dart';
 import 'package:kealthy/view/home/changing_image.dart';
 import 'package:kealthy/view/home/deal_of_day.dart';
 import 'package:kealthy/view/home/deal_of_week.dart';
@@ -20,6 +23,8 @@ import 'package:kealthy/view/notifications/notification_tab.dart';
 import 'package:kealthy/view/notifications/offer.dart';
 import 'package:kealthy/view/notifications/rating_alert.dart';
 import 'package:kealthy/view/orders/myorders.dart';
+import 'package:kealthy/view/profile%20page/edit_profile.dart';
+import 'package:kealthy/view/profile%20page/provider.dart';
 import 'package:kealthy/view/search/searchbar.dart';
 import 'package:kealthy/view/splash_screen/version_check.dart';
 import 'package:kealthy/view/subscription/sub_details.dart';
@@ -29,8 +34,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lottie/lottie.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:lottie/lottie.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -261,6 +266,9 @@ class _HomePageState extends ConsumerState<HomePage>
     final selectedAddress = ref.watch(selectedLocationProvider);
     final totalItems =
         cartItems.fold<int>(0, (sum, item) => sum + item.quantity);
+    final liveOrdersAsync = ref.watch(liveOrdersProvider);
+    final profile = ref.watch(profileProvider);
+    final phoneNumber = ref.watch(phoneNumberProvider);
 
     final hasCartItems = totalItems > 0;
 
@@ -286,7 +294,9 @@ class _HomePageState extends ConsumerState<HomePage>
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        toolbarHeight: MediaQuery.of(context).size.height * 0.15,
+        toolbarHeight: MediaQuery.of(context).size.width < 600
+            ? MediaQuery.of(context).size.height * 0.15
+            : MediaQuery.of(context).size.height * 0.12,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             // color: Color.fromARGB(255, 233, 210, 181), // pastel peach)
@@ -317,15 +327,75 @@ class _HomePageState extends ConsumerState<HomePage>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      liveOrdersAsync.when(
+                        data: (liveOrders) {
+                          final hasLiveOrders = liveOrders.isNotEmpty;
+
+                          if (hasLiveOrders) {
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  CupertinoPageRoute(
+                                    builder: (context) => const MyOrdersPage(),
+                                  ),
+                                );
+                              },
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 20),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        ClipOval(
+                                          child: Container(
+                                            color: Colors.white,
+                                            width: 60,
+                                            height: 60,
+                                            child: Lottie.asset(
+                                              'lib/assets/animations/Delivery Boy.json',
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      "${liveOrders.first['status']}",
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          } else {
+                            return const SizedBox.shrink();
+                          }
+                        },
+                        loading: () => const SizedBox.shrink(),
+                        error: (error, stack) => const SizedBox.shrink(),
+                      ),
                       const CenteredTitleWidget(title: "Fitness & Health"),
                       const SizedBox(height: 20),
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 10),
                         child: ChangingImageWidget(),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 10),
                       const CenteredTitleWidget(title: "Categories"),
-                      const SizedBox(height: 20),
+                      // const Padding(
+                      //   padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      //   child: CategoryTabPage(),
+                      // ),
+                      const SizedBox(height: 10),
                       const HomeCategory(),
                       const SizedBox(height: 10),
                       const CenteredTitleWidget(title: "Subscribe & Save"),
@@ -359,72 +429,81 @@ class _HomePageState extends ConsumerState<HomePage>
                           title: "Hot Deals & Exclusive Offers"),
                       Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const DealOfTheDayPage()),
-                                );
-                              },
-                              child: SizedBox(
-                                width:
-                                    (MediaQuery.of(context).size.width - 48) /
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isTablet =
+                                MediaQuery.of(context).size.width >= 600;
+                            final imageHeight = isTablet ? 150.0 : 100.0;
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const DealOfTheDayPage()),
+                                    );
+                                  },
+                                  child: SizedBox(
+                                    width: (MediaQuery.of(context).size.width -
+                                            48) /
                                         2,
-                                child: Column(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      child: Container(
-                                        color: const Color(0xFFF4F4F5),
-                                        child: Image.asset(
-                                          'lib/assets/images/deal day.png',
-                                          height: 100,
-                                          width: double.infinity,
-                                          fit: BoxFit.cover,
+                                    child: Column(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                          child: Container(
+                                            color: const Color(0xFFF4F4F5),
+                                            child: Image.asset(
+                                              'lib/assets/images/deal day.png',
+                                              height: imageHeight,
+                                              width: double.infinity,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                      ],
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const DealOfTheWeekPage()),
-                                );
-                              },
-                              child: SizedBox(
-                                width:
-                                    (MediaQuery.of(context).size.width - 48) /
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const DealOfTheWeekPage()),
+                                    );
+                                  },
+                                  child: SizedBox(
+                                    width: (MediaQuery.of(context).size.width -
+                                            48) /
                                         2,
-                                child: Column(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      child: Container(
-                                        color: const Color(0xFFF4F4F5),
-                                        child: Image.asset(
-                                          'lib/assets/images/deal week.png',
-                                          height: 100,
-                                          width: double.infinity,
-                                          fit: BoxFit.cover,
+                                    child: Column(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                          child: Container(
+                                            color: const Color(0xFFF4F4F5),
+                                            child: Image.asset(
+                                              'lib/assets/images/deal week.png',
+                                              height: imageHeight,
+                                              width: double.infinity,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                      ],
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ],
+                              ],
+                            );
+                          },
                         ),
                       ),
                       const CenteredTitleWidget(title: "Kealthy blogs"),
@@ -434,52 +513,138 @@ class _HomePageState extends ConsumerState<HomePage>
                         builder: (context, ref, _) {
                           final blogPagination =
                               ref.watch(blogPaginationProvider);
-                          // Infinite scroll with NotificationListener
+                          // Show only 6 recent blogs
+                          final limitedBlogs = blogPagination.take(6).toList();
+                          final screenWidth = MediaQuery.of(context).size.width;
+                          final tileWidth = screenWidth < 600
+                              ? screenWidth * 0.4
+                              : screenWidth * 0.25;
+                          final tileHeight = screenWidth < 600 ? 210.0 : 300.0;
                           return Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               SizedBox(
-                                height: 200,
-                                child: NotificationListener<ScrollNotification>(
-                                  onNotification:
-                                      (ScrollNotification scrollInfo) {
-                                    if (scrollInfo.metrics.pixels ==
-                                        scrollInfo.metrics.maxScrollExtent) {
-                                      ref
-                                          .read(blogPaginationProvider.notifier)
-                                          .fetchMoreBlogs();
-                                    }
-                                    return false;
-                                  },
-                                  child: ListView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16),
-                                    itemCount: blogPagination.length,
-                                    itemBuilder: (context, index) {
-                                      final blog = blogPagination[index];
-                                      return SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.4,
-                                        child: BlogListTile(
-                                          blog: blog,
-                                          onTap: () {
-                                            Navigator.push(
-                                              context,
-                                              CupertinoPageRoute(
-                                                builder: (context) =>
-                                                    BlogDetailsPage(blog: blog),
+                                height: tileHeight,
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10),
+                                  child: Row(
+                                    children: [
+                                      ...limitedBlogs.map((blog) => SizedBox(
+                                            width: tileWidth,
+                                            child: BlogListTile(
+                                              blog: blog,
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  CupertinoPageRoute(
+                                                    builder: (context) =>
+                                                        BlogDetailsPage(
+                                                            blog: blog),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          )),
+                                      // "See More" tile
+                                      SizedBox(
+                                        width: tileWidth,
+                                        child: Container(
+                                          height:
+                                              tileHeight, // match BlogListTile height
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const BlogVerticalListPage(),
+                                                ),
+                                              );
+                                            },
+                                            child: Center(
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Text(
+                                                    "See More",
+                                                    style: TextStyle(
+                                                      color: Theme.of(context)
+                                                          .primaryColor,
+                                                      fontSize: 14,
+                                                    ),
+                                                  ),
+                                                  Icon(Icons.arrow_forward_ios,
+                                                      size: 15,
+                                                      color: Theme.of(context)
+                                                          .primaryColor),
+                                                ],
                                               ),
-                                            );
-                                          },
+                                            ),
+                                          ),
                                         ),
-                                      );
-                                    },
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
+                              if (phoneNumber.isNotEmpty &&
+                                  profile.name.isEmpty &&
+                                  profile.email.isEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0, vertical: 10),
+                                  child: Center(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text(
+                                          "Subscribe to our newsletter",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Color.fromRGBO(0, 0, 0, 0.4),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 5),
+                                        GestureDetector(
+                                          onTap: () async {
+                                            final result = await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    EditProfilePage(
+                                                        name: profile.name,
+                                                        email: profile.email),
+                                              ),
+                                            );
+                                            if (result == true) {
+                                              ref
+                                                  .read(
+                                                      newsletterSubscribedProvider
+                                                          .notifier)
+                                                  .state = true;
+                                            }
+                                          },
+                                          child: Text(
+                                            'click here',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.blue.shade400,
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ),
                             ],
                           );
                         },
@@ -493,26 +658,15 @@ class _HomePageState extends ConsumerState<HomePage>
                           children: [
                             GestureDetector(
                               onTap: () async {
-                                final url = Uri.parse(
-                                    'https://www.facebook.com/profile.php?id=61571096468965&mibextid=ZbWKwL');
-                                if (await canLaunchUrl(url)) {
-                                  await launchUrl(url,
-                                      mode: LaunchMode.externalApplication);
-                                }
+                                _launchFacebook();
                               },
-                              // ignore: prefer_const_constructors
                               child: Icon(Icons.facebook,
                                   size: 40, color: Colors.black),
                             ),
                             const SizedBox(width: 20),
                             GestureDetector(
                               onTap: () async {
-                                final url = Uri.parse(
-                                    'https://www.instagram.com/kealthy.life?igsh=MXVqa2hicG4ydzB5cQ==');
-                                if (await canLaunchUrl(url)) {
-                                  await launchUrl(url,
-                                      mode: LaunchMode.externalApplication);
-                                }
+                                _launchInstagram();
                               },
                               child: Image.asset(
                                   'lib/assets/images/instagram.png',
@@ -521,14 +675,10 @@ class _HomePageState extends ConsumerState<HomePage>
                             const SizedBox(width: 20),
                             GestureDetector(
                               onTap: () async {
-                                final url =
-                                    Uri.parse('https://x.com/Kealthy_life/');
-                                if (await canLaunchUrl(url)) {
-                                  await launchUrl(url,
-                                      mode: LaunchMode.externalApplication);
-                                }
+                                _launchX();
                               },
-                              child: Image.asset('lib/assets/images/x.png',
+                              child: Image.asset(
+                                  'lib/assets/images/twitter.png',
                                   height: 35),
                             ),
                             const SizedBox(width: 20),
@@ -542,7 +692,7 @@ class _HomePageState extends ConsumerState<HomePage>
                                 }
                               },
                               child: Image.asset(
-                                  'lib/assets/images/icons8-whatsapp.png',
+                                  'lib/assets/images/whatsapp.png',
                                   height: 35),
                             ),
                           ],
@@ -587,8 +737,6 @@ class _HomePageState extends ConsumerState<HomePage>
   }
 
   Widget _buildHeader(BuildContext context, WidgetRef ref) {
-    final liveOrdersAsync = ref.watch(liveOrdersProvider);
-
     return GestureDetector(
       onTap: () async {
         await Navigator.push(
@@ -656,7 +804,6 @@ class _HomePageState extends ConsumerState<HomePage>
                         "Locating...",
                         style: GoogleFonts.poppins(
                           color: Colors.black,
-                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -667,70 +814,6 @@ class _HomePageState extends ConsumerState<HomePage>
               ),
               const SizedBox(
                 width: 20,
-              ),
-              liveOrdersAsync.when(
-                data: (liveOrders) {
-                  final hasLiveOrders = liveOrders.isNotEmpty;
-
-                  if (hasLiveOrders) {
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (context) => const MyOrdersPage(),
-                          ),
-                        );
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            ClipOval(
-                              child: Container(
-                                color: Colors.white,
-                                width: 50,
-                                height: 50,
-                                child: Lottie.asset(
-                                  'lib/assets/animations/Delivery Boy.json',
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              top: 0,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.red,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  'Live',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  } else {
-                    return const SizedBox.shrink();
-                  }
-                },
-                loading: () => const CupertinoActivityIndicator(
-                  color: Colors.black,
-                ),
-                error: (error, stack) => const SizedBox.shrink(),
               ),
               IconButton(
                 onPressed: () {
@@ -832,5 +915,41 @@ class _HomePageState extends ConsumerState<HomePage>
         ],
       ),
     );
+  }
+}
+
+Future<void> _launchFacebook() async {
+  const fbAppUrl =
+      'fb://facewebmodal/f?href=https://www.facebook.com/share/1938WAtaiE/';
+  const fbWebUrl =
+      'https://www.facebook.com/profile.php?id=61571096468965&mibextid=ZbWKwL';
+
+  if (await canLaunchUrl(Uri.parse(fbAppUrl))) {
+    await launchUrl(Uri.parse(fbAppUrl));
+  } else {
+    await launchUrl(Uri.parse(fbWebUrl), mode: LaunchMode.externalApplication);
+  }
+}
+
+Future<void> _launchInstagram() async {
+  const fbAppUrl = 'instagram://user?username=kealthy.life';
+  const fbWebUrl =
+      'https://www.instagram.com/kealthy.life?igsh=MXVqa2hicG4ydzB5cQ==';
+
+  if (await canLaunchUrl(Uri.parse(fbAppUrl))) {
+    await launchUrl(Uri.parse(fbAppUrl));
+  } else {
+    await launchUrl(Uri.parse(fbWebUrl), mode: LaunchMode.externalApplication);
+  }
+}
+
+Future<void> _launchX() async {
+  const appUrl = 'twitter://user?screen_name=Kealthy_life';
+  const webUrl = 'https://x.com/Kealthy_life';
+
+  if (await canLaunchUrl(Uri.parse(appUrl))) {
+    await launchUrl(Uri.parse(appUrl));
+  } else {
+    await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication);
   }
 }
