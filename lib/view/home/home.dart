@@ -391,12 +391,12 @@ class _HomePageState extends ConsumerState<HomePage>
                       ),
                       const SizedBox(height: 10),
                       const CenteredTitleWidget(title: "Categories"),
-                      // const Padding(
-                      //   padding: EdgeInsets.symmetric(horizontal: 8.0),
-                      //   child: CategoryTabPage(),
-                      // ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: CategoryTabPage(),
+                      ),
                       const SizedBox(height: 10),
-                      const HomeCategory(),
+                      // const HomeCategory(),
                       const SizedBox(height: 10),
                       const CenteredTitleWidget(title: "Subscribe & Save"),
                       Padding(
