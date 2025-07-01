@@ -118,19 +118,7 @@ class _HomeCategoryState extends ConsumerState<HomeCategory>
             ),
           );
         } else {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-            ),
-          );
+          return SizedBox();
         }
       },
     );
