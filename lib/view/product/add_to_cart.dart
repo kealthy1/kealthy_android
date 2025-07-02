@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/view/Cart/cart_controller.dart';
+import 'package:kealthy/view/Toast/toast_helper.dart';
 
 class AddToCartSection extends ConsumerStatefulWidget {
   final String productName;
@@ -10,6 +11,7 @@ class AddToCartSection extends ConsumerStatefulWidget {
   final String productEAN;
   final int soh;
   final String imageurl; // Add Stock on Hand parameter
+  final int? maxQuantity;
 
   const AddToCartSection(
       {super.key,
@@ -17,7 +19,8 @@ class AddToCartSection extends ConsumerStatefulWidget {
       required this.productPrice,
       required this.productEAN,
       required this.soh,
-      required this.imageurl // Include in constructor
+      required this.imageurl, // Include in constructor
+      this.maxQuantity
       });
 
   @override
@@ -177,10 +180,25 @@ class _AddToCartSectionState extends ConsumerState<AddToCartSection>
                       color: Colors.green),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.add, color: Colors.green),
-                  onPressed: loading
-                      ? null
-                      : () => cartNotifier.incrementItem(widget.productName),
+                  icon: Icon(
+                    Icons.add,
+                    color: (widget.maxQuantity != null &&
+                            cartItem.quantity >= widget.maxQuantity!)
+                        ? Colors.grey
+                        : Colors.green,
+                  ),
+                  onPressed: () {
+                    if (loading) return;
+
+                    if (widget.maxQuantity != null &&
+                        cartItem.quantity >= widget.maxQuantity!) {
+                      ToastHelper.showErrorToast(
+                          'You can only select 2 quantities for trial dishes');
+                      return;
+                    }
+
+                    cartNotifier.incrementItem(widget.productName);
+                  },
                 ),
               ],
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/view/food/foodcategory.dart';
 import 'Category.dart';
 
@@ -45,14 +46,29 @@ class _CategoryTabPageState extends ConsumerState<CategoryTabPage>
             dividerColor: Colors.transparent,
             labelColor: Theme.of(context).primaryColor,
             unselectedLabelColor: Colors.black54,
+            labelStyle: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+            unselectedLabelStyle: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
             indicatorColor: Theme.of(context).primaryColor,
-            tabs: const [
-              Tab(text: 'Groceries'),
-              Tab(text: 'Food'),
-            ],
+             tabs: [
+              Tab(
+                icon: Image.asset('lib/assets/images/bag.png',
+                    width: 30, color: Colors.black),
+                text: 'Kealthy Store',
+              ),
+              Tab(
+                icon: Image.asset('lib/assets/images/restaurant.png',
+                    width: 30, color: Colors.black),
+                text: 'Kealthy Kitchen',
+              ),]
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 14),
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.50,
           child: TabBarView(

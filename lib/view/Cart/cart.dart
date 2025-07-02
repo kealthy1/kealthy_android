@@ -4,11 +4,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/view/Cart/cart_controller.dart';
 import 'package:kealthy/view/Cart/time.dart';
+import 'package:kealthy/view/Toast/toast_helper.dart';
 import 'package:kealthy/view/address/adress.dart';
 import 'package:kealthy/view/address/provider.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
+bool _isTrialDish(String name) {
+  // Add names of trial dishes here (case-sensitive or lowercase match)
+  const trialDishes = [
+    'Buttercraft Chicken Bowl',
+    'Quinoa & Tuna Fusion Bowl',
+    'Soya Paneer Bowl',
+    'Herbrost Beef Bowl',
+  ];
+
+  return trialDishes.contains(name);
+}
 
 final slotAvailabilityProvider =
     StateProvider<bool>((ref) => true); // Default: slot available
@@ -313,9 +326,14 @@ class CartPage extends ConsumerWidget {
                                                           ),
                                                         ),
                                                         IconButton(
-                                                          icon: const Icon(
+                                                          icon:  Icon(
                                                             Icons.add,
-                                                            color: Colors.black,
+                                                            color: item.quantity >=
+                                                                      2 &&
+                                                                  _isTrialDish(
+                                                                      item.name)
+                                                              ? Colors.grey
+                                                              : Colors.black,
                                                           ),
                                                           onPressed: ref
                                                                   .read(cartProvider
@@ -323,7 +341,13 @@ class CartPage extends ConsumerWidget {
                                                                   .isLoading(
                                                                       item.name)
                                                               ? null
-                                                              : () {
+                                                              : () { if (_isTrialDish(
+                                                                        item.name) &&
+                                                                    item.quantity >=
+                                                                        2) {
+                                                                  ToastHelper.showErrorToast('You can only select 2 quantities for trial dishes');
+                                                                  return;
+                                                                }
                                                                   ref
                                                                       .read(cartProvider
                                                                           .notifier)

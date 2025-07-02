@@ -13,7 +13,7 @@ import 'package:kealthy/view/product/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 
-// Provider for toggling cart container visibility.
+
 final cartVisibilityProvider = StateProvider<bool>((ref) => true);
 final ratingsMapProvider = StateProvider.family<Map<String, double>, String>(
     (ref, subcategoryName) => {});
