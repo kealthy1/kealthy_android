@@ -1,6 +1,9 @@
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+
+
 
 /// CartItem model
 class CartItem {
@@ -16,6 +19,7 @@ class CartItem {
     this.quantity = 1,
     required this.ean,
     required this.imageUrl,
+    
   });
 
   /// Returns the total price (price * quantity) for this item
@@ -26,7 +30,7 @@ class CartItem {
         'Name': name,
         'Price': price,
         'Quantity': quantity,
-        'EAN': ean,
+        'EAN' : ean,
         'ImageUrl': imageUrl,
       };
 
@@ -40,6 +44,8 @@ class CartItem {
       imageUrl: json['ImageUrl'] ?? '',
     );
   }
+
+  
 
   /// Helper if you want to create a copy with a new quantity
   CartItem copyWith({int? quantity}) => CartItem(
@@ -57,6 +63,10 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
   CartNotifier() : super([]) {
     loadCartItems();
   }
+
+  CartItem? getItem(String productName) {
+  return state.firstWhereOrNull((item) => item.name == productName);
+}
 
   // ---------------
   // Loading states
@@ -85,20 +95,16 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
     _removeLoadingMap[itemName] = isLoading;
     state = [...state];
   }
-
-  // ---------------
-  // SharedPreferences methods
-  // ---------------
-
-  /// Load all cart items from SharedPreferences
+  
   Future<void> loadCartItems() async {
     final prefs = await SharedPreferences.getInstance();
     final String? cartData = prefs.getString('cartItems');
 
     if (cartData != null) {
       final List<dynamic> jsonList = jsonDecode(cartData);
-      final List<CartItem> items =
-          jsonList.map((item) => CartItem.fromJson(item)).toList();
+      final List<CartItem> items = jsonList
+          .map((item) => CartItem.fromJson(item))
+          .toList();
       state = items;
     }
   }
@@ -106,16 +112,11 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
   /// Save the current cart items to SharedPreferences
   Future<void> saveCartItems() async {
     final prefs = await SharedPreferences.getInstance();
-    final String cartData =
-        jsonEncode(state.map((item) => item.toJson()).toList());
+    final String cartData = jsonEncode(state.map((item) => item.toJson()).toList());
     await prefs.setString('cartItems', cartData);
   }
 
-  // ---------------
-  // Cart operations
-  // ---------------
-
-  /// Add a new item or increment if it already exists (local only)
+  
   Future<void> addItem(CartItem newItem) async {
     setLoading(newItem.name, true);
 
@@ -145,7 +146,7 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
     setRemoveLoading(name, false);
   }
 
-  /// Increment item quantity by 1 (local only)
+ 
   Future<void> incrementItem(String name) async {
     setLoading(name, true);
     try {
@@ -168,7 +169,7 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
       if (index >= 0) {
         if (state[index].quantity > 1) {
           state[index].quantity--;
-          state = [...state];
+          state = [...state]; 
           await saveCartItems();
         } else {
           // If the quantity is already 1, removing does the same thing

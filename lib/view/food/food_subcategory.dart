@@ -24,6 +24,17 @@ final firestoreStockProvider = StreamProvider<Map<String, int>>((ref) {
   });
 });
 
+
+bool _isTrialDish(String name) {
+  const trialDishes = [
+    'Buttercraft Chicken Bowl',
+    'Quinoa & Tuna Fusion Bowl',
+    'Soya Paneer Bowl',
+    'Herbrost Beef Bowl',
+  ];
+  return trialDishes.contains(name);
+}
+
 class FoodSubCategoryPage extends ConsumerStatefulWidget {
   const FoodSubCategoryPage({super.key});
 
@@ -265,7 +276,7 @@ class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
                   productEAN: '',
                   soh: soh,
                   imageurl: '',
-                  maxQuantity: 2,
+                  maxQuantity: _isTrialDish(name) ? 2 : null,
                 )
               else
                 Container(

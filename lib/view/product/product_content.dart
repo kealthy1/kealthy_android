@@ -14,6 +14,16 @@ import 'package:kealthy/view/product/text.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
+bool _isTrialDish(String name) {
+  const trialDishes = [
+    'Buttercraft Chicken Bowl',
+    'Quinoa & Tuna Fusion Bowl',
+    'Soya Paneer Bowl',
+    'Herbrost Beef Bowl',
+  ];
+  return trialDishes.contains(name);
+}
+
 class ProductContent extends ConsumerWidget {
   final PageController pageController;
 
@@ -386,6 +396,7 @@ class ProductContent extends ConsumerWidget {
                       productEAN: productEAN,
                       soh: productSoh,
                       imageurl: productImageUrl,
+                      maxQuantity: _isTrialDish(productName) ? 2 : null,
                     ),
                   ],
                 ),
