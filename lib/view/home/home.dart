@@ -9,7 +9,6 @@ import 'package:kealthy/view/address/provider.dart';
 import 'package:kealthy/view/blog/blog.dart';
 import 'package:kealthy/view/blog/blog_list.dart';
 import 'package:kealthy/view/blog/blogs_tile.dart';
-import 'package:kealthy/view/home/Category.dart';
 import 'package:kealthy/view/home/category_tab.dart';
 import 'package:kealthy/view/home/changing_image.dart';
 import 'package:kealthy/view/home/deal_of_day.dart';
@@ -57,6 +56,140 @@ class _HomePageState extends ConsumerState<HomePage>
   late AnimationController _badgeController;
   late Animation<double> _badgeAnimation;
 
+  void _showTabSwitchDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: Text("What's in your mind today?",
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              )),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    ref.read(tabIndexProvider.notifier).state = 0;
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color.fromARGB(255, 230, 237, 234),
+                        Color.fromARGB(255, 253, 253, 253)
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.green),
+                  ),
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        'lib/assets/images/bag.png', // or 'restaurant.png'
+                        width: 30,
+                        color: Colors.black,
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        // 👈 Important: lets the column flex within the row
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Kealthy Store", // or "Kealthy Kitchen"
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              "Shop healthy groceries & products", // or meal text
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    ref.read(tabIndexProvider.notifier).state = 1;
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFFFFE0B2),
+                        Color.fromARGB(255, 255, 255, 255)
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.orange),
+                  ),
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        'lib/assets/images/restaurant.png',
+                        width: 30,
+                        color: Colors.black,
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Kealthy Kitchen",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              "Order freshly prepared healthy meals",
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -66,6 +199,10 @@ class _HomePageState extends ConsumerState<HomePage>
       ref.read(cartProvider.notifier).loadCartItems();
       checkLocationPermission(ref);
       ref.read(locationDataProvider);
+      if (!hasShownDialog) {
+        hasShownDialog = true;
+        _showTabSwitchDialog(); // 👈 Show on first open
+      }
 
       // Show combined deal alert dialog for deal of the day and week, up to two times per day
       SharedPreferences.getInstance().then((prefs) {
@@ -269,6 +406,7 @@ class _HomePageState extends ConsumerState<HomePage>
     final liveOrdersAsync = ref.watch(liveOrdersProvider);
     final profile = ref.watch(profileProvider);
     final phoneNumber = ref.watch(phoneNumberProvider);
+    final rainStatus = ref.watch(rainingStatusStreamProvider);
 
     final hasCartItems = totalItems > 0;
 
@@ -303,7 +441,6 @@ class _HomePageState extends ConsumerState<HomePage>
             gradient: LinearGradient(
               colors: [
                 Color.fromARGB(255, 249, 227, 201),
-
                 Color.fromARGB(255, 255, 255, 255), // Lighter blue// Pink shade
               ],
               begin: Alignment.topCenter,
@@ -331,58 +468,98 @@ class _HomePageState extends ConsumerState<HomePage>
                         data: (liveOrders) {
                           final hasLiveOrders = liveOrders.isNotEmpty;
 
-                          if (hasLiveOrders) {
-                            return GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  CupertinoPageRoute(
-                                    builder: (context) => const MyOrdersPage(),
-                                  ),
-                                );
-                              },
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 20),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Stack(
-                                      alignment: Alignment.center,
-                                      children: [
-                                        ClipOval(
-                                          child: Container(
-                                            color: Colors.white,
-                                            width: 60,
-                                            height: 60,
-                                            child: Lottie.asset(
-                                              'lib/assets/animations/Delivery Boy.json',
-                                              fit: BoxFit.cover,
-                                            ),
+                          if (!hasLiveOrders) return const SizedBox.shrink();
+
+                          return rainStatus.when(
+                            data: (rainingData) {
+                              final isRaining =
+                                  rainingData['isRaining'] == true;
+                              final rainMessage = rainingData['message'] ?? "";
+
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    CupertinoPageRoute(
+                                      builder: (context) =>
+                                          const MyOrdersPage(),
+                                    ),
+                                  );
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      // Left animation (always shown)
+                                      ClipOval(
+                                        child: Container(
+                                          color: Colors.white,
+                                          width: 60,
+                                          height: 60,
+                                          child: Lottie.asset(
+                                            'lib/assets/animations/Delivery Boy.json',
+                                            fit: BoxFit.cover,
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      "${liveOrders.first['status']}",
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.green,
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 10),
+
+                                      // Status and raining text block
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "${liveOrders.first['status']}",
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.green,
+                                              ),
+                                            ),
+                                            if (isRaining) ...[
+                                              Text(
+                                                rainMessage,
+                                                style: const TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+
+                                      const SizedBox(width: 10),
+
+                                      // Right rain animation (only if raining)
+                                      if (isRaining)
+                                        SizedBox(
+                                          width: 60,
+                                          height: 60,
+                                          child: Lottie.asset(
+                                            'lib/assets/animations/Animation - 1751474562248.json',
+                                            fit: BoxFit.cover,
+                                            repeat: true,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            );
-                          } else {
-                            return const SizedBox.shrink();
-                          }
+                              );
+                            },
+                            loading: () => const SizedBox.shrink(),
+                            error: (_, __) => const SizedBox.shrink(),
+                          );
                         },
                         loading: () => const SizedBox.shrink(),
                         error: (error, stack) => const SizedBox.shrink(),
                       ),
+                      const SizedBox(height: 10),
                       const CenteredTitleWidget(title: "Fitness & Health"),
                       const SizedBox(height: 20),
                       const Padding(
@@ -391,12 +568,8 @@ class _HomePageState extends ConsumerState<HomePage>
                       ),
                       const SizedBox(height: 10),
                       const CenteredTitleWidget(title: "Categories"),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8.0),
-                        child: CategoryTabPage(),
-                      ),
                       const SizedBox(height: 10),
-                      // const HomeCategory(),
+                      const CategoryTabPage(),
                       const SizedBox(height: 10),
                       const CenteredTitleWidget(title: "Subscribe & Save"),
                       Padding(
@@ -658,15 +831,26 @@ class _HomePageState extends ConsumerState<HomePage>
                           children: [
                             GestureDetector(
                               onTap: () async {
-                                _launchFacebook();
+                                final url = Uri.parse(
+                                    'https://www.facebook.com/profile.php?id=61571096468965&mibextid=ZbWKwL');
+                                if (await canLaunchUrl(url)) {
+                                  await launchUrl(url,
+                                      mode: LaunchMode.externalApplication);
+                                }
                               },
+                              // ignore: prefer_const_constructors
                               child: Icon(Icons.facebook,
                                   size: 40, color: Colors.black),
                             ),
                             const SizedBox(width: 20),
                             GestureDetector(
                               onTap: () async {
-                                _launchInstagram();
+                                final url = Uri.parse(
+                                    'https://www.instagram.com/kealthy.life?igsh=MXVqa2hicG4ydzB5cQ==');
+                                if (await canLaunchUrl(url)) {
+                                  await launchUrl(url,
+                                      mode: LaunchMode.externalApplication);
+                                }
                               },
                               child: Image.asset(
                                   'lib/assets/images/instagram.png',
@@ -675,7 +859,12 @@ class _HomePageState extends ConsumerState<HomePage>
                             const SizedBox(width: 20),
                             GestureDetector(
                               onTap: () async {
-                                _launchX();
+                                final url =
+                                    Uri.parse('https://x.com/Kealthy_life/');
+                                if (await canLaunchUrl(url)) {
+                                  await launchUrl(url,
+                                      mode: LaunchMode.externalApplication);
+                                }
                               },
                               child: Image.asset(
                                   'lib/assets/images/twitter.png',
@@ -915,41 +1104,5 @@ class _HomePageState extends ConsumerState<HomePage>
         ],
       ),
     );
-  }
-}
-
-Future<void> _launchFacebook() async {
-  const fbAppUrl =
-      'fb://facewebmodal/f?href=https://www.facebook.com/share/1938WAtaiE/';
-  const fbWebUrl =
-      'https://www.facebook.com/profile.php?id=61571096468965&mibextid=ZbWKwL';
-
-  if (await canLaunchUrl(Uri.parse(fbAppUrl))) {
-    await launchUrl(Uri.parse(fbAppUrl));
-  } else {
-    await launchUrl(Uri.parse(fbWebUrl), mode: LaunchMode.externalApplication);
-  }
-}
-
-Future<void> _launchInstagram() async {
-  const fbAppUrl = 'instagram://user?username=kealthy.life';
-  const fbWebUrl =
-      'https://www.instagram.com/kealthy.life?igsh=MXVqa2hicG4ydzB5cQ==';
-
-  if (await canLaunchUrl(Uri.parse(fbAppUrl))) {
-    await launchUrl(Uri.parse(fbAppUrl));
-  } else {
-    await launchUrl(Uri.parse(fbWebUrl), mode: LaunchMode.externalApplication);
-  }
-}
-
-Future<void> _launchX() async {
-  const appUrl = 'twitter://user?screen_name=Kealthy_life';
-  const webUrl = 'https://x.com/Kealthy_life';
-
-  if (await canLaunchUrl(Uri.parse(appUrl))) {
-    await launchUrl(Uri.parse(appUrl));
-  } else {
-    await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication);
   }
 }

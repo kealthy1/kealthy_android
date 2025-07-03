@@ -13,7 +13,6 @@ import 'package:kealthy/view/product/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 
-
 final cartVisibilityProvider = StateProvider<bool>((ref) => true);
 final ratingsMapProvider = StateProvider.family<Map<String, double>, String>(
     (ref, subcategoryName) => {});
@@ -76,49 +75,55 @@ class _AllProductsPageState extends ConsumerState<AllProductsPage>
     super.initState();
     _searchController = TextEditingController();
 
-    // Reset the search query only when the page first loads
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(searchQueryProvider.notifier).state = "";
-    });
-
-    Future.delayed(Duration.zero, () async {
-      final prefs = await SharedPreferences.getInstance();
-      final cacheKey = 'ratings_${widget.subcategoryName}';
-
-      // Try loading from cache first
-      final cachedData = prefs.getString(cacheKey);
-      if (cachedData != null) {
-        final cachedMap = json.decode(cachedData) as Map<String, dynamic>;
-        final mapped =
-            cachedMap.map((k, v) => MapEntry(k, (v as num).toDouble()));
-        ref.read(ratingsMapProvider(widget.subcategoryName).notifier).state =
-            mapped;
-      }
-
-      // Always fetch fresh data in background
-      final snapshot = await FirebaseFirestore.instance
-          .collection('Products')
-          .where('Subcategory', isEqualTo: widget.subcategoryName)
-          .get();
-
-      final names = snapshot.docs
-          .map((doc) => doc.data()['Name']?.toString() ?? '')
-          .toList();
-      final updatedRatings = <String, double>{};
-
-      for (final name in names) {
-        final rating = await ref.read(averageStarsProvider(name).future);
-        updatedRatings[name] = rating;
-      }
-
-      // Save to SharedPreferences
-      await prefs.setString(cacheKey, json.encode(updatedRatings));
-
+    Future.microtask(() {
       if (mounted) {
-        ref.read(ratingsMapProvider(widget.subcategoryName).notifier).state =
-            updatedRatings;
+        _initRatingsAndCache();
       }
     });
+  }
+
+  Future<void> _initRatingsAndCache() async {
+    if (!mounted) return;
+    ref.read(searchQueryProvider.notifier).state = "";
+
+    final prefs = await SharedPreferences.getInstance();
+    final cacheKey = 'ratings_${widget.subcategoryName}';
+
+    final cachedData = prefs.getString(cacheKey);
+    if (!mounted) return;
+
+    if (cachedData != null) {
+      final cachedMap = json.decode(cachedData) as Map<String, dynamic>;
+      final mapped =
+          cachedMap.map((k, v) => MapEntry(k, (v as num).toDouble()));
+
+      if (!mounted) return;
+      ref.read(ratingsMapProvider(widget.subcategoryName).notifier).state =
+          mapped;
+    }
+
+    final snapshot = await FirebaseFirestore.instance
+        .collection('Products')
+        .where('Subcategory', isEqualTo: widget.subcategoryName)
+        .get();
+
+    if (!mounted) return;
+
+    final names = snapshot.docs
+        .map((doc) => doc.data()['Name']?.toString() ?? '')
+        .toList();
+
+    final updatedRatings = <String, double>{};
+    for (final name in names) {
+      final rating = await ref.read(averageStarsProvider(name).future);
+      updatedRatings[name] = rating;
+    }
+
+    await prefs.setString(cacheKey, json.encode(updatedRatings));
+
+    if (!mounted) return;
+    ref.read(ratingsMapProvider(widget.subcategoryName).notifier).state =
+        updatedRatings;
   }
 
   @override
@@ -167,7 +172,7 @@ class _AllProductsPageState extends ConsumerState<AllProductsPage>
               builder: (context, ref, _) {
                 final cartItems = ref.watch(cartProvider);
                 final itemCount = cartItems.fold<int>(
-                  0, (total, item) => total + item.quantity);
+                    0, (total, item) => total + item.quantity);
 
                 return Padding(
                   padding: const EdgeInsets.all(10.0),
