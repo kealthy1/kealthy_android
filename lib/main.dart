@@ -68,44 +68,43 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
-      routes: {
-        // your home or starting pageAdd commentMore actions
-        '/offers': (context) => const OffersNotificationPage(),
-        '/subscription': (context) => const SubscriptionDetailsPage(),
-        '/cart': (context) => const CartPage(),
-      },
-      debugShowCheckedModeBanner: false,
-      navigatorKey: navigatorKey,
-      theme: ThemeData(
-        brightness: Brightness.light,
-        primaryColor: Colors.black,
-        scaffoldBackgroundColor: Colors.white,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          iconTheme: IconThemeData(color: Colors.black),
-          titleTextStyle: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+        routes: {
+          // your home or starting pageAdd commentMore actions
+          '/offers': (context) => const OffersNotificationPage(),
+          '/subscription': (context) => const SubscriptionDetailsPage(),
+          '/cart': (context) => const CartPage(),
+        },
+        debugShowCheckedModeBanner: false,
+        navigatorKey: navigatorKey,
+        theme: ThemeData(
+          brightness: Brightness.light,
+          primaryColor: Colors.black,
+          scaffoldBackgroundColor: Colors.white,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.white,
+            iconTheme: IconThemeData(color: Colors.black),
+            titleTextStyle: TextStyle(
+              color: Colors.black,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            surfaceTintColor: Colors.white,
           ),
-          surfaceTintColor: Colors.white,
+          colorScheme: const ColorScheme.light(
+            primary: Colors.black,
+            secondary: Colors.white,
+            onPrimary: Colors.white,
+            onSecondary: Colors.black,
+            background: Colors.white,
+            onBackground: Colors.black,
+          ),
+          textTheme: GoogleFonts.poppinsTextTheme(
+            Theme.of(context).textTheme,
+          ),
         ),
-        colorScheme: const ColorScheme.light(
-          primary: Colors.black,
-          secondary: Colors.white,
-          onPrimary: Colors.white,
-          onSecondary: Colors.black,
-          background: Colors.white,
-          onBackground: Colors.black,
-        ),
-        textTheme: GoogleFonts.poppinsTextTheme(
-          Theme.of(context).textTheme,
-        ),
-      ),
-      builder: (context, child) {
-        return InternetAwareWidget(child: child ?? const SizedBox());
-      },
-      home: SplashScreen(),
-    );
+        builder: (context, child) {
+          return InternetAwareWidget(child: child ?? const SizedBox());
+        },
+        home: SplashScreen());
   }
 }

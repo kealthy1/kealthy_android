@@ -36,7 +36,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
   final _otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final String testOtp = "2552"; // 🔹 Fixed OTP for Apple review
-  final String testNumber = "9897969594"; // 🔹 Apple test number
+  final String testNumber = "8848673425"; // 🔹 Apple test number
 
   @override
   void initState() {

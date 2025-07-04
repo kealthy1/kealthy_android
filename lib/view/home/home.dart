@@ -195,7 +195,8 @@ class _HomePageState extends ConsumerState<HomePage>
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      InAppUpdateService().checkForUpdate(context);
+     
+     InAppUpdateService().checkForUpdate(context);
       ref.read(cartProvider.notifier).loadCartItems();
       checkLocationPermission(ref);
       ref.read(locationDataProvider);
