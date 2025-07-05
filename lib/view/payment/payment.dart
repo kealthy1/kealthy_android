@@ -155,7 +155,7 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
         ),
         const Spacer(),
         Text(
-          "₹${widget.totalAmount.toStringAsFixed(2)}",
+          "₹${widget.totalAmount.toStringAsFixed(0)}",
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.bold,

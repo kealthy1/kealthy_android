@@ -82,7 +82,6 @@ class _OnlinePaymentProcessingState
       );
     }
 
-    // Clear the cart only if not a subscription
     if (widget.orderType != 'subscription') {
       ref.read(cartProvider.notifier).clearCart();
     }
@@ -95,6 +94,7 @@ class _OnlinePaymentProcessingState
     print("Payment Failed: ${response.code} | ${response.message}");
 
     await OrderService.removeRazorpayOrderId();
+    ref.read(cartProvider.notifier).clearCart();
 
     // Show failure dialog from the new helper
     PaymentDialogHelper.showPaymentFailureDialog(context);

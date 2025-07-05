@@ -326,63 +326,65 @@ class CartPage extends ConsumerWidget {
                                                             color: Colors.black,
                                                           ),
                                                         ),
-                                                     IconButton(
-                                                          icon: Icon(
-                                                            Icons.add,
-                                                            color: item.quantity >=
-                                                                        2 &&
-                                                                    _isTrialDish(
-                                                                        item.name)
-                                                                ? Colors.grey
-                                                                : Colors.black,
-                                                          ),
-                                                          onPressed: () async {
-                                                            if (ref
-                                                                .read(cartProvider
-                                                                    .notifier)
-                                                                .isLoading(
-                                                                    item.name))
-                                                              return;
-
-                                                            if (_isTrialDish(
-                                                                item.name)) {
-                                                              final prefs =
-                                                                  await SharedPreferences
-                                                                      .getInstance();
-                                                              final phoneNumber =
-                                                                  prefs.getString(
-                                                                          'phoneNumber') ??
-                                                                      '';
-
-                                                              final alreadyOrderedToday =
-                                                                  await getTodayOrderedQuantity(
-                                                                phoneNumber:
-                                                                    phoneNumber,
-                                                                productName:
-                                                                    item.name,
-                                                              );
-
-                                                              final totalIfAdded =
-                                                                  alreadyOrderedToday +
-                                                                      item.quantity +
-                                                                      1;
-
-                                                              if (totalIfAdded >
-                                                                  2) {
-                                                                ToastHelper
-                                                                    .showErrorToast(
-                                                                  'Daily limit reached: Only 2 quantities allowed per day for this dish.',
-                                                                );
+                                                        IconButton(
+                                                            icon: Icon(
+                                                              Icons.add,
+                                                              color: item.quantity >=
+                                                                          2 &&
+                                                                      _isTrialDish(item
+                                                                          .name)
+                                                                  ? Colors.grey
+                                                                  : Colors
+                                                                      .black,
+                                                            ),
+                                                            onPressed:
+                                                                () async {
+                                                              if (ref
+                                                                  .read(cartProvider
+                                                                      .notifier)
+                                                                  .isLoading(
+                                                                      item.name))
                                                                 return;
-                                                              }
-                                                            }
 
-                                                            ref
-                                                                .read(cartProvider
-                                                                    .notifier)
-                                                                .incrementItem(
-                                                                    item.name);
-                                                          }),
+                                                              if (_isTrialDish(
+                                                                  item.name)) {
+                                                                final prefs =
+                                                                    await SharedPreferences
+                                                                        .getInstance();
+                                                                final phoneNumber =
+                                                                    prefs.getString(
+                                                                            'phoneNumber') ??
+                                                                        '';
+
+                                                                final alreadyOrderedToday =
+                                                                    await getTodayOrderedQuantity(
+                                                                  phoneNumber:
+                                                                      phoneNumber,
+                                                                  productName:
+                                                                      item.name,
+                                                                );
+
+                                                                final totalIfAdded =
+                                                                    alreadyOrderedToday +
+                                                                        item.quantity +
+                                                                        1;
+
+                                                                if (totalIfAdded >
+                                                                    2) {
+                                                                  ToastHelper
+                                                                      .showErrorToast(
+                                                                    'Daily limit reached: Only 2 quantities allowed per day for this dish.',
+                                                                  );
+                                                                  return;
+                                                                }
+                                                              }
+
+                                                              ref
+                                                                  .read(cartProvider
+                                                                      .notifier)
+                                                                  .incrementItem(
+                                                                      item.name);
+                                                            }),
                                                       ],
                                                     ),
                                                   ),
