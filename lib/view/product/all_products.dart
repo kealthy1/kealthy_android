@@ -345,7 +345,9 @@ class _AllProductsPageState extends ConsumerState<AllProductsPage>
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ProductPage(
-                                    productId: filteredProducts[index].id),
+                                    productId: filteredProducts[index].id , ),
+                                    
+
                               ),
                             );
                           },

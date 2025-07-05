@@ -319,7 +319,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          ProductPage(productId: product.id),
+                                          ProductPage(productId: product.id,),
+                                          
                                     ),
                                   );
                                 },
@@ -500,7 +501,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ProductPage(productId: product.id),
+                  builder: (context) => ProductPage(productId: product.id, ),
                 ),
               );
             },

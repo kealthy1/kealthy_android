@@ -46,7 +46,7 @@ class InAppUpdateService {
 
   void _showBlockerDialog(BuildContext context) {
     showDialog(
-      barrierColor: Colors.white,
+      //barrierColor: Colors.white,
       barrierDismissible: false,
       context: context,
       builder: (_) => WillPopScope(

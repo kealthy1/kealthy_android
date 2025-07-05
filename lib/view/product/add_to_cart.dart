@@ -226,6 +226,7 @@ class _AddToCartSectionState extends ConsumerState<AddToCartSection>
                       ean: widget.productEAN,
                       imageUrl: widget.imageurl,
                       quantity: 1,
+                       
                     ),
                   );
 

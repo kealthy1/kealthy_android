@@ -1,9 +1,9 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// CartItem model
 class CartItem {
   final String name;
   final String imageUrl;
@@ -19,10 +19,8 @@ class CartItem {
     required this.imageUrl,
   });
 
-  /// Returns the total price (price * quantity) for this item
   int get totalPrice => price * quantity;
 
-  /// Convert to JSON for saving in SharedPreferences
   Map<String, dynamic> toJson() => {
         'Name': name,
         'Price': price,
@@ -31,7 +29,6 @@ class CartItem {
         'ImageUrl': imageUrl,
       };
 
-  /// Create a CartItem from JSON
   factory CartItem.fromJson(Map<String, dynamic> json) {
     return CartItem(
       name: json['Name'],
@@ -42,7 +39,6 @@ class CartItem {
     );
   }
 
-  /// Helper if you want to create a copy with a new quantity
   CartItem copyWith({int? quantity}) => CartItem(
         name: name,
         price: price,
@@ -52,58 +48,44 @@ class CartItem {
       );
 }
 
-/// StateNotifier to manage the cart state purely in SharedPreferences
 class CartNotifier extends StateNotifier<List<CartItem>> {
-  /// Constructor loads saved cart items from SharedPreferences
   CartNotifier() : super([]) {
-    loadCartItems();
+    _initCart();
   }
 
-  CartItem? getItem(String productName) {
-    return state.firstWhereOrNull((item) => item.name == productName);
-  }
+  Timer? _cartTimer;
+  static const _cartTimeout = Duration(seconds: 10);
 
-  // ---------------
-  // Loading states
-  // ---------------
-  /// A map to track loading states for each item, keyed by item name
   final Map<String, bool> _loadingMap = {};
+  final Map<String, bool> _removeLoadingMap = {};
 
-  bool isLoading(String itemName) {
-    return _loadingMap[itemName] ?? false;
-  }
-
+  bool isLoading(String itemName) => _loadingMap[itemName] ?? false;
   void setLoading(String itemName, bool loading) {
     _loadingMap[itemName] = loading;
-    // We overwrite state with the same list to trigger a rebuild
     state = [...state];
   }
 
-  /// A separate map to track "removing" states
-  final Map<String, bool> _removeLoadingMap = {};
-
-  bool isRemoving(String itemName) {
-    return _removeLoadingMap[itemName] ?? false;
-  }
-
+  bool isRemoving(String itemName) => _removeLoadingMap[itemName] ?? false;
   void setRemoveLoading(String itemName, bool isLoading) {
     _removeLoadingMap[itemName] = isLoading;
     state = [...state];
   }
 
+  Future<void> _initCart() async {
+    await loadCartItems();
+    _checkCartExpiry(); // Check and clear if needed
+  }
+
   Future<void> loadCartItems() async {
     final prefs = await SharedPreferences.getInstance();
     final String? cartData = prefs.getString('cartItems');
-
     if (cartData != null) {
       final List<dynamic> jsonList = jsonDecode(cartData);
-      final List<CartItem> items =
-          jsonList.map((item) => CartItem.fromJson(item)).toList();
+      final items = jsonList.map((item) => CartItem.fromJson(item)).toList();
       state = items;
     }
   }
 
-  /// Save the current cart items to SharedPreferences
   Future<void> saveCartItems() async {
     final prefs = await SharedPreferences.getInstance();
     final String cartData =
@@ -111,42 +93,75 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
     await prefs.setString('cartItems', cartData);
   }
 
+  Future<void> _saveCartStartTime() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+        'cartStartTime', DateTime.now().toIso8601String());
+  }
+
+  Future<void> _clearCartStartTime() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('cartStartTime');
+  }
+
+  Future<void> _checkCartExpiry() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? startTimeStr = prefs.getString('cartStartTime');
+
+    if (startTimeStr != null) {
+      final startTime = DateTime.tryParse(startTimeStr);
+      if (startTime != null) {
+        final now = DateTime.now();
+        final elapsed = now.difference(startTime);
+
+        if (elapsed >= _cartTimeout) {
+          await clearCart();
+        } else {
+          // Start timer for remaining time
+          final remaining = _cartTimeout - elapsed;
+          _startCartTimer(remaining);
+        }
+      }
+    }
+  }
+
+  void _startCartTimer(Duration duration) {
+    _cartTimer?.cancel();
+    _cartTimer = Timer(duration, () async {
+      await clearCart();
+    });
+  }
+
+  void _cancelCartTimer() {
+    _cartTimer?.cancel();
+  }
+
   Future<void> addItem(CartItem newItem) async {
     setLoading(newItem.name, true);
+    final existingIndex = state.indexWhere((item) => item.name == newItem.name);
 
-    final existingItemIndex =
-        state.indexWhere((item) => item.name == newItem.name);
-
-    if (existingItemIndex >= 0) {
-      // If the item already exists, just increment its quantity
+    if (existingIndex >= 0) {
       await incrementItem(newItem.name);
     } else {
-      // Add a new item locally
       state = [...state, newItem];
       await saveCartItems();
+
+      if (state.length == 1) {
+        await _saveCartStartTime(); // First item
+        _startCartTimer(_cartTimeout);
+      }
     }
 
     setLoading(newItem.name, false);
   }
 
-  /// Remove an item entirely (local only)
-  Future<void> removeItem(String name) async {
-    setRemoveLoading(name, true);
-
-    // Filter the item out from the state
-    state = state.where((cartItem) => cartItem.name != name).toList();
-    await saveCartItems();
-
-    setRemoveLoading(name, false);
-  }
-
   Future<void> incrementItem(String name) async {
     setLoading(name, true);
     try {
-      final index = state.indexWhere((cartItem) => cartItem.name == name);
+      final index = state.indexWhere((item) => item.name == name);
       if (index >= 0) {
         state[index].quantity++;
-        state = [...state]; // triggers UI update
+        state = [...state];
         await saveCartItems();
       }
     } finally {
@@ -154,18 +169,16 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
     }
   }
 
-  /// Decrement item quantity by 1 (local only). If it goes below 1, remove the item.
   Future<void> decrementItem(String name) async {
     setLoading(name, true);
     try {
-      final index = state.indexWhere((cartItem) => cartItem.name == name);
+      final index = state.indexWhere((item) => item.name == name);
       if (index >= 0) {
         if (state[index].quantity > 1) {
           state[index].quantity--;
           state = [...state];
           await saveCartItems();
         } else {
-          // If the quantity is already 1, removing does the same thing
           await removeItem(name);
         }
       }
@@ -174,39 +187,36 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
     }
   }
 
-  /// Clear the entire cart (local only)
+  Future<void> removeItem(String name) async {
+    setRemoveLoading(name, true);
+    state = state.where((item) => item.name != name).toList();
+    await saveCartItems();
+    setRemoveLoading(name, false);
+
+    if (state.isEmpty) {
+      _cancelCartTimer();
+      await _clearCartStartTime();
+    }
+  }
+
   Future<void> clearCart() async {
     state = [];
     await saveCartItems();
-    print('Cart cleared successfully (local).');
+    _cancelCartTimer();
+    await _clearCartStartTime();
+    print("🛒 Cart auto-cleared after timeout.");
   }
 
-  // ---------------
-  // Utility getters
-  // ---------------
+  double get totalPrice =>
+      state.fold(0, (sum, item) => sum + item.totalPrice);
 
-  /// Compute the total price for all items in the cart
-  double get totalPrice {
-    double total = 0;
-    for (final item in state) {
-      total += item.totalPrice;
-    }
-    return total;
-  }
-
-  // ---------------
-  // Example “updateCart” or “placeOrder”
-  // ---------------
-  /// In a real app, you might add your API call here
-  /// once the user completes the order. Currently, it does nothing.
-  Future<void> updateCart() async {
-    // This method does nothing in the local-only version.
-    // You could implement an API call here to sync with server if needed.
-    print('updateCart() called — no server logic in local-only mode.');
+  @override
+  void dispose() {
+    _cancelCartTimer();
+    super.dispose();
   }
 }
 
-// Provider for using CartNotifier in your UI
-final cartProvider = StateNotifierProvider<CartNotifier, List<CartItem>>((ref) {
-  return CartNotifier();
-});
+final cartProvider = StateNotifierProvider<CartNotifier, List<CartItem>>(
+  (ref) => CartNotifier(),
+);

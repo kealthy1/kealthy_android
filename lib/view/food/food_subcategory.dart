@@ -36,7 +36,7 @@ bool _isTrialDish(String name) {
 }
 
 class FoodSubCategoryPage extends ConsumerStatefulWidget {
-  const FoodSubCategoryPage({super.key});
+  const FoodSubCategoryPage({super.key, required String itemCategory});
 
   @override
   ConsumerState<FoodSubCategoryPage> createState() =>

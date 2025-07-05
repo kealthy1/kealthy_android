@@ -152,7 +152,7 @@ class DealOfTheWeekPage extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) => ProductPage(
-                        productId: products[index].id,
+                        productId: products[index].id,            
                       ),
                     ),
                   );

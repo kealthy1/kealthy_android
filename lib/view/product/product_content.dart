@@ -534,7 +534,7 @@ class ProductContent extends ConsumerWidget {
                                       MaterialPageRoute(
                                         builder: (context) => ProductPage(
                                             productId:
-                                                relatedProducts[index].id),
+                                                relatedProducts[index].id,),
                                       ),
                                     );
                                   }

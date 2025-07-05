@@ -17,9 +17,10 @@ final currentPageProvider = StateProvider<int>((ref) => 0);
 /// ProductPage - a single page that shows a product's details from Firestore.
 /// We pass only the productId, then fetch product data from Firestore.
 class ProductPage extends StatefulWidget {
-  final String productId; // Firestore document ID
+  final String productId;
+  // Firestore document ID
 
-  const ProductPage({super.key, required this.productId});
+  const ProductPage({super.key, required this.productId,});
 
   @override
   State<ProductPage> createState() => _ProductPageState();

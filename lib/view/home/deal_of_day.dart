@@ -148,6 +148,7 @@ class DealOfTheDayPage extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (context) => ProductPage(
                         productId: products[index].id,
+                         
                       ),
                     ),
                   );
