@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -49,12 +48,13 @@ class CartItem {
 }
 
 class CartNotifier extends StateNotifier<List<CartItem>> {
-  CartNotifier() : super([]) {
+  final Ref ref;
+  CartNotifier(this.ref) : super([]) {
     _initCart();
   }
 
   Timer? _cartTimer;
-  static const _cartTimeout = Duration(seconds: 10);
+  static const _cartTimeout = Duration(seconds: 40);
 
   final Map<String, bool> _loadingMap = {};
   final Map<String, bool> _removeLoadingMap = {};
@@ -95,8 +95,7 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
 
   Future<void> _saveCartStartTime() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-        'cartStartTime', DateTime.now().toIso8601String());
+    await prefs.setString('cartStartTime', DateTime.now().toIso8601String());
   }
 
   Future<void> _clearCartStartTime() async {
@@ -127,8 +126,18 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
 
   void _startCartTimer(Duration duration) {
     _cartTimer?.cancel();
-    _cartTimer = Timer(duration, () async {
-      await clearCart();
+    final endTime = DateTime.now().add(duration);
+
+    _cartTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      final remaining = endTime.difference(DateTime.now());
+
+      if (remaining <= Duration.zero) {
+        timer.cancel();
+        clearCart();
+        ref.read(remainingTimeProvider.notifier).state = null;
+      } else {
+        ref.read(remainingTimeProvider.notifier).state = remaining;
+      }
     });
   }
 
@@ -207,8 +216,7 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
     print("🛒 Cart auto-cleared after timeout.");
   }
 
-  double get totalPrice =>
-      state.fold(0, (sum, item) => sum + item.totalPrice);
+  double get totalPrice => state.fold(0, (sum, item) => sum + item.totalPrice);
 
   @override
   void dispose() {
@@ -218,5 +226,6 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
 }
 
 final cartProvider = StateNotifierProvider<CartNotifier, List<CartItem>>(
-  (ref) => CartNotifier(),
+  (ref) => CartNotifier(ref),
 );
+final remainingTimeProvider = StateProvider<Duration?>((ref) => null);

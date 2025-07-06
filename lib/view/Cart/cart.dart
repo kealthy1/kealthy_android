@@ -53,6 +53,7 @@ class CartPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cartItems = ref.watch(cartProvider);
     final selectedAddress = ref.watch(selectedLocationProvider);
+    final remaining = ref.watch(remainingTimeProvider);
 
     return SafeArea(
       top: false,
@@ -96,6 +97,20 @@ class CartPage extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (remaining != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Center(
+                            child: Text(
+                              "🕒 Cart will expire in ${remaining.inMinutes.toString().padLeft(2, '0')}:${(remaining.inSeconds % 60).toString().padLeft(2, '0')}",
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ),
+                        ),
                       Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 1, vertical: 1),

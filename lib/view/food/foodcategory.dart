@@ -16,14 +16,15 @@ class FoodCategory extends ConsumerStatefulWidget {
 
 class _HomeCategoryState extends ConsumerState<FoodCategory>
     with AutomaticKeepAliveClientMixin {
-
   void preloadCategoryImages(List<Map<String, dynamic>> categories) {
     for (var category in categories) {
       final url = category['image'] as String;
-      final provider = CachedNetworkImageProvider(url, cacheKey: category['foodCategory']);
+      final provider =
+          CachedNetworkImageProvider(url, cacheKey: category['foodCategory']);
       provider.resolve(const ImageConfiguration());
     }
   }
+
   @override
   bool get wantKeepAlive => true;
 
@@ -33,10 +34,7 @@ class _HomeCategoryState extends ConsumerState<FoodCategory>
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      future: firestore
-          .collection('foodCategory')
-          .orderBy('Categories') 
-          .get(),
+      future: firestore.collection('foodCategory').orderBy('Categories').get(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           final categories = snapshot.data?.docs.map((doc) {
