@@ -313,7 +313,7 @@ class CheckoutPage extends ConsumerWidget {
                                         const SizedBox(width: 10),
                                         Expanded(
                                           child: Text(
-                                            "Congratulations! You get ₹${itemTotal >= 100 ? 100 : itemTotal.toStringAsFixed(0)} off on your first order.",
+                                            "Congratulations! You get ₹${itemTotal >= 50 ? 50 : itemTotal.toStringAsFixed(0)} off on your first order.",
                                             style: GoogleFonts.poppins(
                                               color: Colors.green.shade800,
                                               fontSize: 12,
