@@ -329,6 +329,13 @@ class _TimePageState extends ConsumerState<TimePage> {
                 ? null
                 : () async {
                     loaderNotifier.state = true;
+                    //cart empty check
+                    final cartItems = ref.read(cartProvider);
+                  if (cartItems.isEmpty) {
+                    ToastHelper.showErrorToast('Your cart is expired!');
+                    loaderNotifier.state = false;
+                    return;
+                  }
                     try {
                       final selectedSlot = ref.read(selectedSlotProvider);
                       final selectedAddress =

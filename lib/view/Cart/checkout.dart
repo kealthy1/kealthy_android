@@ -6,6 +6,7 @@ import 'package:kealthy/view/Cart/bill.dart';
 import 'package:kealthy/view/Cart/cart_controller.dart';
 import 'package:kealthy/view/Cart/checkout_provider.dart';
 import 'package:kealthy/view/Cart/instruction_container.dart';
+import 'package:kealthy/view/Toast/toast_helper.dart';
 import 'package:kealthy/view/payment/payment.dart'; // <-- NEW
 
 // Asynchronous Provider for Address
@@ -376,6 +377,12 @@ class CheckoutPage extends ConsumerWidget {
               ),
             ),
             onPressed: () {
+              // Check if cart is empty before proceeding
+            final currentCartItems = ref.read(cartProvider);
+            if (currentCartItems.isEmpty) {
+              ToastHelper.showErrorToast('Your cart is expired!');
+              return;
+            }
               // Access selected instructions and packing instructions
               final instructions = getSelectedInstructions(ref);
               final packingInstructions = packingInstructionsController.text;
