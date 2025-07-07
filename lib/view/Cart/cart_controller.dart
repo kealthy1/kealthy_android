@@ -54,7 +54,7 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
   }
 
   Timer? _cartTimer;
-  static const _cartTimeout = Duration(seconds: 10);
+  static const _cartTimeout = Duration(minutes: 20);
 
   final Map<String, bool> _loadingMap = {};
   final Map<String, bool> _removeLoadingMap = {};

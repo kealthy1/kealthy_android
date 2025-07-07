@@ -205,7 +205,7 @@ class _AddToCartSectionState extends ConsumerState<AddToCartSection>
                       productName: widget.productName,
                     );
 
-                    if (alreadyOrderedToday >= 2) {
+                    if (alreadyOrderedToday >= 1) {
                       ToastHelper.showErrorToast(
                         'Daily limit reached: You can only order 2 of this item per day.',
                       );
@@ -333,7 +333,7 @@ class _AddToCartSectionState extends ConsumerState<AddToCartSection>
                       int totalIfAdded =
                           alreadyOrderedToday + cartItem.quantity + 1;
 
-                      if (totalIfAdded > 2) {
+                      if (totalIfAdded > 1) {
                         ToastHelper.showErrorToast(
                           'Daily limit reached: You can only order 2 quantities of this item per day.',
                         );

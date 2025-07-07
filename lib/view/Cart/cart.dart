@@ -385,10 +385,10 @@ class CartPage extends ConsumerWidget {
                                                                         1;
 
                                                                 if (totalIfAdded >
-                                                                    2) {
+                                                                    1) {
                                                                   ToastHelper
                                                                       .showErrorToast(
-                                                                    'Daily limit reached: Only 2 quantities allowed per day for this dish.',
+                                                                    'Daily limit reached: Only 1 quantities allowed per day for this dish.',
                                                                   );
                                                                   return;
                                                                 }
