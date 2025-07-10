@@ -1,9 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:in_app_update/in_app_update.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class InAppUpdateService {
@@ -14,35 +11,27 @@ class InAppUpdateService {
   InAppUpdateService._internal();
 
   Future<void> checkForUpdate(BuildContext context) async {
-    try {
-      final updateInfo = await InAppUpdate.checkForUpdate();
+  try {
+    final updateInfo = await InAppUpdate.checkForUpdate();
 
-      debugPrint("🔍 Update availability: ${updateInfo.updateAvailability}");
-      debugPrint(
-          "🔍 Immediate update allowed: ${updateInfo.immediateUpdateAllowed}");
-
-      if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
-        if (updateInfo.immediateUpdateAllowed) {
-          try {
-            await InAppUpdate.performImmediateUpdate();
-          } catch (e) {
-            debugPrint("⛔️ performImmediateUpdate failed: $e");
-            _showBlockerDialog(context);
-          }
-        } else {
-          debugPrint("⛔️ Immediate update not allowed. Showing custom dialog.");
-          _showBlockerDialog(
-              context); // <-- show it anyway if update is available
-        }
+    if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+      if (updateInfo.immediateUpdateAllowed) {
+        // 🚫 User cannot skip this update once started
+        await InAppUpdate.performImmediateUpdate().catchError((e) {
+          debugPrint("⛔️ Immediate update cancelled or failed: $e");
+          _showBlockerDialog(context); // Force update on cancel
+        });
       } else {
-        debugPrint("✅ App is up-to-date.");
+        _showBlockerDialog(context); // Immediate not allowed
       }
-    } catch (e) {
-      debugPrint("❌ In-app update check failed: $e");
-      _showBlockerDialog(
-          context); // Optional: handle totally failed checks here
+    } else {
+      debugPrint("✅ App is up-to-date.");
     }
+  } catch (e) {
+    debugPrint("❌ In-app update check failed: $e");
+    _showBlockerDialog(context); // Network failure or unsupported
   }
+}
 
   void _showBlockerDialog(BuildContext context) {
     showDialog(

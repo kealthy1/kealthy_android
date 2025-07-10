@@ -56,138 +56,86 @@ class _HomePageState extends ConsumerState<HomePage>
   late AnimationController _badgeController;
   late Animation<double> _badgeAnimation;
 
-  void _showTabSwitchDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          title: Text("What's in your mind today?",
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              )),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Future.delayed(const Duration(milliseconds: 300), () {
-                    ref.read(tabIndexProvider.notifier).state = 0;
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color.fromARGB(255, 230, 237, 234),
-                        Color.fromARGB(255, 253, 253, 253)
-                      ],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.green),
-                  ),
-                  child: Row(
-                    children: [
-                      Image.asset(
-                        'lib/assets/images/bag.png', // or 'restaurant.png'
-                        width: 30,
-                        color: Colors.black,
-                      ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        // 👈 Important: lets the column flex within the row
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Kealthy Store", // or "Kealthy Kitchen"
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            Text(
-                              "Shop healthy groceries & products", // or meal text
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              softWrap: true,
-                            ),
-                          ],
+void showKitchenDialog(BuildContext context, WidgetRef ref) {
+    Future.delayed(const Duration(milliseconds: 500), () {
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel: "Kitchen Dialog",
+        transitionDuration: const Duration(milliseconds: 400),
+        pageBuilder: (context, anim1, anim2) => const SizedBox.shrink(),
+        transitionBuilder: (context, animation, secondaryAnimation, _) {
+          final curvedValue = Curves.easeInOut.transform(animation.value) - 1.0;
+          return Transform.translate(
+            offset: Offset(0, curvedValue * -50),
+            child: Opacity(
+              opacity: animation.value,
+              child: Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+                backgroundColor: Colors.transparent,
+                child: Stack(
+                  children: [
+                    // Card with image and white space
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        Future.delayed(const Duration(milliseconds: 500), () {
+                          ref.read(tabIndexProvider.notifier).state = 1;
+                        });
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          color: Colors.white,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(3.0),
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(16)),
+                                  child: Image.asset(
+                                    'lib/assets/images/kitchen logo5.png',
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                  ),
+                                ),
+                              ), // Extra white space below
+                            ],
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Future.delayed(const Duration(milliseconds: 300), () {
-                    ref.read(tabIndexProvider.notifier).state = 1;
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFFFFE0B2),
-                        Color.fromARGB(255, 255, 255, 255)
-                      ],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
                     ),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.orange),
-                  ),
-                  child: Row(
-                    children: [
-                      Image.asset(
-                        'lib/assets/images/restaurant.png',
-                        width: 30,
-                        color: Colors.black,
-                      ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Kealthy Kitchen",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            Text(
-                              "Order freshly prepared healthy meals",
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              softWrap: true,
-                            ),
-                          ],
+
+                    // Clear icon
+                    Positioned(
+                      top: 10, // slightly above dialog
+                      right: 10,
+                      child: CircleAvatar(
+                        backgroundColor: Colors.white,
+                        radius: 15,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Icons.clear,
+                              size: 20, color: Colors.black),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        );
-      },
-    );
+            ),
+          );
+        },
+      );
+    });
   }
 
   @override
@@ -195,13 +143,13 @@ class _HomePageState extends ConsumerState<HomePage>
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      //InAppUpdateService().checkForUpdate(context);
+      InAppUpdateService().checkForUpdate(context);
       ref.read(cartProvider.notifier).loadCartItems();
       checkLocationPermission(ref);
       ref.read(locationDataProvider);
       if (!hasShownDialog) {
         hasShownDialog = true;
-        _showTabSwitchDialog(); // 👈 Show on first open
+        showKitchenDialog(context, ref); // 👈 Show on first open
       }
 
       // Show combined deal alert dialog for deal of the day and week, up to two times per day

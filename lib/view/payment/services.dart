@@ -58,6 +58,74 @@ class OrderService {
     }
   }
 
+  Future<void> sendPaymentFailureNotification({
+    required String token,
+    required String userName,
+    String? orderId,
+  }) async {
+    print("📨 Preparing to send notification to $token...");
+
+    const String apiUrl =
+        'https://api-jfnhkjk4nq-uc.a.run.app/sendPaymentFailureNotification';
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'token': token,
+          'userName': userName,
+          'orderId': orderId ?? '',
+        }),
+      );
+
+      print("📬 Response Status: ${response.statusCode}");
+      print("📬 Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        print("✅ Notification sent: ${response.body}");
+      } else {
+        print("❌ Failed to send: ${response.body}");
+      }
+    } catch (e) {
+      print("❌ Error sending notification: $e");
+    }
+  }
+
+  Future<void> sendPaymentSuccessNotification({
+    required String token,
+    required String userName,
+    String? orderId,
+  }) async {
+    print("📨 Preparing to send notification to $token...");
+
+    const String apiUrl =
+        'https://api-jfnhkjk4nq-uc.a.run.app/sendPaymentSuccessNotification';
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'token': token,
+          'userName': userName,
+          'orderId': orderId ?? '',
+        }),
+      );
+
+      print("📬 Response Status: ${response.statusCode}");
+      print("📬 Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        print("✅ Notification sent: ${response.body}");
+      } else {
+        print("❌ Failed to send: ${response.body}");
+      }
+    } catch (e) {
+      print("❌ Error sending notification: $e");
+    }
+  }
+
   /// Creates a Razorpay order via your backend’s `/create-order` route.
   static Future<String> createRazorpayOrder(double totalAmount) async {
     try {
@@ -107,6 +175,7 @@ class OrderService {
   /// Saves a new order in Firebase (Realtime Database in this example).
   static Future<void> saveOrderToFirebase({
     // required double offerDiscount,
+     required String preferredTime,
     required dynamic address,
     required double totalAmount,
     required double deliveryFee,
@@ -162,8 +231,10 @@ class OrderService {
         "selectedSlot": deliveryTime,
         "selectedType": address.type ?? '',
         "status": "Order Placed",
-        "totalAmountToPay": totalAmount.round(),
-        "deliveryFee": deliveryFee.round(),
+        "totalAmountToPay": totalAmount.round(), // returns int
+        "deliveryFee": deliveryFee,
+         "preferredTime": preferredTime,
+        "device": 'android', 
         // "offerDiscount": offerDiscount,
         // "instantDeliveryfee": instantDeliveryFee,
       };
@@ -173,7 +244,7 @@ class OrderService {
       print('Order saved successfully with orderId = $orderId');
 
       // Decrement stock
-      // await decrementSOHForItems(address);
+      await decrementSOHForItems(address);
 
       // Optionally save a notification doc to Firestore
       await saveNotificationToFirestore(orderId, address.cartItems);
@@ -218,8 +289,6 @@ class OrderService {
       final String endDate = prefs.getString('subscription_end_date') ?? '';
       final double subscriptionQty = prefs.getDouble('subscription_qty') ?? 0.0;
       final bool subscriptionType = prefs.getBool('subscription_type') ?? false;
-      final double itemPrice =
-          prefs.getDouble('subscription_item_price') ?? 0.0;
 
       final orderData = {
         "Name": address.name ?? 'Unknown Name',
@@ -241,17 +310,15 @@ class OrderService {
         "selectedSlot": deliveryTime,
         "selectedType": address.type ?? '',
         "status": "Order Placed",
-        "totalAmountToPay": totalAmount.round(),
-        "deliveryFee": deliveryFee,
+        "totalAmountToPay": totalAmount.round(), // returns int
+        "deliveryFee": deliveryFee.round(),
         "item_ean": "8908024418004",
-        // "instantDeliveryfee": instantDeliveryFee,
         "planTitle": planTitle,
         "productName": productName,
         "startDate": startDate,
         "endDate": endDate,
         "subscriptionQty": subscriptionQty,
         "alternateDay": subscriptionType,
-        "itemPrice": itemPrice,
       };
 
       await database.ref().child('subscriptions').child(orderId).set(orderData);

@@ -405,14 +405,14 @@ class _AllProductsPageState extends ConsumerState<AllProductsPage>
                                           children: [
                                             SizedBox(
                                               height:
-                                                  60, // enough to fit two lines of text
+                                                  70, // enough to fit two lines of text
                                               child: Text(
-                                                productNameRaw,
+                                                '$productNameRaw $productqty',
                                                 maxLines: 3,
                                                 overflow: TextOverflow.ellipsis,
                                                 style: GoogleFonts.poppins(
                                                   textStyle: const TextStyle(
-                                                    fontSize: 15,
+                                                    fontSize: 14,
                                                     color: Colors.black,
                                                   ),
                                                 ),
@@ -563,20 +563,7 @@ class _AllProductsPageState extends ConsumerState<AllProductsPage>
                                                           ),
                                                         ),
                                                     ]),
-                                                const Spacer(),
-                                                Text(productqty,
-                                                    maxLines: 2,
-                                                    style: GoogleFonts.poppins(
-                                                      textStyle:
-                                                          const TextStyle(
-                                                        fontSize: 12,
-                                                        color: Colors.black,
-                                                        fontWeight:
-                                                            FontWeight.w400,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                      ),
-                                                    )),
+                                               
                                               ],
                                             ),
                                           ],

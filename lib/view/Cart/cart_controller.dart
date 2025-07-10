@@ -54,7 +54,7 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
   }
 
   Timer? _cartTimer;
-  static const _cartTimeout = Duration(minutes: 20);
+  static const _cartTimeout = Duration(minutes: 30);
 
   final Map<String, bool> _loadingMap = {};
   final Map<String, bool> _removeLoadingMap = {};
@@ -128,7 +128,7 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
     _cartTimer?.cancel();
     final endTime = DateTime.now().add(duration);
 
-    _cartTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _cartTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       final remaining = endTime.difference(DateTime.now());
 
       if (remaining <= Duration.zero) {

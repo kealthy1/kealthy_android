@@ -61,7 +61,7 @@ class _HomeCategoryState extends ConsumerState<FoodCategory>
                               context,
                               CupertinoPageRoute(
                                 builder: (context) => const FoodSubCategoryPage(
-                                  itemCategory: 'food',
+                                  
                                 ),
                               ),
                             );

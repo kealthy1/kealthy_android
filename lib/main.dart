@@ -22,6 +22,15 @@ void main() async {
     DeviceOrientation.portraitUp,
   ]);
 
+  // ✅ Set status bar color and brightness to prevent flicker
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent, // or any matching color
+      statusBarIconBrightness: Brightness.dark, // or Brightness.light
+      statusBarBrightness: Brightness.light,
+    ),
+  );
+
   try {
     await NotificationService.instance.initialize();
     await NotificationService.instance.setupFlutterNotifications();
@@ -29,6 +38,7 @@ void main() async {
   } catch (e) {
     print("[MAIN] Error initializing notification service: $e");
   }
+
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   runApp(
@@ -37,6 +47,7 @@ void main() async {
     ),
   );
 }
+
 
 class MyApp extends ConsumerWidget {
   final GlobalKey<NavigatorState> navigatorKey;

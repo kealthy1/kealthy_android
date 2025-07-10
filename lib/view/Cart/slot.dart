@@ -285,5 +285,5 @@ Future<bool> isSlotAvailable(String selectedSlotLabel) async {
 
   final existingOrders = snapshot.children.length;
   debugPrint('Orders for $selectedSlotLabel: $existingOrders');
-  return existingOrders < 10; // ⛔️ only allow 0, 1, or 2 orders — NOT 3+
+  return existingOrders < 15; // ⛔️ only allow 0, 1, or 2 orders — NOT 3+
 }

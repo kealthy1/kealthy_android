@@ -93,7 +93,7 @@ class OtpNotifier extends StateNotifier<OtpState> {
   }
 
   Future<void> resendOtp(String phoneNumber) async {
-    const url = 'https://api-jfnhkjk4nq-uc.a.run.app/resend-otp';
+    const url = 'https://api-jfnhkjk4nq-uc.a.run.app/send-otp';
     state = state.copyWith(isLoading: true);
 
     try {

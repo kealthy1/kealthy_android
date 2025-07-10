@@ -6,40 +6,48 @@ import 'package:kealthy/view/Cart/bill.dart';
 import 'package:kealthy/view/Cart/cart_controller.dart';
 import 'package:kealthy/view/Cart/checkout_provider.dart';
 import 'package:kealthy/view/Cart/instruction_container.dart';
-import 'package:kealthy/view/Toast/toast_helper.dart';
+import 'package:kealthy/view/food/food_subcategory.dart';
 import 'package:kealthy/view/payment/payment.dart'; // <-- NEW
+
+final isProceedingToPaymentProvider = StateProvider<bool>((ref) => false);
 
 // Asynchronous Provider for Address
 
 // Checkout Page
-class CheckoutPage extends ConsumerWidget {
+class CheckoutPage extends ConsumerStatefulWidget {
+  final String preferredTime;
   final double itemTotal;
   final List<CartItem> cartItems;
   final String deliveryTime;
-  // final double instantDeliveryfee;
 
   const CheckoutPage({
     super.key,
     required this.itemTotal,
     required this.cartItems,
     required this.deliveryTime,
-    // required this.instantDeliveryfee,
+    required this.preferredTime,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CheckoutPage> createState() => _CheckoutPageState();
+}
+
+class _CheckoutPageState extends ConsumerState<CheckoutPage> {
+  final TextEditingController packingInstructionsController =
+      TextEditingController();
+
+  @override
+  void dispose() {
+    packingInstructionsController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final firstOrderAsync = ref.watch(firstOrderProvider);
     double finalToPay = 0.0;
-
-// ignore: dead_code
     // Watch the addressProvider
     final addressAsyncValue = ref.watch(addressProvider);
-
-    final TextEditingController packingInstructionsController =
-        TextEditingController(
-      text: "Don't send cutleries, tissues, straws, etc.",
-    );
-
     return SafeArea(
       top: false,
       child: Scaffold(
@@ -70,11 +78,6 @@ class CheckoutPage extends ConsumerWidget {
               ),
             ),
             data: (isFirstOrder) {
-              final TextEditingController packingInstructionsController =
-                  TextEditingController(
-                text: "Don't send cutleries, tissues, straws, etc.",
-              );
-
               return SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,7 +174,7 @@ class CheckoutPage extends ConsumerWidget {
                                           ),
                                           const SizedBox(height: 5),
                                           Text(
-                                            'Delivery Time: $deliveryTime',
+                                            'Delivery Time: ${widget.deliveryTime}',
                                             style: GoogleFonts.poppins(
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
@@ -215,6 +218,12 @@ class CheckoutPage extends ConsumerWidget {
                                       ),
                                       cursorColor: Colors.black,
                                       decoration: InputDecoration(
+                                        hintText:
+                                            "Don't send cutleries, tissues, straws, etc.",
+                                        hintStyle: GoogleFonts.poppins(
+                                          fontSize: 13,
+                                          color: Colors.grey.shade600,
+                                        ),
                                         contentPadding:
                                             const EdgeInsets.symmetric(
                                           horizontal: 15,
@@ -314,7 +323,7 @@ class CheckoutPage extends ConsumerWidget {
                                         const SizedBox(width: 10),
                                         Expanded(
                                           child: Text(
-                                            "Congratulations! You get ₹${itemTotal >= 50 ? 50 : itemTotal.toStringAsFixed(0)} off on your first order.",
+                                            "Congratulations! You get ₹${widget.itemTotal >= 50 ? 50 : widget.itemTotal.toStringAsFixed(0)} off on your first order.",
                                             style: GoogleFonts.poppins(
                                               color: Colors.green.shade800,
                                               fontSize: 12,
@@ -329,10 +338,12 @@ class CheckoutPage extends ConsumerWidget {
 
                                 // Final bill
                                 BillDetailsWidget(
-                                  itemTotal: itemTotal,
+                                  itemTotal: widget.itemTotal,
                                   distanceInKm: distanceInKm,
                                   offerDiscount: isFirstOrder
-                                      ? (itemTotal >= 100 ? 100.0 : itemTotal)
+                                      ? (widget.itemTotal >= 100
+                                          ? 100.0
+                                          : widget.itemTotal)
                                       : 0.0,
                                   onTotalCalculated: (value) {
                                     finalToPay = value;
@@ -350,82 +361,103 @@ class CheckoutPage extends ConsumerWidget {
             },
           ),
         ),
-        bottomSheet: Container(
-          width: double.infinity,
-          height: 90,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.3),
-                spreadRadius: 1,
-                blurRadius: 10,
-                offset: const Offset(0, -5),
-              ),
-            ],
-          ),
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(255, 65, 88, 108),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onPressed: () {
-              // Check if cart is empty before proceeding
-            final currentCartItems = ref.read(cartProvider);
-            if (currentCartItems.isEmpty) {
-              ToastHelper.showErrorToast('Your cart is expired!');
-              return;
-            }
-              // Access selected instructions and packing instructions
-              final instructions = getSelectedInstructions(ref);
-              final packingInstructions = packingInstructionsController.text;
+        bottomSheet: Consumer(
+          builder: (context, ref, _) {
+            final isProceeding = ref.watch(isProceedingToPaymentProvider);
+            final trialAsync = ref.watch(trialDishesProvider);
 
-              // Navigate to the payment page with required arguments
-              addressAsyncValue.whenData((selectedAddress) {
-                if (selectedAddress != null) {
-                  final double distanceInKm =
-                      double.tryParse(selectedAddress.distance) ?? 0.0;
-
-                  // Use helper methods:
-                  final double normalDeliveryFee =
-                      calculateDeliveryFee(itemTotal, distanceInKm);
-
-                  // 2) Combine Normal + Instant
-                  // final double offerDiscount = isFirstOrder ? 100.0 : 0.0;
-
-                  Navigator.push(
-                    context,
-                    CupertinoPageRoute(
-                      builder: (context) => PaymentPage(
-                        totalAmount: finalToPay,
-                        instructions: instructions,
-                        address: selectedAddress,
-                        deliverytime: deliveryTime,
-                        packingInstructions: packingInstructions,
-                        deliveryfee: normalDeliveryFee,
-                        //instantDeliveryFee: instantDeliveryfee,
-                      ),
-                    ),
-                  );
-                }
-              });
-            },
-            child: Text(
-              'Proceed to Payment',
-              style: GoogleFonts.poppins(
+            return Container(
+              width: double.infinity,
+              height: 90,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
                 color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    spreadRadius: 1,
+                    blurRadius: 10,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
               ),
-            ),
-          ),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 65, 88, 108),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: trialAsync is AsyncLoading || isProceeding
+                    ? null
+                    : () async {
+                        final currentCartItems = ref.read(cartProvider);
+                        if (currentCartItems.isEmpty) return;
+
+                        ref.read(isProceedingToPaymentProvider.notifier).state =
+                            true;
+
+                        final trialDishes = trialAsync.value ?? [];
+                        final trialDishNames =
+                            trialDishes.map((d) => d.name).toSet();
+                        final containsTrial = currentCartItems
+                            .any((item) => trialDishNames.contains(item.name));
+
+                        final initialPaymentMethod = containsTrial
+                            ? 'Online Payment'
+                            : 'Cash on Delivery';
+
+                        final instructions = getSelectedInstructions(ref);
+                        final packingInstructions =
+                            packingInstructionsController.text;
+
+                        final selectedAddress =
+                            await ref.read(addressProvider.future);
+
+                        if (selectedAddress != null) {
+                          final double distanceInKm =
+                              double.tryParse(selectedAddress.distance) ?? 0.0;
+
+                          final double normalDeliveryFee = calculateDeliveryFee(
+                              widget.itemTotal, distanceInKm);
+
+                          Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                              builder: (context) => PaymentPage(
+                                preferredTime: widget.preferredTime,
+                                totalAmount: finalToPay,
+                                instructions: instructions,
+                                address: selectedAddress,
+                                deliverytime: widget.deliveryTime,
+                                packingInstructions: packingInstructions,
+                                deliveryfee: normalDeliveryFee,
+                                initialPaymentMethod: initialPaymentMethod,
+                              ),
+                            ),
+                          );
+                        }
+
+                        ref.read(isProceedingToPaymentProvider.notifier).state =
+                            false;
+                      },
+                child: isProceeding
+                    ? const CupertinoActivityIndicator(color: Colors.white)
+                    : Text(
+                        'Proceed to Payment',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+              ),
+            );
+          },
         ),
       ),
     );

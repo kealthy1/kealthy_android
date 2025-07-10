@@ -37,44 +37,47 @@ class PaymentDialogHelper {
           }
         });
 
-        return AlertDialog(
-          content: Consumer(
-            builder: (context, ref, child) {
-              final countdown = ref.watch(countdownProvider);
-
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Lottie Animation
-                  SizedBox(
-                    height: 150,
-                    width: 150,
-                    child: Lottie.asset(
-                      'lib/assets/animations/Animation - 1731992471934.json',
+        return WillPopScope(
+          onWillPop: () async => false, 
+          child: AlertDialog(
+            content: Consumer(
+              builder: (context, ref, child) {
+                final countdown = ref.watch(countdownProvider);
+          
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Lottie Animation
+                    SizedBox(
+                      height: 150,
+                      width: 150,
+                      child: Lottie.asset(
+                        'lib/assets/animations/Animation - 1731992471934.json',
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    "Order placed!",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                    const SizedBox(height: 20),
+                    Text(
+                      "Order placed!",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
                     ),
-                  ),
-                  Text(
-                    "Redirecting in $countdown seconds...",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                    Text(
+                      "Redirecting in $countdown seconds...",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                ],
-              );
-            },
+                  ],
+                );
+              },
+            ),
           ),
         );
       },
@@ -90,56 +93,59 @@ class PaymentDialogHelper {
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.white, // Prevents tapping outside to dismiss
-      builder: (context) => AlertDialog(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              height: 150,
-              width: 150,
-              child: Lottie.asset(
-                'lib/assets/animations/Animation - 1731995566846.json',
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              "Payment Failed!",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: const Color.fromARGB(255, 65, 88, 108),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 65, 88, 108),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+      builder: (context) => WillPopScope(
+        onWillPop: () async => false, 
+        child: AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                height: 150,
+                width: 150,
+                child: Lottie.asset(
+                  'lib/assets/animations/Animation - 1731995566846.json',
                 ),
               ),
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const BottomNavBar(),
-                  ),
-                  (Route<dynamic> route) => false,
-                );
-              },
-              child: Text(
-                "Close",
+              const SizedBox(height: 20),
+              Text(
+                "Payment Failed!",
+                textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: const Color.fromARGB(255, 65, 88, 108),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 65, 88, 108),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const BottomNavBar(),
+                    ),
+                    (Route<dynamic> route) => false,
+                  );
+                },
+                child: Text(
+                  "Close",
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

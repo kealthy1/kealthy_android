@@ -22,10 +22,12 @@ class TimePage extends ConsumerStatefulWidget {
 }
 
 class _TimePageState extends ConsumerState<TimePage> {
+   late TextEditingController preferredTimeController;
   @override
   void initState() {
     super.initState();
     checkTimeBoundaries(ref);
+     preferredTimeController = TextEditingController();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkFirstOrder(); // call async helper
@@ -38,6 +40,12 @@ class _TimePageState extends ConsumerState<TimePage> {
 
     final firstOrderNotifier = ref.read(firstOrderProvider.notifier);
     await firstOrderNotifier.checkFirstOrder(phone);
+  }
+
+  @override
+  void dispose() {
+    preferredTimeController.dispose();
+    super.dispose();
   }
 
   @override
@@ -292,6 +300,42 @@ class _TimePageState extends ConsumerState<TimePage> {
                   )),
                   SizedBox(height: 10,),
                 const SlotSelectionContainer(),
+                 const SizedBox(height: 20),
+              Text(
+                'Delivery Suggestions (Optional)',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: preferredTimeController,
+                decoration: InputDecoration(
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(
+                      color: Colors.grey.shade300,
+                      width: 1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(
+                      color: Colors.grey.shade300,
+                      width: 1,
+                    ),
+                  ),
+                  hintText: 'Eg: Deliver between 1:00 PM -  2:00 PM',
+                  hintStyle: GoogleFonts.poppins(fontSize: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                ),
+              ),
                 const SizedBox(height: 100),
               ],
             ),
@@ -387,6 +431,7 @@ class _TimePageState extends ConsumerState<TimePage> {
                         context,
                         CupertinoPageRoute(
                           builder: (context) => CheckoutPage(
+                             preferredTime: preferredTimeController.text,
                             itemTotal: baseTotal,
                             cartItems: ref.read(cartProvider),
                             deliveryTime: deliveryTime,
