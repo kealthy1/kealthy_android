@@ -11,27 +11,28 @@ class InAppUpdateService {
   InAppUpdateService._internal();
 
   Future<void> checkForUpdate(BuildContext context) async {
-  try {
-    final updateInfo = await InAppUpdate.checkForUpdate();
+    try {
+      final updateInfo = await InAppUpdate.checkForUpdate();
 
-    if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
-      if (updateInfo.immediateUpdateAllowed) {
-        // 🚫 User cannot skip this update once started
-        await InAppUpdate.performImmediateUpdate().catchError((e) {
-          debugPrint("⛔️ Immediate update cancelled or failed: $e");
-          _showBlockerDialog(context); // Force update on cancel
-        });
+      if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+        if (updateInfo.immediateUpdateAllowed) {
+          // 🚫 User cannot skip this update once started
+          await InAppUpdate.performImmediateUpdate().catchError((e) {
+            debugPrint("⛔️ Immediate update cancelled or failed: $e");
+            _showBlockerDialog(context); // Force update on cancel
+            return AppUpdateResult.inAppUpdateFailed;
+          });
+        } else {
+          _showBlockerDialog(context); // Immediate not allowed
+        }
       } else {
-        _showBlockerDialog(context); // Immediate not allowed
+        debugPrint("✅ App is up-to-date.");
       }
-    } else {
-      debugPrint("✅ App is up-to-date.");
+    } catch (e) {
+      debugPrint("❌ In-app update check failed: $e");
+      _showBlockerDialog(context); // Network failure or unsupported
     }
-  } catch (e) {
-    debugPrint("❌ In-app update check failed: $e");
-    _showBlockerDialog(context); // Network failure or unsupported
   }
-}
 
   void _showBlockerDialog(BuildContext context) {
     showDialog(

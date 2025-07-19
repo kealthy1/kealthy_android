@@ -1,106 +1,106 @@
-import 'dart:convert';
+// import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_database/firebase_database.dart';
+// import 'package:firebase_core/firebase_core.dart';
+// import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
+// import 'package:http/http.dart' as http;
 import 'package:kealthy/view/Cart/cart_controller.dart';
 import 'package:kealthy/view/Toast/toast_helper.dart';
-import 'package:kealthy/view/food/food_subcategory.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:kealthy/view/food/food_subcategory.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 
-bool _isTrialDish(String name, WidgetRef ref) {
-  final trialDishes = ref.read(trialDishesProvider).asData?.value ?? [];
-  return trialDishes.any((dish) => dish.name == name);
-}
+// bool _isTrialDish(String name, WidgetRef ref) {
+//   final trialDishes = ref.read(trialDishesProvider).asData?.value ?? [];
+//   return trialDishes.any((dish) => dish.name == name);
+// }
 
-Future<int> getTodayOrderedQuantity({
-  required String phoneNumber,
-  required String productName,
-}) async {
-  int totalQty = 0;
+// Future<int> getTodayOrderedQuantity({
+//   required String phoneNumber,
+//   required String productName,
+// }) async {
+//   int totalQty = 0;
 
-  final today = DateTime.now();
-  final todayStart = DateTime(today.year, today.month, today.day);
+//   final today = DateTime.now();
+//   final todayStart = DateTime(today.year, today.month, today.day);
 
-  // 🔹 Step 1: Check Realtime Database orders
-  try {
-    final db = FirebaseDatabase.instanceFor(
-      app: Firebase.app(),
-      databaseURL: 'https://kealthy-90c55-dd236.firebaseio.com/',
-    );
+//   // 🔹 Step 1: Check Realtime Database orders
+//   try {
+//     final db = FirebaseDatabase.instanceFor(
+//       app: Firebase.app(),
+//       databaseURL: 'https://kealthy-90c55-dd236.firebaseio.com/',
+//     );
 
-    final snapshot = await db
-        .ref('orders')
-        .orderByChild('phoneNumber')
-        .equalTo(phoneNumber)
-        .get();
+//     final snapshot = await db
+//         .ref('orders')
+//         .orderByChild('phoneNumber')
+//         .equalTo(phoneNumber)
+//         .get();
 
-    if (snapshot.exists) {
-      print('🔍 Checking Realtime DB for $productName on $phoneNumber');
+//     if (snapshot.exists) {
+//       print('🔍 Checking Realtime DB for $productName on $phoneNumber');
 
-      for (final order in snapshot.children) {
-        final data = Map<String, dynamic>.from(order.value as Map);
-        final createdAt =
-            DateTime.tryParse(data['createdAt'] ?? '') ?? DateTime(2000);
+//       for (final order in snapshot.children) {
+//         final data = Map<String, dynamic>.from(order.value as Map);
+//         final createdAt =
+//             DateTime.tryParse(data['createdAt'] ?? '') ?? DateTime(2000);
 
-        if (createdAt.isAfter(todayStart)) {
-          final orderItems = List<Map>.from(data['orderItems'] ?? []);
-          for (final item in orderItems) {
-            if (item['item_name'] == productName) {
-              totalQty += (item['item_quantity'] ?? 0) is int
-                  ? (item['item_quantity'] ?? 0) as int
-                  : ((item['item_quantity'] ?? 0) as num).toInt();
-            }
-          }
-        }
-      }
-    }
-  } catch (e) {
-    print('⚠️ Error in Realtime DB check: $e');
-  }
+//         if (createdAt.isAfter(todayStart)) {
+//           final orderItems = List<Map>.from(data['orderItems'] ?? []);
+//           for (final item in orderItems) {
+//             if (item['item_name'] == productName) {
+//               totalQty += (item['item_quantity'] ?? 0) is int
+//                   ? (item['item_quantity'] ?? 0) as int
+//                   : ((item['item_quantity'] ?? 0) as num).toInt();
+//             }
+//           }
+//         }
+//       }
+//     }
+//   } catch (e) {
+//     print('⚠️ Error in Realtime DB check: $e');
+//   }
 
-  // 🔹 Step 2: Check API-based orders (e.g., from past DB)
-  try {
-    final response = await http.get(
-      Uri.parse('https://api-jfnhkjk4nq-uc.a.run.app/orders/$phoneNumber'),
-    );
+//   // 🔹 Step 2: Check API-based orders (e.g., from past DB)
+//   try {
+//     final response = await http.get(
+//       Uri.parse('https://api-jfnhkjk4nq-uc.a.run.app/orders/$phoneNumber'),
+//     );
 
-    if (response.statusCode == 200) {
-       final responseData = jsonDecode(response.body);
+//     if (response.statusCode == 200) {
+//        final responseData = jsonDecode(response.body);
 
-      if (responseData is Map && responseData.containsKey('orders')) {
-        final List<dynamic> orders = responseData['orders'] ?? [];
+//       if (responseData is Map && responseData.containsKey('orders')) {
+//         final List<dynamic> orders = responseData['orders'] ?? [];
 
-        for (final order in orders) {
-          final createdAt = DateTime.tryParse(order['createdAt'] ?? '');
-          if (createdAt != null && createdAt.isAfter(todayStart)) {
-            final orderItems = List<Map<String, dynamic>>.from(order['orderItems'] ?? []);
-            for (final item in orderItems) {
-              if (item['item_name'] == productName) {
-                totalQty += (item['item_quantity'] ?? 0) is int
-                    ? (item['item_quantity'] ?? 0) as int
-                    : ((item['item_quantity'] ?? 0) as num).toInt();
-              }
-            }
-          }
-        }
-         } else {
-        print('⚠️ Unexpected API format: $responseData');
-      }
-    } else {
-      print('⚠️ API failed with status: ${response.statusCode}');
-    }
-  } catch (e) {
-    print('⚠️ Error fetching API orders: $e');
-  }
+//         for (final order in orders) {
+//           final createdAt = DateTime.tryParse(order['createdAt'] ?? '');
+//           if (createdAt != null && createdAt.isAfter(todayStart)) {
+//             final orderItems = List<Map<String, dynamic>>.from(order['orderItems'] ?? []);
+//             for (final item in orderItems) {
+//               if (item['item_name'] == productName) {
+//                 totalQty += (item['item_quantity'] ?? 0) is int
+//                     ? (item['item_quantity'] ?? 0) as int
+//                     : ((item['item_quantity'] ?? 0) as num).toInt();
+//               }
+//             }
+//           }
+//         }
+//          } else {
+//         print('⚠️ Unexpected API format: $responseData');
+//       }
+//     } else {
+//       print('⚠️ API failed with status: ${response.statusCode}');
+//     }
+//   } catch (e) {
+//     print('⚠️ Error fetching API orders: $e');
+//   }
 
-  print('✅ Total ordered today for $productName: $totalQty');
-  return totalQty;
-}
+//   print('✅ Total ordered today for $productName: $totalQty');
+//   return totalQty;
+// }
 
 class AddToCartSection extends ConsumerStatefulWidget {
   final String productName;
@@ -161,7 +161,7 @@ class _AddToCartSectionState extends ConsumerState<AddToCartSection>
         children: [
           Container(
             height: 40,
-            width: MediaQuery.of(context).size.width * 0.30,
+            width: MediaQuery.of(context).size.width * 0.35,
             decoration: BoxDecoration(
               color: Colors.grey.shade400, // Grey out the button
               borderRadius: BorderRadius.circular(10),
@@ -197,23 +197,23 @@ class _AddToCartSectionState extends ConsumerState<AddToCartSection>
           onTap: loading
               ? null
               : () async {
-                  final prefs = await SharedPreferences.getInstance();
-                  final phoneNumber = prefs.getString('phoneNumber') ?? '';
+                  // final prefs = await SharedPreferences.getInstance();
+                  // final phoneNumber = prefs.getString('phoneNumber') ?? '';
 
                   // ✅ Trial dish logic
-                  if (_isTrialDish(widget.productName,ref)) {
-                    final alreadyOrderedToday = await getTodayOrderedQuantity(
-                      phoneNumber: phoneNumber,
-                      productName: widget.productName,
-                    );
+                  // if (_isTrialDish(widget.productName,ref)) {
+                  //   final alreadyOrderedToday = await getTodayOrderedQuantity(
+                  //     phoneNumber: phoneNumber,
+                  //     productName: widget.productName,
+                  //   );
 
-                    if (alreadyOrderedToday >= 1) {
-                      ToastHelper.showErrorToast(
-                        'Daily limit reached: You can only order 1 of this item per day.',
-                      );
-                      return;
-                    }
-                  }
+                  // if (alreadyOrderedToday >= 1) {
+                  //   ToastHelper.showErrorToast(
+                  //     'Daily limit reached: You can only order 1 of this item per day.',
+                  //   );
+                  //   return;
+                  // }
+                  // }
 
                   // ✅ Prevent double-add from BUY NOW
                   final itemInCart = ref
@@ -228,7 +228,6 @@ class _AddToCartSectionState extends ConsumerState<AddToCartSection>
                       ean: widget.productEAN,
                       imageUrl: widget.imageurl,
                       quantity: 1,
-                       
                     ),
                   );
 
@@ -238,7 +237,7 @@ class _AddToCartSectionState extends ConsumerState<AddToCartSection>
             children: [
               Container(
                 height: 40,
-                width: MediaQuery.of(context).size.width * 0.30,
+                width: MediaQuery.of(context).size.width * 0.35,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10),
@@ -282,7 +281,7 @@ class _AddToCartSectionState extends ConsumerState<AddToCartSection>
         children: [
           Container(
             height: 40,
-            width: MediaQuery.of(context).size.width * 0.30,
+            width: MediaQuery.of(context).size.width * 0.35,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -315,33 +314,33 @@ class _AddToCartSectionState extends ConsumerState<AddToCartSection>
                         : Colors.green,
                   ),
                   onPressed: () async {
-                    if (_isTrialDish(widget.productName,ref)) {
-                      if (widget.maxQuantity != null &&
-                          cartItem.quantity >= widget.maxQuantity!) {
-                        ToastHelper.showErrorToast(
-                          'You can only select 1 quantities for trial dishes.',
-                        );
-                        return;
-                      }
+                    // if (_isTrialDish(widget.productName,ref)) {
+                    //   if (widget.maxQuantity != null &&
+                    //       cartItem.quantity >= widget.maxQuantity!) {
+                    //     ToastHelper.showErrorToast(
+                    //       'You can only select 1 quantities for trial dishes.',
+                    //     );
+                    //     return;
+                    //   }
 
-                      final prefs = await SharedPreferences.getInstance();
-                      final phoneNumber = prefs.getString('phoneNumber') ?? '';
+                    // final prefs = await SharedPreferences.getInstance();
+                    // final phoneNumber = prefs.getString('phoneNumber') ?? '';
 
-                      int alreadyOrderedToday = await getTodayOrderedQuantity(
-                        phoneNumber: phoneNumber,
-                        productName: widget.productName,
-                      );
+                    // int alreadyOrderedToday = await getTodayOrderedQuantity(
+                    //   phoneNumber: phoneNumber,
+                    //   productName: widget.productName,
+                    // );
 
-                      int totalIfAdded =
-                          alreadyOrderedToday + cartItem.quantity + 1;
+                    // int totalIfAdded =
+                    //     alreadyOrderedToday + cartItem.quantity + 1;
 
-                      if (totalIfAdded > 1) {
-                        ToastHelper.showErrorToast(
-                          'Daily limit reached: You can only order 1 quantities of this item per day.',
-                        );
-                        return;
-                      }
-                    }
+                    // if (totalIfAdded > 1) {
+                    //   ToastHelper.showErrorToast(
+                    //     'Daily limit reached: You can only order 1 quantities of this item per day.',
+                    //   );
+                    //   return;
+                    // }
+                    // }
 
                     await cartNotifier.incrementItem(widget.productName);
                   },

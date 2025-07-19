@@ -4,19 +4,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/view/Cart/cart_controller.dart';
 import 'package:kealthy/view/Cart/time.dart';
-import 'package:kealthy/view/Toast/toast_helper.dart';
+// import 'package:kealthy/view/Toast/toast_helper.dart';
 import 'package:kealthy/view/address/adress.dart';
 import 'package:kealthy/view/address/provider.dart';
-import 'package:kealthy/view/food/food_subcategory.dart';
-import 'package:kealthy/view/product/add_to_cart.dart';
+// import 'package:kealthy/view/food/food_subcategory.dart';
+// import 'package:kealthy/view/product/add_to_cart.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-bool _isTrialDish(String name, WidgetRef ref) {
-  final trialDishes = ref.read(trialDishesProvider).asData?.value ?? [];
-  return trialDishes.any((dish) => dish.name == name);
-}
+// bool _isTrialDish(String name, WidgetRef ref) {
+//   final trialDishes = ref.read(trialDishesProvider).asData?.value ?? [];
+//   return trialDishes.any((dish) => dish.name == name);
+// }
 
 final slotAvailabilityProvider =
     StateProvider<bool>((ref) => true); // Default: slot available
@@ -338,13 +338,8 @@ class CartPage extends ConsumerWidget {
                                                         IconButton(
                                                             icon: Icon(
                                                               Icons.add,
-                                                              color: item.quantity >=
-                                                                          2 &&
-                                                                      _isTrialDish(item
-                                                                          .name,ref)
-                                                                  ? Colors.grey
-                                                                  : Colors
-                                                                      .black,
+                                                              color:
+                                                                  Colors.black,
                                                             ),
                                                             onPressed:
                                                                 () async {
@@ -355,38 +350,38 @@ class CartPage extends ConsumerWidget {
                                                                       item.name))
                                                                 return;
 
-                                                              if (_isTrialDish(
-                                                                  item.name,ref)) {
-                                                                final prefs =
-                                                                    await SharedPreferences
-                                                                        .getInstance();
-                                                                final phoneNumber =
-                                                                    prefs.getString(
-                                                                            'phoneNumber') ??
-                                                                        '';
+                                                              // if (_isTrialDish(
+                                                              //     item.name,ref)) {
+                                                              //   final prefs =
+                                                              //       await SharedPreferences
+                                                              //           .getInstance();
+                                                              //   final phoneNumber =
+                                                              //       prefs.getString(
+                                                              //               'phoneNumber') ??
+                                                              //           '';
 
-                                                                final alreadyOrderedToday =
-                                                                    await getTodayOrderedQuantity(
-                                                                  phoneNumber:
-                                                                      phoneNumber,
-                                                                  productName:
-                                                                      item.name,
-                                                                );
+                                                              // final alreadyOrderedToday =
+                                                              //     await getTodayOrderedQuantity(
+                                                              //   phoneNumber:
+                                                              //       phoneNumber,
+                                                              //   productName:
+                                                              //       item.name,
+                                                              // );
 
-                                                                final totalIfAdded =
-                                                                    alreadyOrderedToday +
-                                                                        item.quantity +
-                                                                        1;
+                                                              // final totalIfAdded =
+                                                              //     alreadyOrderedToday +
+                                                              //         item.quantity +
+                                                              //         1;
 
-                                                                if (totalIfAdded >
-                                                                    1) {
-                                                                  ToastHelper
-                                                                      .showErrorToast(
-                                                                    'Daily limit reached: Only 1 quantities allowed per day for this dish.',
-                                                                  );
-                                                                  return;
-                                                                }
-                                                              }
+                                                              //   if (totalIfAdded >
+                                                              //       1) {
+                                                              //     ToastHelper
+                                                              //         .showErrorToast(
+                                                              //       'Daily limit reached: Only 1 quantities allowed per day for this dish.',
+                                                              //     );
+                                                              //     return;
+                                                              //   }
+                                                              // }
 
                                                               ref
                                                                   .read(cartProvider

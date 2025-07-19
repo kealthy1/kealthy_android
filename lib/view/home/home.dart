@@ -56,7 +56,7 @@ class _HomePageState extends ConsumerState<HomePage>
   late AnimationController _badgeController;
   late Animation<double> _badgeAnimation;
 
-void showKitchenDialog(BuildContext context, WidgetRef ref) {
+  void showKitchenDialog(BuildContext context, WidgetRef ref) {
     Future.delayed(const Duration(milliseconds: 500), () {
       showGeneralDialog(
         context: context,
@@ -143,13 +143,24 @@ void showKitchenDialog(BuildContext context, WidgetRef ref) {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      InAppUpdateService().checkForUpdate(context);
+      //InAppUpdateService().checkForUpdate(context);
       ref.read(cartProvider.notifier).loadCartItems();
       checkLocationPermission(ref);
       ref.read(locationDataProvider);
       if (!hasShownDialog) {
         hasShownDialog = true;
-        showKitchenDialog(context, ref); // 👈 Show on first open
+        // Use SharedPreferences to show kitchen dialog only once per day
+        SharedPreferences.getInstance().then((prefs) {
+          final today = DateTime.now();
+          final todayString = "${today.year}-${today.month}-${today.day}";
+
+          final lastShown = prefs.getString('lastKitchenDialogDate');
+
+          if (lastShown != todayString) {
+            showKitchenDialog(context, ref);
+            prefs.setString('lastKitchenDialogDate', todayString);
+          }
+        });
       }
 
       // Show combined deal alert dialog for deal of the day and week, up to two times per day
@@ -850,21 +861,9 @@ void showKitchenDialog(BuildContext context, WidgetRef ref) {
                 return const OrderFeedbackAlert();
               },
             ),
-            ValueListenableBuilder<bool>(
-              valueListenable: showCartContainer,
-              builder: (context, showCart, child) {
-                return IgnorePointer(
-                  ignoring: !showCart,
-                  child: AnimatedOpacity(
-                    opacity: showCart ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 300),
-                    child: const Align(
-                      alignment: Alignment.bottomCenter,
-                      child: CartContainer(),
-                    ),
-                  ),
-                );
-              },
+            const Align(
+              alignment: Alignment.bottomCenter,
+              child: CartContainer(),
             ),
             if (!_hasLocationPermission) Container(),
           ],

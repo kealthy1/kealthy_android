@@ -47,7 +47,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
     final firstOrderAsync = ref.watch(firstOrderProvider);
     double finalToPay = 0.0;
     // Watch the addressProvider
-    final addressAsyncValue = ref.watch(addressProvider);
+    ref.watch(addressProvider);
     return SafeArea(
       top: false,
       child: Scaffold(

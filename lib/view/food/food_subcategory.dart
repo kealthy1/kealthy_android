@@ -11,7 +11,6 @@ import 'package:kealthy/view/product/add_to_cart.dart';
 
 import 'package:shimmer/shimmer.dart';
 
-
 /// Model that maps your Firestore document
 class TrialDish {
   final String name;
@@ -32,46 +31,46 @@ class TrialDish {
   final String whatisitusedfor; // added
   final String sugar; // added
   final String carbs; // added
+  final String ean;
 
-
-
-  TrialDish({
-    required this.name,
-    required this.stock,
-    required this.price,
-    required this.quantity,
-    required this.ingredients,
-    required this.imageurl,
-    required this.what,
-    required this.nutrients,
-    required this.fiber,
-    required this.energy,
-    required this.protein,
-    required this.saturatedFat,
-    required this.totalFat,
-    required this.transFat,
-    required this.unsaturatedFat,
-    required this.whatisitusedfor,
-    required this.sugar,
-    required this.carbs,
-  });
+  TrialDish(
+      {required this.name,
+      required this.stock,
+      required this.price,
+      required this.quantity,
+      required this.ingredients,
+      required this.imageurl,
+      required this.what,
+      required this.nutrients,
+      required this.fiber,
+      required this.energy,
+      required this.protein,
+      required this.saturatedFat,
+      required this.totalFat,
+      required this.transFat,
+      required this.unsaturatedFat,
+      required this.whatisitusedfor,
+      required this.sugar,
+      required this.carbs,
+      required this.ean});
 
   factory TrialDish.fromFirestore(Map<String, dynamic> data) {
     return TrialDish(
       name: data['Name'] ?? '',
-      carbs : data['Total Carbohydrates (g)'] ?? '',
-      sugar : data['Sugars (g)'] ?? '',
+      carbs: data['Total Carbohydrates (g)'] ?? '',
+      sugar: data['Sugars (g)'] ?? '',
       unsaturatedFat: data['Unsaturated Fat (g)'] ?? '',
       transFat: data['Trans Fat (g)'] ?? '',
       totalFat: data['Total Fat (g)'] ?? '',
       saturatedFat: data['Saturated Fat (g)'] ?? '',
-      protein : data['Protein (g)'] ?? '',
-      what : data['What is it?'] ?? '',
+      protein: data['Protein (g)'] ?? '',
+      what: data['What is it?'] ?? '',
       whatisitusedfor: data['What is it used for?'] ?? '',
       energy: data['Energy (kcal)'] ?? '',
-      fiber :data ['Dietary Fiber (g)'] ?? '',
+      fiber: data['Dietary Fiber (g)'] ?? '',
       nutrients: data['Vendor Name'] ?? '',
       stock: data['SOH'] ?? 0,
+      ean: data['EAN'] ?? '',
       price: data['Price'] ?? 0,
       quantity: data['Qty'] ?? '',
       ingredients: (data['Ingredients'] as List?)?.join(', ') ?? '',
@@ -125,7 +124,7 @@ class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Trial Dishes',
+          'Healthy Lunch',
           style: GoogleFonts.poppins(
             color: Colors.black,
             fontSize: 20,
@@ -219,15 +218,8 @@ class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                ...dishes.map(_buildFoodItem).toList(),
+                ...dishes.map(_buildFoodItem),
                 const SizedBox(height: 12),
-                Text(
-                  '*Introductory price',
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    color: Colors.black,
-                  ),
-                ),
               ],
             ),
           );
@@ -293,7 +285,7 @@ class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
             ],
           ),
           // Move price/AddToCart row and ingredients section here
-         
+
           const SizedBox(height: 12),
           Text(
             'Ingredients:',
@@ -302,10 +294,10 @@ class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
           const SizedBox(height: 4),
           IngredientText(dish: dish),
           const SizedBox(height: 12),
-           Row(
+          Row(
             children: [
               Text(
-                "\u20B9${dish.price}*",
+                "\u20B9${dish.price}/-",
                 style: GoogleFonts.poppins(
                   fontSize: 20,
                   color: dish.stock > 0 ? Colors.black87 : Colors.grey,
@@ -317,14 +309,14 @@ class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
                 AddToCartSection(
                   productName: dish.name,
                   productPrice: dish.price,
-                  productEAN: '',
+                  productEAN: dish.ean,
                   soh: dish.stock,
                   imageurl: dish.imageurl,
-                  maxQuantity: 1,
                 )
               else
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(6),
@@ -339,7 +331,6 @@ class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
                 ),
             ],
           ),
-         
         ],
       ),
     );
@@ -379,44 +370,77 @@ class IngredientText extends StatelessWidget {
                       return AlertDialog(
                         title: Text(
                           'Additional Information',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.bold,
-                            fontSize: 18,),
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
                         ),
                         content: SingleChildScrollView(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              
                               RichText(
                                 text: TextSpan(
-                                  style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 14, color: Colors.black87),
                                   children: [
                                     const TextSpan(
                                       text: 'Ingredients: ',
-                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
                                     ),
                                     TextSpan(text: dish.ingredients),
                                     const TextSpan(text: '\n\n'),
                                     TextSpan(text: dish.what),
-                                    const TextSpan(text: '\n\nUsed for: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    const TextSpan(
+                                        text: '\n\nUsed for: ',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                     TextSpan(text: dish.whatisitusedfor),
-                                    const TextSpan(text: '\n\nEnergy: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    const TextSpan(
+                                        text: '\n\nEnergy: ',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                     TextSpan(text: dish.energy),
-                                    const TextSpan(text: '\nProtein: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    const TextSpan(
+                                        text: '\nProtein: ',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                     TextSpan(text: dish.protein),
-                                    const TextSpan(text: '\nFiber: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    const TextSpan(
+                                        text: '\nFiber: ',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                     TextSpan(text: dish.fiber),
-                                    const TextSpan(text: '\nTotal Fat: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    const TextSpan(
+                                        text: '\nTotal Fat: ',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                     TextSpan(text: dish.totalFat),
-                                    const TextSpan(text: '\nSaturated Fat: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    const TextSpan(
+                                        text: '\nSaturated Fat: ',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                     TextSpan(text: dish.saturatedFat),
-                                    const TextSpan(text: '\nUnsaturated Fat: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    const TextSpan(
+                                        text: '\nUnsaturated Fat: ',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                     TextSpan(text: dish.unsaturatedFat),
-                                    const TextSpan(text: '\nTrans Fat: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    const TextSpan(
+                                        text: '\nTrans Fat: ',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                     TextSpan(text: dish.transFat),
-                                    const TextSpan(text: '\nSugar: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    const TextSpan(
+                                        text: '\nSugar: ',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                     TextSpan(text: dish.sugar),
-                                    const TextSpan(text: '\nCarbs: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    const TextSpan(
+                                        text: '\nCarbs: ',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                     TextSpan(text: dish.carbs),
                                   ],
                                 ),

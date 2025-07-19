@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -80,8 +81,15 @@ class ReviewAlert extends ConsumerWidget {
         // 4) Sort by 'timestamp' descending so the newest notification is first
         //    Ensure your 'timestamp' is a valid DateTime or Timestamp field.
         delivered.sort((a, b) {
-          final aTime = a['timestamp']?.toDate() ?? DateTime(1970);
-          final bTime = b['timestamp']?.toDate() ?? DateTime(1970);
+          final aTimeRaw = a['timestamp'];
+          final bTimeRaw = b['timestamp'];
+          final aTime = aTimeRaw is Timestamp
+              ? aTimeRaw.toDate()
+              : DateTime.tryParse(aTimeRaw ?? '') ?? DateTime(1970);
+          final bTime = bTimeRaw is Timestamp
+              ? bTimeRaw.toDate()
+              : DateTime.tryParse(bTimeRaw ?? '') ?? DateTime(1970);
+
           return bTime.compareTo(aTime); // Descending
         });
 
