@@ -7,7 +7,7 @@ import 'package:kealthy/view/Cart/cart_controller.dart';
 import 'package:kealthy/view/Cart/checkout_provider.dart';
 import 'package:kealthy/view/Cart/instruction_container.dart';
 import 'package:kealthy/view/food/food_subcategory.dart';
-import 'package:kealthy/view/payment/payment.dart'; // <-- NEW
+import 'package:kealthy/view/payment/payment.dart';
 
 final isProceedingToPaymentProvider = StateProvider<bool>((ref) => false);
 
@@ -45,6 +45,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
   @override
   Widget build(BuildContext context) {
     final firstOrderAsync = ref.watch(firstOrderProvider);
+
     double finalToPay = 0.0;
     // Watch the addressProvider
     ref.watch(addressProvider);
@@ -302,8 +303,6 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                                 ),
 
                                 const SizedBox(height: 10),
-
-                                // Offer section
                                 if (isFirstOrder)
                                   Container(
                                     width: double.infinity,
@@ -334,6 +333,8 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                                     ),
                                   ),
 
+                                // Offer section
+
                                 const SizedBox(height: 15),
 
                                 // Final bill
@@ -341,8 +342,8 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                                   itemTotal: widget.itemTotal,
                                   distanceInKm: distanceInKm,
                                   offerDiscount: isFirstOrder
-                                      ? (widget.itemTotal >= 100
-                                          ? 100.0
+                                      ? (widget.itemTotal >= 50
+                                          ? 50.0
                                           : widget.itemTotal)
                                       : 0.0,
                                   onTotalCalculated: (value) {
@@ -364,7 +365,25 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
         bottomSheet: Consumer(
           builder: (context, ref, _) {
             final isProceeding = ref.watch(isProceedingToPaymentProvider);
-            final trialAsync = ref.watch(trialDishesProvider);
+
+            // Collect all trial dishes from all types in the cart
+            final cartTypes = widget.cartItems.map((item) => item.type).toSet();
+            final trialDishesByType = {
+              for (var type in cartTypes) type: ref.watch(dishesProvider(type)),
+            };
+
+            final isAnyLoading = trialDishesByType.values
+                .any((asyncValue) => asyncValue is AsyncLoading);
+
+            // final allTrialDishes = trialDishesByType.values
+            //     .whereType<AsyncData<List<TrialDish>>>()
+            //     .expand((async) => async.value)
+            //     .toList();
+
+            // final trialDishNames = allTrialDishes.map((d) => d.name).toSet();
+
+            // final containsTrial = widget.cartItems
+            //     .any((item) => trialDishNames.contains(item.name));
 
             return Container(
               width: double.infinity,
@@ -392,7 +411,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                onPressed: trialAsync is AsyncLoading || isProceeding
+                onPressed: isAnyLoading || isProceeding
                     ? null
                     : () async {
                         final currentCartItems = ref.read(cartProvider);
@@ -401,15 +420,9 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                         ref.read(isProceedingToPaymentProvider.notifier).state =
                             true;
 
-                        final trialDishes = trialAsync.value ?? [];
-                        final trialDishNames =
-                            trialDishes.map((d) => d.name).toSet();
-                        final containsTrial = currentCartItems
-                            .any((item) => trialDishNames.contains(item.name));
-
-                        final initialPaymentMethod = containsTrial
-                            ? 'Online Payment'
-                            : 'Cash on Delivery';
+                        // final initialPaymentMethod = containsTrial
+                        //     ? 'Online Payment'
+                        //     : 'Cash on Delivery';
 
                         final instructions = getSelectedInstructions(ref);
                         final packingInstructions =
@@ -436,7 +449,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                                 deliverytime: widget.deliveryTime,
                                 packingInstructions: packingInstructions,
                                 deliveryfee: normalDeliveryFee,
-                                initialPaymentMethod: initialPaymentMethod,
+                                initialPaymentMethod: '',
                               ),
                             ),
                           );

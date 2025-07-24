@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/view/food/food_subcategory.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -34,15 +33,22 @@ class _HomeCategoryState extends ConsumerState<FoodCategory>
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      future: firestore.collection('foodCategory').orderBy('Categories').get(),
+      future:
+          firestore.collection('foodSubcategory').orderBy('Categories').get(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
+          final customOrder = ['Breakfast', 'Lunch', '4 PM', 'Dinner'];
           final categories = snapshot.data?.docs.map((doc) {
             return {
               'Categories': doc.data()['Categories'],
               'image': doc.data()['imageurl'],
             };
           }).toList();
+          categories?.sort((a, b) {
+            final indexA = customOrder.indexOf(a['Categories']);
+            final indexB = customOrder.indexOf(b['Categories']);
+            return indexA.compareTo(indexB);
+          });
 
           if (categories != null) {
             preloadCategoryImages(categories);
@@ -60,55 +66,45 @@ class _HomeCategoryState extends ConsumerState<FoodCategory>
                             Navigator.push(
                               context,
                               CupertinoPageRoute(
-                                builder: (context) => const FoodSubCategoryPage(
-                                  
+                                builder: (context) => FoodSubCategoryPage(
+                                  categoryName:
+                                      category['Categories'] as String,
                                 ),
                               ),
                             );
                           },
                           child: SizedBox(
+                            width: (MediaQuery.of(context).size.width - 40),
                             child: Column(
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    child: Container(
-                                      decoration: const BoxDecoration(
-                                        color: Color(0xFFF4F4F5),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFF4F4F5),
+                                    ),
+                                    // Set your desired background color here
+                                    child: CachedNetworkImage(
+                                      imageUrl: category['image'] as String,
+                                      width: double.infinity,
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) =>
+                                          Shimmer.fromColors(
+                                        baseColor: Colors.grey[300]!,
+                                        highlightColor: Colors.grey[100]!,
+                                        child: Container(color: Colors.white),
                                       ),
-                                      // Set your desired background color here
-                                      child: CachedNetworkImage(
-                                        imageUrl: category['image'] as String,
-                                        width: double.infinity,
-                                        height: 100,
-                                        fit: BoxFit.cover,
-                                        placeholder: (context, url) =>
-                                            Shimmer.fromColors(
-                                          baseColor: Colors.grey[300]!,
-                                          highlightColor: Colors.grey[100]!,
-                                          child: Container(color: Colors.white),
-                                        ),
-                                        errorWidget: (context, url, error) =>
-                                            Shimmer.fromColors(
-                                          baseColor: Colors.grey[300]!,
-                                          highlightColor: Colors.grey[100]!,
-                                          child: Container(color: Colors.white),
-                                        ),
+                                      errorWidget: (context, url, error) =>
+                                          Shimmer.fromColors(
+                                        baseColor: Colors.grey[300]!,
+                                        highlightColor: Colors.grey[100]!,
+                                        child: Container(color: Colors.white),
                                       ),
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  category['Categories'] as String,
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.black54,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 10,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
+                                const SizedBox(height: 6),
                               ],
                             ),
                           ),
@@ -120,7 +116,7 @@ class _HomeCategoryState extends ConsumerState<FoodCategory>
             ),
           );
         } else {
-          return SizedBox();
+          return const SizedBox();
         }
       },
     );

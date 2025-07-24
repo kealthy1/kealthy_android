@@ -7,12 +7,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/view/Cart/cart_controller.dart';
-import 'package:kealthy/view/product/add_to_cart.dart';
-
+import 'package:kealthy/view/product/product_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 
 /// Model that maps your Firestore document
 class TrialDish {
+  final String id;
   final String name;
   final int stock;
   final int price;
@@ -31,31 +32,32 @@ class TrialDish {
   final String whatisitusedfor; // added
   final String sugar; // added
   final String carbs; // added
-  final String ean;
 
-  TrialDish(
-      {required this.name,
-      required this.stock,
-      required this.price,
-      required this.quantity,
-      required this.ingredients,
-      required this.imageurl,
-      required this.what,
-      required this.nutrients,
-      required this.fiber,
-      required this.energy,
-      required this.protein,
-      required this.saturatedFat,
-      required this.totalFat,
-      required this.transFat,
-      required this.unsaturatedFat,
-      required this.whatisitusedfor,
-      required this.sugar,
-      required this.carbs,
-      required this.ean});
+  TrialDish({
+    required this.id,
+    required this.name,
+    required this.stock,
+    required this.price,
+    required this.quantity,
+    required this.ingredients,
+    required this.imageurl,
+    required this.what,
+    required this.nutrients,
+    required this.fiber,
+    required this.energy,
+    required this.protein,
+    required this.saturatedFat,
+    required this.totalFat,
+    required this.transFat,
+    required this.unsaturatedFat,
+    required this.whatisitusedfor,
+    required this.sugar,
+    required this.carbs,
+  });
 
-  factory TrialDish.fromFirestore(Map<String, dynamic> data) {
+  factory TrialDish.fromFirestore(String id, Map<String, dynamic> data) {
     return TrialDish(
+      id: id,
       name: data['Name'] ?? '',
       carbs: data['Total Carbohydrates (g)'] ?? '',
       sugar: data['Sugars (g)'] ?? '',
@@ -70,7 +72,6 @@ class TrialDish {
       fiber: data['Dietary Fiber (g)'] ?? '',
       nutrients: data['Vendor Name'] ?? '',
       stock: data['SOH'] ?? 0,
-      ean: data['EAN'] ?? '',
       price: data['Price'] ?? 0,
       quantity: data['Qty'] ?? '',
       ingredients: (data['Ingredients'] as List?)?.join(', ') ?? '',
@@ -82,33 +83,24 @@ class TrialDish {
 }
 
 /// Riverpod StreamProvider to fetch data from Firestore
-final trialDishesProvider = StreamProvider<List<TrialDish>>((ref) async* {
-  final trialDoc = await FirebaseFirestore.instance
-      .collection('trail dish')
-      .doc('A9TFXmziRdIXE2Cg6yqQ')
-      .get();
-  final data = trialDoc.data();
-  if (data == null) {
-    yield [];
-    return;
-  }
-
-  final trialNames = data.values.map((v) => v.toString()).toList();
-
+final dishesProvider =
+    StreamProvider.family<List<TrialDish>, String?>((ref, categoryName) async* {
   yield* FirebaseFirestore.instance
       .collection('Products')
-      .where('Name', whereIn: trialNames)
+      .where('Type', isEqualTo: categoryName)
       .snapshots()
       .map((snapshot) {
     return snapshot.docs.map((doc) {
-      return TrialDish.fromFirestore(doc.data());
+      return TrialDish.fromFirestore(doc.id, doc.data());
     }).toList();
   });
 });
 
 class FoodSubCategoryPage extends ConsumerStatefulWidget {
+  final String categoryName;
   const FoodSubCategoryPage({
     super.key,
+    required this.categoryName,
   });
 
   @override
@@ -117,14 +109,15 @@ class FoodSubCategoryPage extends ConsumerStatefulWidget {
 }
 
 class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
+  final TextEditingController _suggestionController = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    final trialDishesAsync = ref.watch(trialDishesProvider);
+    final dishesAsync = ref.watch(dishesProvider(widget.categoryName));
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Healthy Lunch',
+          widget.categoryName,
           style: GoogleFonts.poppins(
             color: Colors.black,
             fontSize: 20,
@@ -186,41 +179,114 @@ class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
         ],
       ),
       backgroundColor: Colors.white,
-      body: trialDishesAsync.when(
+      body: dishesAsync.when(
         loading: () => const Center(child: CupertinoActivityIndicator()),
         error: (e, _) => const Center(child: Text("Error loading dishes")),
         data: (dishes) {
           print("Fetched dishes: ${dishes.length}");
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ListView(
-              children: [
-                Container(
-                  height: 50,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.shade100,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(10),
-                      bottomRight: Radius.circular(10),
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      'Lunch Only (12 PM - 3 PM)',
+          if (dishes.isEmpty) {
+            return Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset('lib/assets/images/restaurant.png',
+                        width: 60, color: Colors.black),
+                    const SizedBox(height: 16),
+                    Text(
+                      'New dishes coming soon!',
                       style: GoogleFonts.poppins(
-                        color: Colors.orange.shade800,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey,
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 24),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'What would you like to add to this menu?',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Column(
+                            children: [
+                              TextField(
+                                controller: _suggestionController,
+                                decoration: const InputDecoration(
+                                  hintText: 'Suggest a dish...',
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 10),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.black,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(5))),
+                                onPressed: () async {
+                                  final prefs =
+                                      await SharedPreferences.getInstance();
+                                  final phoneNumber =
+                                      prefs.getString('phoneNumber') ??
+                                          'Unknown';
+                                  final suggestion =
+                                      _suggestionController.text.trim();
+
+                                  if (suggestion.isNotEmpty) {
+                                    await FirebaseFirestore.instance
+                                        .collection('MenuSuggestions')
+                                        .add({
+                                      'suggestion': suggestion,
+                                      'phoneNumber': phoneNumber,
+                                      'timestamp': DateTime.now(),
+                                    });
+                                    _suggestionController.clear();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Thank you for your suggestion!')),
+                                    );
+                                  }
+                                },
+                                child: const Text(
+                                  'Submit',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                ...dishes.map(_buildFoodItem),
-                const SizedBox(height: 12),
-              ],
+              ),
+            );
+          }
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: GridView.builder(
+              itemCount: dishes.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 0.7,
+              ),
+              itemBuilder: (context, index) {
+                return _buildFoodItem(dishes[index]);
+              },
             ),
           );
         },
@@ -229,246 +295,245 @@ class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
   }
 
   Widget _buildFoodItem(TrialDish dish) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade300, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          CupertinoPageRoute(
+            builder: (context) => ProductPage(productId: dish.id),
+          ),
+        );
+      },
+      child: Stack(
         children: [
-          if (dish.imageurl.isNotEmpty)
-            ClipRRect(
+          Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color: Colors.white,
               borderRadius: BorderRadius.circular(10),
-              child: CachedNetworkImage(
-                imageUrl: dish.imageurl,
-                width: double.infinity,
-                height: 200,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                  child: Container(
-                    width: double.infinity,
-                    height: 200,
-                    color: Colors.white,
+              border: Border.all(color: Colors.grey.shade300, width: 1),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (dish.imageurl.isNotEmpty)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: CachedNetworkImage(
+                      imageUrl: dish.imageurl,
+                      width: double.infinity,
+                      height: MediaQuery.of(context).size.width * 0.32,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Shimmer.fromColors(
+                        baseColor: Colors.grey[300]!,
+                        highlightColor: Colors.grey[100]!,
+                        child: Container(
+                          width: double.infinity,
+                          height: 200,
+                          color: Colors.white,
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        height: 200,
+                        color: Colors.grey[200],
+                        child: const Center(
+                            child: Icon(Icons.image_not_supported)),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: Text(
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 3,
+                    dish.name,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-                errorWidget: (context, url, error) => Container(
-                  height: 200,
-                  color: Colors.grey[200],
-                  child: const Center(child: Icon(Icons.image_not_supported)),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text(
+                      "\u20B9${dish.price}",
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        color: dish.stock > 0 ? Colors.black87 : Colors.grey,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      dish.quantity,
+                      style: GoogleFonts.poppins(
+                          fontSize: 14, color: Colors.black),
+                    ),
+                  ],
                 ),
-              ),
+              ],
             ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
+          ),
+          if (dish.stock == 0)
+            Positioned(
+              top: 10,
+              left: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade600,
+                  borderRadius: BorderRadius.circular(4),
+                ),
                 child: Text(
-                  overflow: TextOverflow.visible,
-                  dish.name,
+                  'Out of Stock',
                   style: GoogleFonts.poppins(
-                    fontSize: 18,
+                    color: Colors.white,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              const SizedBox(width: 5),
-              Text(
-                "(${dish.quantity})",
-                style: GoogleFonts.poppins(fontSize: 14, color: Colors.black),
-              ),
-            ],
-          ),
-          // Move price/AddToCart row and ingredients section here
-
-          const SizedBox(height: 12),
-          Text(
-            'Ingredients:',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 4),
-          IngredientText(dish: dish),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Text(
-                "\u20B9${dish.price}/-",
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  color: dish.stock > 0 ? Colors.black87 : Colors.grey,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              if (dish.stock > 0)
-                AddToCartSection(
-                  productName: dish.name,
-                  productPrice: dish.price,
-                  productEAN: dish.ean,
-                  soh: dish.stock,
-                  imageurl: dish.imageurl,
-                )
-              else
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    'Out of Stock',
-                    style: GoogleFonts.poppins(
-                      color: Colors.redAccent,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-            ],
-          ),
+            ),
         ],
       ),
     );
   }
 }
 
-class IngredientText extends StatelessWidget {
-  final TrialDish dish;
+// class IngredientText extends StatelessWidget {
+//   final TrialDish dish;
 
-  const IngredientText({
-    super.key,
-    required this.dish,
-  });
+//   const IngredientText({
+//     super.key,
+//     required this.dish,
+//   });
 
-  @override
-  Widget build(BuildContext context) {
-    final exceedsLimit = dish.ingredients.length > 100;
+//   @override
+//   Widget build(BuildContext context) {
+//     final exceedsLimit = dish.ingredients.length > 100;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          dish.ingredients,
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
-        ),
-        if (exceedsLimit)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: Text(
-                          'Additional Information',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        content: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              RichText(
-                                text: TextSpan(
-                                  style: GoogleFonts.poppins(
-                                      fontSize: 14, color: Colors.black87),
-                                  children: [
-                                    const TextSpan(
-                                      text: 'Ingredients: ',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    TextSpan(text: dish.ingredients),
-                                    const TextSpan(text: '\n\n'),
-                                    TextSpan(text: dish.what),
-                                    const TextSpan(
-                                        text: '\n\nUsed for: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.whatisitusedfor),
-                                    const TextSpan(
-                                        text: '\n\nEnergy: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.energy),
-                                    const TextSpan(
-                                        text: '\nProtein: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.protein),
-                                    const TextSpan(
-                                        text: '\nFiber: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.fiber),
-                                    const TextSpan(
-                                        text: '\nTotal Fat: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.totalFat),
-                                    const TextSpan(
-                                        text: '\nSaturated Fat: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.saturatedFat),
-                                    const TextSpan(
-                                        text: '\nUnsaturated Fat: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.unsaturatedFat),
-                                    const TextSpan(
-                                        text: '\nTrans Fat: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.transFat),
-                                    const TextSpan(
-                                        text: '\nSugar: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.sugar),
-                                    const TextSpan(
-                                        text: '\nCarbs: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.carbs),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: Text(
-                              'Close',
-                              style: GoogleFonts.poppins(),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-                child: Text(
-                  'More',
-                  style: GoogleFonts.poppins(fontSize: 14, color: Colors.green),
-                ),
-              ),
-            ],
-          ),
-      ],
-    );
-  }
-}
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         Text(
+//           dish.ingredients,
+//           maxLines: 3,
+//           overflow: TextOverflow.ellipsis,
+//           style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
+//         ),
+//         if (exceedsLimit)
+//           Row(
+//             mainAxisAlignment: MainAxisAlignment.end,
+//             children: [
+//               TextButton(
+//                 onPressed: () {
+//                   showDialog(
+//                     context: context,
+//                     builder: (context) {
+//                       return AlertDialog(
+//                         title: Text(
+//                           'Additional Information',
+//                           style: GoogleFonts.poppins(
+//                             fontWeight: FontWeight.bold,
+//                             fontSize: 18,
+//                           ),
+//                         ),
+//                         content: SingleChildScrollView(
+//                           child: Column(
+//                             crossAxisAlignment: CrossAxisAlignment.start,
+//                             children: [
+//                               RichText(
+//                                 text: TextSpan(
+//                                   style: GoogleFonts.poppins(
+//                                       fontSize: 14, color: Colors.black87),
+//                                   children: [
+//                                     const TextSpan(
+//                                       text: 'Ingredients: ',
+//                                       style: TextStyle(
+//                                           fontWeight: FontWeight.bold),
+//                                     ),
+//                                     TextSpan(text: dish.ingredients),
+//                                     const TextSpan(text: '\n\n'),
+//                                     TextSpan(text: dish.what),
+//                                     const TextSpan(
+//                                         text: '\n\nUsed for: ',
+//                                         style: TextStyle(
+//                                             fontWeight: FontWeight.bold)),
+//                                     TextSpan(text: dish.whatisitusedfor),
+//                                     const TextSpan(
+//                                         text: '\n\nEnergy: ',
+//                                         style: TextStyle(
+//                                             fontWeight: FontWeight.bold)),
+//                                     TextSpan(text: dish.energy),
+//                                     const TextSpan(
+//                                         text: '\nProtein: ',
+//                                         style: TextStyle(
+//                                             fontWeight: FontWeight.bold)),
+//                                     TextSpan(text: dish.protein),
+//                                     const TextSpan(
+//                                         text: '\nFiber: ',
+//                                         style: TextStyle(
+//                                             fontWeight: FontWeight.bold)),
+//                                     TextSpan(text: dish.fiber),
+//                                     const TextSpan(
+//                                         text: '\nTotal Fat: ',
+//                                         style: TextStyle(
+//                                             fontWeight: FontWeight.bold)),
+//                                     TextSpan(text: dish.totalFat),
+//                                     const TextSpan(
+//                                         text: '\nSaturated Fat: ',
+//                                         style: TextStyle(
+//                                             fontWeight: FontWeight.bold)),
+//                                     TextSpan(text: dish.saturatedFat),
+//                                     const TextSpan(
+//                                         text: '\nUnsaturated Fat: ',
+//                                         style: TextStyle(
+//                                             fontWeight: FontWeight.bold)),
+//                                     TextSpan(text: dish.unsaturatedFat),
+//                                     const TextSpan(
+//                                         text: '\nTrans Fat: ',
+//                                         style: TextStyle(
+//                                             fontWeight: FontWeight.bold)),
+//                                     TextSpan(text: dish.transFat),
+//                                     const TextSpan(
+//                                         text: '\nSugar: ',
+//                                         style: TextStyle(
+//                                             fontWeight: FontWeight.bold)),
+//                                     TextSpan(text: dish.sugar),
+//                                     const TextSpan(
+//                                         text: '\nCarbs: ',
+//                                         style: TextStyle(
+//                                             fontWeight: FontWeight.bold)),
+//                                     TextSpan(text: dish.carbs),
+//                                   ],
+//                                 ),
+//                               ),
+//                             ],
+//                           ),
+//                         ),
+//                         actions: [
+//                           TextButton(
+//                             onPressed: () => Navigator.pop(context),
+//                             child: Text(
+//                               'Close',
+//                               style: GoogleFonts.poppins(),
+//                             ),
+//                           ),
+//                         ],
+//                       );
+//                     },
+//                   );
+//                 },
+//                 child: Text(
+//                   'More',
+//                   style: GoogleFonts.poppins(fontSize: 14, color: Colors.green),
+//                 ),
+//               ),
+//             ],
+//           ),
+//       ],
+//     );
+//   }
+// }

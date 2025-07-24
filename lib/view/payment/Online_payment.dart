@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,10 +16,11 @@ class OnlinePaymentProcessing extends ConsumerStatefulWidget {
   final dynamic address;
   final String deliverytime;
   final double deliveryFee;
-  //final double instantDeliveryFee;
+  // final double instantDeliveryFee;
   final String razorpayOrderId;
   final String orderType;
-   final String preferredTime;
+  final String preferredTime;
+  // final double offerDiscount;
 
   const OnlinePaymentProcessing({
     super.key,
@@ -30,10 +30,11 @@ class OnlinePaymentProcessing extends ConsumerStatefulWidget {
     required this.address,
     required this.deliverytime,
     required this.deliveryFee,
-    //required this.instantDeliveryFee,
+    // required this.instantDeliveryFee,
     required this.razorpayOrderId,
     required this.orderType,
-     required this.preferredTime,
+    required this.preferredTime,
+    // required this.offerDiscount,
   });
 
   @override
@@ -64,39 +65,20 @@ class _OnlinePaymentProcessingState
     final orderId = widget.razorpayOrderId;
 
     await OrderService.removeRazorpayOrderId();
+    await OrderService.decrementSOHForItems(widget.address);
+    await OrderService.saveNotificationToFirestore(
+        orderId, widget.address.cartItems);
 
-    // Payment succeeded, so let's save the order
-    if (widget.orderType == 'subscription') {
-      await OrderService.saveSubscriptionOrderToFirebase(
-        address: widget.address,
-        totalAmount: widget.totalAmount,
-        deliveryFee: widget.deliveryFee,
-        packingInstructions: widget.packingInstructions,
-        deliveryInstructions: widget.deliveryInstructions,
-        deliveryTime: widget.deliverytime,
-        //instantDeliveryFee: widget.instantDeliveryFee,
-        paymentMethod: "Online Payment",
-      );
-    } else {
-      await OrderService.saveOrderToFirebase(
-         preferredTime: widget.preferredTime,
-        address: widget.address,
-        totalAmount: widget.totalAmount,
-        deliveryFee: widget.deliveryFee,
-        packingInstructions: widget.packingInstructions,
-        deliveryInstructions: widget.deliveryInstructions,
-        deliveryTime: widget.deliverytime,
-        // instantDeliveryFee: widget.instantDeliveryFee,
-        paymentMethod: "Online Payment",
-      );
-    }
+    // ✅ Order will now be saved by the backend webhook
+    // Do NOT save order manually here anymore
+
     await OrderService().sendPaymentSuccessNotification(
-    token: fcmToken,
-    userName: userName,
-    orderId: orderId,
-  );
+      token: fcmToken,
+      userName: userName,
+      orderId: orderId,
+    );
 
-
+    // Clear the cart only if not a subscription
     if (widget.orderType != 'subscription') {
       ref.read(cartProvider.notifier).clearCart();
     }
@@ -153,11 +135,10 @@ class _OnlinePaymentProcessingState
     print("❌ Full failed order data saved to Firestore.");
 
     await OrderService().sendPaymentFailureNotification(
-    token: fcmToken,
-    userName: userName,
-    orderId: orderId,
-  );
-
+      token: fcmToken,
+      userName: userName,
+      orderId: orderId,
+    );
 
     await OrderService.removeRazorpayOrderId();
     ref.read(cartProvider.notifier).clearCart();
@@ -185,6 +166,7 @@ class _OnlinePaymentProcessingState
     try {
       final options = {
         'key': 'rzp_live_jA2MRdwkkUcT9v',
+        //'key': 'rzp_test_xvodwFJzA6n4ei',
         'amount': widget.totalAmount
             .toStringAsFixed(0), // <-- If your server does the paise conversion
         'currency': 'INR',
@@ -230,6 +212,7 @@ class _OnlinePaymentProcessingState
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         surfaceTintColor: Colors.white,
         title: Text(
           "Processing Payment",

@@ -55,85 +55,60 @@ class _HomePageState extends ConsumerState<HomePage>
   late ScrollController _scrollController;
   late AnimationController _badgeController;
   late Animation<double> _badgeAnimation;
+  late double tileWidth;
+  late double tileHeight;
 
   void showKitchenDialog(BuildContext context, WidgetRef ref) {
     Future.delayed(const Duration(milliseconds: 500), () {
-      showGeneralDialog(
+      showModalBottomSheet(
         context: context,
-        barrierDismissible: true,
-        barrierLabel: "Kitchen Dialog",
-        transitionDuration: const Duration(milliseconds: 400),
-        pageBuilder: (context, anim1, anim2) => const SizedBox.shrink(),
-        transitionBuilder: (context, animation, secondaryAnimation, _) {
-          final curvedValue = Curves.easeInOut.transform(animation.value) - 1.0;
-          return Transform.translate(
-            offset: Offset(0, curvedValue * -50),
-            child: Opacity(
-              opacity: animation.value,
-              child: Dialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-                backgroundColor: Colors.transparent,
-                child: Stack(
-                  children: [
-                    // Card with image and white space
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        Future.delayed(const Duration(milliseconds: 500), () {
-                          ref.read(tabIndexProvider.notifier).state = 1;
-                        });
-                      },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Container(
-                          color: Colors.white,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(3.0),
-                                child: ClipRRect(
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(16)),
-                                  child: Image.asset(
-                                    'lib/assets/images/kitchen logo5.png',
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                  ),
-                                ),
-                              ), // Extra white space below
-                            ],
-                          ),
-                        ),
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (context) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop();
+              Future.delayed(const Duration(milliseconds: 500), () {
+                ref.read(tabIndexProvider.notifier).state = 1;
+              });
+            },
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      'lib/assets/images/kitchen logo5.png',
+                      fit: BoxFit.cover,
+                      width: 80,
+                      height: 80,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Text(
+                      'Discover Kealthy Kitchen: your new healthy food destination!',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-
-                    // Clear icon
-                    Positioned(
-                      top: 10, // slightly above dialog
-                      right: 10,
-                      child: CircleAvatar(
-                        backgroundColor: Colors.white,
-                        radius: 15,
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          icon: const Icon(Icons.clear,
-                              size: 20, color: Colors.black),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios_rounded)
+                ],
               ),
             ),
-          );
-        },
+          ),
+        ),
       );
     });
   }
@@ -366,8 +341,19 @@ class _HomePageState extends ConsumerState<HomePage>
     final profile = ref.watch(profileProvider);
     final phoneNumber = ref.watch(phoneNumberProvider);
     final rainStatus = ref.watch(rainingStatusStreamProvider);
-
     final hasCartItems = totalItems > 0;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    if (screenWidth < 600) {
+      tileWidth = screenWidth * 0.45;
+      tileHeight = 220;
+    } else if (screenWidth < 900) {
+      tileWidth = screenWidth * 0.3;
+      tileHeight = 280;
+    } else {
+      tileWidth = screenWidth * 0.4;
+      tileHeight = 350;
+    }
 
     print('Cart items: $cartItems');
     print('Total items: $totalItems');
@@ -548,7 +534,7 @@ class _HomePageState extends ConsumerState<HomePage>
                             child: Container(
                               color: const Color(0xFFF4F4F5),
                               child: Image.asset(
-                                'lib/assets/images/Never Run Out of Milk Again-5.png',
+                                'lib/assets/images/new1.png',
                                 height: 80,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
@@ -648,10 +634,19 @@ class _HomePageState extends ConsumerState<HomePage>
                           // Show only 6 recent blogs
                           final limitedBlogs = blogPagination.take(6).toList();
                           final screenWidth = MediaQuery.of(context).size.width;
-                          final tileWidth = screenWidth < 600
-                              ? screenWidth * 0.4
-                              : screenWidth * 0.25;
-                          final tileHeight = screenWidth < 600 ? 210.0 : 300.0;
+                          double tileWidth;
+                          double tileHeight;
+
+                          if (screenWidth < 600) {
+                            tileWidth = screenWidth * 0.45;
+                            tileHeight = 220;
+                          } else if (screenWidth < 900) {
+                            tileWidth = screenWidth * 0.3;
+                            tileHeight = 280;
+                          } else {
+                            tileWidth = screenWidth * 0.4;
+                            tileHeight = 350;
+                          }
                           return Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,

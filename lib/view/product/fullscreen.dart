@@ -94,7 +94,6 @@ class _ImageZoomPageState extends ConsumerState<ImageZoomPage>
               itemCount: widget.imageUrls.length,
               pageController: _pageController,
               onPageChanged: (index) {
-                // Ensure the thumbnail selection updates correctly
                 ref.read(imageIndexProvider.notifier).setIndex(index);
               },
               builder: (context, index) {
@@ -109,9 +108,6 @@ class _ImageZoomPageState extends ConsumerState<ImageZoomPage>
             ),
           ),
 
-          // --------------------------------------------------
-          // Thumbnail Images
-          // --------------------------------------------------
           Consumer(builder: (context, ref, child) {
             final selectedIndex = ref.watch(imageIndexProvider);
 

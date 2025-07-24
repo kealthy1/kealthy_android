@@ -1,7 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:google_fonts/google_fonts.dart'; // <-- NEW
 import 'package:kealthy/view/Cart/cart_controller.dart';
 import 'package:kealthy/view/Cart/checkout.dart';
 import 'package:kealthy/view/Cart/checkout_provider.dart';
@@ -9,6 +10,7 @@ import 'package:kealthy/view/Cart/slot.dart';
 import 'package:kealthy/view/Cart/time_provider.dart';
 import 'package:kealthy/view/Toast/toast_helper.dart';
 import 'package:kealthy/view/address/adress.dart';
+// import 'package:kealthy_food/view/Cart/cart.dart';
 // import 'package:kealthy_food/view/home/title.dart';
 import 'package:ntp/ntp.dart';
 import 'package:intl/intl.dart';
@@ -22,24 +24,18 @@ class TimePage extends ConsumerStatefulWidget {
 }
 
 class _TimePageState extends ConsumerState<TimePage> {
-   late TextEditingController preferredTimeController;
+  late TextEditingController preferredTimeController;
   @override
   void initState() {
     super.initState();
     checkTimeBoundaries(ref);
-     preferredTimeController = TextEditingController();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkFirstOrder(); // call async helper
+    preferredTimeController = TextEditingController();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final prefs = await SharedPreferences.getInstance();
+      final phone = prefs.getString('phoneNumber') ?? '';
+      final firstOrderNotifier = ref.read(firstOrderProvider.notifier);
+      await firstOrderNotifier.checkFirstOrder(phone);
     });
-  }
-
-  Future<void> _checkFirstOrder() async {
-    final prefs = await SharedPreferences.getInstance();
-    final phone = prefs.getString('phoneNumber') ?? '';
-
-    final firstOrderNotifier = ref.read(firstOrderProvider.notifier);
-    await firstOrderNotifier.checkFirstOrder(phone);
   }
 
   @override
@@ -132,7 +128,6 @@ class _TimePageState extends ConsumerState<TimePage> {
                                   color: Colors.black,
                                 ),
                               ),
-                              
                               const Spacer(),
                               TextButton(
                                 onPressed: () async {
@@ -169,9 +164,7 @@ class _TimePageState extends ConsumerState<TimePage> {
                           Text(
                             "${selectedAddress.name}, ${selectedAddress.selectedRoad}",
                             style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: Colors.black54,
-                                fontWeight: FontWeight.bold),
+                                fontSize: 12, fontWeight: FontWeight.w500),
                           ),
                         ],
                       ),
@@ -293,49 +286,45 @@ class _TimePageState extends ConsumerState<TimePage> {
                 //   const SizedBox(height: 20),
                 // // Slot Selection Container
                 // if (isSlotContainerVisible)
-                Text('Please Note: Trial dishes are available only during Lunch Hours (12 PM - 3 PM).',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Colors.black,
-                  )),
-                  SizedBox(height: 10,),
+
+                const SizedBox(height: 20),
                 const SlotSelectionContainer(),
-                 const SizedBox(height: 20),
-              Text(
-                'Delivery Suggestions (Optional)',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.black,
-                  fontWeight: FontWeight.w500,
+                const SizedBox(height: 20),
+                Text(
+                  'Delivery Suggestions (Optional)',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: preferredTimeController,
-                decoration: InputDecoration(
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                      color: Colors.grey.shade300,
-                      width: 1,
+                const SizedBox(height: 8),
+                TextField(
+                  controller: preferredTimeController,
+                  decoration: InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade300,
+                        width: 1,
+                      ),
                     ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                      color: Colors.grey.shade300,
-                      width: 1,
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade300,
+                        width: 1,
+                      ),
                     ),
+                    hintText: 'Eg: Deliver between 1:00 PM -  2:00 PM',
+                    hintStyle: GoogleFonts.poppins(fontSize: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 12),
                   ),
-                  hintText: 'Eg: Deliver between 1:00 PM -  2:00 PM',
-                  hintStyle: GoogleFonts.poppins(fontSize: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 ),
-              ),
                 const SizedBox(height: 100),
               ],
             ),
@@ -373,13 +362,14 @@ class _TimePageState extends ConsumerState<TimePage> {
                 ? null
                 : () async {
                     loaderNotifier.state = true;
-                    //cart empty check
+                    // ---- PATCH BEGIN: Cart empty check ----
                     final cartItems = ref.read(cartProvider);
-                  if (cartItems.isEmpty) {
-                    ToastHelper.showErrorToast('Your cart is expired!');
-                    loaderNotifier.state = false;
-                    return;
-                  }
+                    if (cartItems.isEmpty) {
+                      ToastHelper.showErrorToast('Your cart is expired!');
+                      loaderNotifier.state = false;
+                      return;
+                    }
+                    // ---- PATCH END ----
                     try {
                       final selectedSlot = ref.read(selectedSlotProvider);
                       final selectedAddress =
@@ -401,16 +391,25 @@ class _TimePageState extends ConsumerState<TimePage> {
 
                       // if (isInstantDeliverySelected) {
                       //   deliveryTime = await calculateEstimatedDeliveryTime();
-                      // }
+                      // } else
                       if (selectedSlot != null) {
                         DateTime currentTime = await NTP.now();
                         DateTime slotStart = selectedSlot[
                             "start"]!; // ✅ Correctly extracting DateTime
                         DateTime slotEnd = selectedSlot["end"]!;
 
-                        if (slotStart.difference(currentTime).inMinutes < 1) {
+                        final slotConfig = await FirebaseFirestore.instance
+                            .collection('slot')
+                            .doc('slotcutoff')
+                            .get();
+
+                        final minLeadTime = slotConfig.data()?['time'] ?? 60;
+
+                        if (slotStart.difference(currentTime).inMinutes <
+                            minLeadTime) {
                           ToastHelper.showErrorToast(
-                              'Selected slot is not available. Please select a valid slot.');
+                            'Selected slot is not available. Please select a valid slot.',
+                          );
                           return;
                         }
 
@@ -422,16 +421,18 @@ class _TimePageState extends ConsumerState<TimePage> {
                         return;
                       }
 
+                      // The firstOrder check is now handled in initState
+
                       final baseTotal =
                           calculateTotalPrice(ref.read(cartProvider));
                       // final double instantDeliveryfee =
                       //     isInstantDeliverySelected ? 50.0 : 0.0;
-                      //const double instantDeliveryfee = 0.0;
                       Navigator.push(
                         context,
                         CupertinoPageRoute(
                           builder: (context) => CheckoutPage(
-                             preferredTime: preferredTimeController.text,
+                            preferredTime: preferredTimeController.text,
+                            // offerDiscount: 0.0,
                             itemTotal: baseTotal,
                             cartItems: ref.read(cartProvider),
                             deliveryTime: deliveryTime,

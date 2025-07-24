@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +19,10 @@ class ProductPage extends StatefulWidget {
   final String productId;
   // Firestore document ID
 
-  const ProductPage({super.key, required this.productId,});
+  const ProductPage({
+    super.key,
+    required this.productId,
+  });
 
   @override
   State<ProductPage> createState() => _ProductPageState();
@@ -115,14 +117,14 @@ class _ProductPageState extends State<ProductPage>
         child: Column(
           children: [
             Expanded(
-              child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                stream: FirebaseFirestore.instance
+              child: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                future: FirebaseFirestore.instance
                     .collection('Products')
                     .doc(widget.productId)
-                    .snapshots(),
+                    .get(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(child: CupertinoActivityIndicator());
                   }
                   if (snapshot.hasError) {
                     return Center(
@@ -146,11 +148,6 @@ class _ProductPageState extends State<ProductPage>
                     ));
                   }
                   final docData = snapshot.data!.data()!;
-                  final imageUrls = docData['ImageUrl'] ?? [];
-                  if (imageUrls.isNotEmpty && imageUrls[0] is String) {
-                    precacheImage(
-                        CachedNetworkImageProvider(imageUrls[0]), context);
-                  }
 
                   return ProductContent(
                     docData: docData,

@@ -8,6 +8,7 @@ import 'package:kealthy/view/Login/login_page.dart';
 import 'package:kealthy/view/splash_screen/maintanance.dart';
 import 'package:kealthy/view/splash_screen/required_update.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -26,23 +27,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   Future<void> _initializeApp() async {
     await Future.delayed(const Duration(seconds: 3));
 
-    final updateInfo = await _checkForceUpdateRequired();
+    final shouldUpdate = await _shouldForceUpdate();
     if (!mounted) return;
 
-    final hasShownUpdate = await _hasShownUpdatePage();
-    if (updateInfo['forceUpdate']) {
-      if (!hasShownUpdate) {
-        await _setUpdatePageShown();
-        Navigator.pushReplacement(
-          context,
-          CupertinoPageRoute(
-            builder: (_) => const ForceUpdatePage(),
-          ),
-        );
-        return;
-      }
-    } else {
-      await _resetUpdatePageShown();
+    if (shouldUpdate) {
+      Navigator.pushReplacement(
+        context,
+        CupertinoPageRoute(
+          builder: (_) => const ForceUpdatePage(),
+        ),
+      );
+      return;
     }
 
     final isUnderMaintenance = await _checkMaintenanceStatus();
@@ -70,42 +65,28 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     }
   }
 
-  Future<bool> _hasShownUpdatePage() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('hasShownUpdatePage') ?? false;
-  }
+  Future<bool> _shouldForceUpdate() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    final localVersion = packageInfo.version;
 
-  Future<void> _setUpdatePageShown() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('hasShownUpdatePage', true);
-  }
+    final doc =
+        await FirebaseFirestore.instance.collection('config').doc('iOS').get();
+    if (!doc.exists) return false;
 
-  Future<void> _resetUpdatePageShown() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('hasShownUpdatePage', false);
-  }
+    final remoteVersion = doc['latest_version'];
 
-  Future<Map<String, dynamic>> _checkForceUpdateRequired() async {
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('config')
-          .doc('updateControl')
-          .get();
-      final data = doc.data();
-      if (data?['forceUpdate'] == true) {
-        return {
-          'forceUpdate': true,
-        };
-      } else {
-        return {
-          'forceUpdate': false,
-          'hasShownUpdate': false,
-        };
-      }
-    } catch (e) {
-      print("⚠️ Force update check failed: $e");
-      return {'forceUpdate': false, 'appStoreUrl': '', 'hasShownUpdate': false};
+    List<int> parseVersion(String version) =>
+        version.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+
+    final localParts = parseVersion(localVersion);
+    final remoteParts = parseVersion(remoteVersion);
+
+    for (int i = 0; i < remoteParts.length; i++) {
+      if (i >= localParts.length || remoteParts[i] > localParts[i]) return true;
+      if (remoteParts[i] < localParts[i]) return false;
     }
+
+    return false;
   }
 
   Future<bool> _checkMaintenanceStatus() async {

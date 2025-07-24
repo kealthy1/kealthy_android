@@ -4,19 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/view/Cart/cart_controller.dart';
 import 'package:kealthy/view/Cart/time.dart';
-// import 'package:kealthy/view/Toast/toast_helper.dart';
+import 'package:kealthy/view/Toast/toast_helper.dart';
 import 'package:kealthy/view/address/adress.dart';
 import 'package:kealthy/view/address/provider.dart';
-// import 'package:kealthy/view/food/food_subcategory.dart';
-// import 'package:kealthy/view/product/add_to_cart.dart';
-
+import 'package:kealthy/view/food/food_subcategory.dart';
+import 'package:kealthy/view/product/add_to_cart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-
-// bool _isTrialDish(String name, WidgetRef ref) {
-//   final trialDishes = ref.read(trialDishesProvider).asData?.value ?? [];
-//   return trialDishes.any((dish) => dish.name == name);
-// }
 
 final slotAvailabilityProvider =
     StateProvider<bool>((ref) => true); // Default: slot available
@@ -41,7 +35,9 @@ class SelectedLocationNotifier extends StateNotifier<String?> {
 }
 
 class CartPage extends ConsumerWidget {
-  const CartPage({super.key});
+  const CartPage({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -131,6 +127,8 @@ class CartPage extends ConsumerWidget {
                             itemCount: cartItems.length,
                             itemBuilder: (context, index) {
                               final item = cartItems[index];
+                              final trialDishesAsync =
+                                  ref.watch(dishesProvider(item.type));
                               return Padding(
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 8.0),
@@ -336,59 +334,78 @@ class CartPage extends ConsumerWidget {
                                                           ),
                                                         ),
                                                         IconButton(
-                                                            icon: Icon(
-                                                              Icons.add,
-                                                              color:
-                                                                  Colors.black,
-                                                            ),
-                                                            onPressed:
-                                                                () async {
-                                                              if (ref
-                                                                  .read(cartProvider
-                                                                      .notifier)
-                                                                  .isLoading(
-                                                                      item.name))
+                                                          icon: Icon(
+                                                            Icons.add,
+                                                            color: item.quantity >=
+                                                                        2 &&
+                                                                    isTrialDish(
+                                                                        item.name,
+                                                                        trialDishesAsync)
+                                                                ? Colors.grey
+                                                                : Colors.black,
+                                                          ),
+                                                          onPressed: () async {
+                                                            if (ref
+                                                                .read(cartProvider
+                                                                    .notifier)
+                                                                .isLoading(item
+                                                                    .name)) {
+                                                              return;
+                                                            }
+
+                                                            // ✅ SOH check first
+                                                            if (item.quantity >=
+                                                                item.soh) {
+                                                              ToastHelper
+                                                                  .showErrorToast(
+                                                                'Limit reached: Only ${item.soh} left in stock.',
+                                                              );
+                                                              return;
+                                                            }
+
+                                                            // ✅ Trial dish limit enforcement (only if trial)
+                                                            if (isTrialDish(
+                                                                item.name,
+                                                                trialDishesAsync)) {
+                                                              final prefs =
+                                                                  await SharedPreferences
+                                                                      .getInstance();
+                                                              final phoneNumber =
+                                                                  prefs.getString(
+                                                                          'phoneNumber') ??
+                                                                      '';
+
+                                                              final alreadyOrderedToday =
+                                                                  await getTodayOrderedQuantity(
+                                                                phoneNumber:
+                                                                    phoneNumber,
+                                                                productName:
+                                                                    item.name,
+                                                              );
+
+                                                              // 👇 FIX: Use correct total calculation
+                                                              final totalIfAdded =
+                                                                  alreadyOrderedToday +
+                                                                      item.quantity;
+
+                                                              if (totalIfAdded >=
+                                                                  2) {
+                                                                ToastHelper
+                                                                    .showErrorToast(
+                                                                  'Daily limit reached: Only 2 quantities allowed per day for this dish.',
+                                                                );
                                                                 return;
+                                                              }
+                                                            }
 
-                                                              // if (_isTrialDish(
-                                                              //     item.name,ref)) {
-                                                              //   final prefs =
-                                                              //       await SharedPreferences
-                                                              //           .getInstance();
-                                                              //   final phoneNumber =
-                                                              //       prefs.getString(
-                                                              //               'phoneNumber') ??
-                                                              //           '';
-
-                                                              // final alreadyOrderedToday =
-                                                              //     await getTodayOrderedQuantity(
-                                                              //   phoneNumber:
-                                                              //       phoneNumber,
-                                                              //   productName:
-                                                              //       item.name,
-                                                              // );
-
-                                                              // final totalIfAdded =
-                                                              //     alreadyOrderedToday +
-                                                              //         item.quantity +
-                                                              //         1;
-
-                                                              //   if (totalIfAdded >
-                                                              //       1) {
-                                                              //     ToastHelper
-                                                              //         .showErrorToast(
-                                                              //       'Daily limit reached: Only 1 quantities allowed per day for this dish.',
-                                                              //     );
-                                                              //     return;
-                                                              //   }
-                                                              // }
-
-                                                              ref
-                                                                  .read(cartProvider
-                                                                      .notifier)
-                                                                  .incrementItem(
-                                                                      item.name);
-                                                            }),
+                                                            // ✅ Safe to add
+                                                            await ref
+                                                                .read(cartProvider
+                                                                    .notifier)
+                                                                .incrementItem(
+                                                                    item.name);
+                                                          },
+                                                        ),
                                                       ],
                                                     ),
                                                   ),
