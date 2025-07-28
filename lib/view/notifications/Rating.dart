@@ -7,8 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:kealthy/view/Toast/toast_helper.dart';
 import 'package:kealthy/view/notifications/notification_page.dart';
 import 'package:kealthy/view/notifications/rating_provider.dart';
-import 'package:kealthy/view/notifications/review_card.dart' show ReviewCard;
-
+import 'package:kealthy/view/notifications/review_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -104,6 +103,7 @@ class RatingPage extends ConsumerWidget {
         "starCount": rating.toInt(),
         "customerName": customerName,
         "feedback": review,
+        "createdAt": DateTime.now().toIso8601String(),
       };
 
       final response = await http.post(
@@ -163,6 +163,7 @@ class RatingPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        automaticallyImplyLeading: true,
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         elevation: 0,
@@ -187,25 +188,23 @@ class RatingPage extends ConsumerWidget {
           );
         },
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ElevatedButton(
-            onPressed: isSubmitting ? null : () => submitReviews(context, ref),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF273847),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ElevatedButton(
+          onPressed: isSubmitting ? null : () => submitReviews(context, ref),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF273847),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: Text(
-              "Submit Reviews",
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+          ),
+          child: Text(
+            "Submit Reviews",
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),

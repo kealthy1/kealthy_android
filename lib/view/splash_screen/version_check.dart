@@ -9,29 +9,63 @@ class InAppUpdateService {
   factory InAppUpdateService() => _instance;
 
   InAppUpdateService._internal();
-
   Future<void> checkForUpdate(BuildContext context) async {
-  try {
-    final updateInfo = await InAppUpdate.checkForUpdate();
+    try {
+      final updateInfo = await InAppUpdate.checkForUpdate();
 
-    if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
-      if (updateInfo.immediateUpdateAllowed) {
-        // 🚫 User cannot skip this update once started
-        await InAppUpdate.performImmediateUpdate().catchError((e) {
-          debugPrint("⛔️ Immediate update cancelled or failed: $e");
-          _showBlockerDialog(context); // Force update on cancel
-        });
+      debugPrint("🔍 Update availability: ${updateInfo.updateAvailability}");
+      debugPrint(
+          "🔍 Immediate update allowed: ${updateInfo.immediateUpdateAllowed}");
+
+      if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+        if (updateInfo.immediateUpdateAllowed) {
+          try {
+            await InAppUpdate.performImmediateUpdate();
+          } catch (e) {
+            debugPrint("⛔️ performImmediateUpdate failed: $e");
+            // ignore: use_build_context_synchronously
+            _showBlockerDialog(context);
+          }
+        } else {
+          debugPrint("⛔️ Immediate update not allowed. Showing custom dialog.");
+          _showBlockerDialog(
+              // ignore: use_build_context_synchronously
+              context); // <-- show it anyway if update is available
+        }
       } else {
-        _showBlockerDialog(context); // Immediate not allowed
+        debugPrint("✅ App is up-to-date.");
       }
-    } else {
-      debugPrint("✅ App is up-to-date.");
+    } catch (e) {
+      debugPrint("❌ In-app update check failed: $e");
+      _showBlockerDialog(
+          // ignore: use_build_context_synchronously
+          context); // Optional: handle totally failed checks here
     }
-  } catch (e) {
-    debugPrint("❌ In-app update check failed: $e");
-    _showBlockerDialog(context); // Network failure or unsupported
   }
-}
+
+  // Future<void> checkForUpdate(BuildContext context) async {
+  //   try {
+  //     final updateInfo = await InAppUpdate.checkForUpdate();
+
+  //     if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+  //       if (updateInfo.immediateUpdateAllowed) {
+  //         // 🚫 User cannot skip this update once started
+  //         await InAppUpdate.performImmediateUpdate().catchError((e) {
+  //           debugPrint("⛔️ Immediate update cancelled or failed: $e");
+  //           _showBlockerDialog(context); // Force update on cancel
+  //           return AppUpdateResult.inAppUpdateFailed;
+  //         });
+  //       } else {
+  //         _showBlockerDialog(context); // Immediate not allowed
+  //       }
+  //     } else {
+  //       debugPrint("✅ App is up-to-date.");
+  //     }
+  //   } catch (e) {
+  //     debugPrint("❌ In-app update check failed: $e");
+  //     _showBlockerDialog(context); // Network failure or unsupported
+  //   }
+  // }
 
   void _showBlockerDialog(BuildContext context) {
     showDialog(
@@ -160,4 +194,6 @@ class InAppUpdateService {
   //     ),
   //   );
   // }
+
+  //'https://play.google.com/store/apps/details?id=com.COTOLORE.Kealthy',
 }

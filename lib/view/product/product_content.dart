@@ -14,19 +14,8 @@ import 'package:kealthy/view/product/text.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-bool _isTrialDish(String name) {
-  const trialDishes = [
-    'Buttercraft Chicken Bowl',
-    'Quinoa & Tuna Fusion Bowl',
-    'Soya Paneer Bowl',
-    'Herbrost Beef Bowl',
-  ];
-  return trialDishes.contains(name);
-}
-
 class ProductContent extends ConsumerWidget {
   final PageController pageController;
-
   final Map<String, dynamic> docData;
   final String productId;
   final double? rating;
@@ -144,6 +133,7 @@ class ProductContent extends ConsumerWidget {
     final filteredMicrosMap = Map.fromEntries(
       microsMap.entries.where((entry) => entry.value != "Not Applicable"),
     );
+
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -215,21 +205,19 @@ class ProductContent extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Product name + Add-to-Cart section.
                 Row(
                   children: [
-                    /// Wrap the long text with `Expanded` or `Flexible`
                     Expanded(
                       child: Text(
                         productName.contains(productQty)
                             ? productName
-                            : '$productName $productQty',
+                            : '$productName \n$productQty',
                         overflow: TextOverflow.visible,
                         style: GoogleFonts.poppins(
                           textStyle: const TextStyle(
-                            fontSize: 20,
-                            color: Colors.black,
-                          ),
+                              fontSize: 19.5,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w600),
                         ),
                       ),
                     ),
@@ -352,8 +340,8 @@ class ProductContent extends ConsumerWidget {
                                 child: Text(
                                   '\u20B9$productPrice',
                                   style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Color.fromARGB(137, 219, 24, 24),
+                                    fontSize: 20,
+                                    color: Colors.red,
                                     decoration: TextDecoration.lineThrough,
                                   ),
                                 ),
@@ -364,19 +352,18 @@ class ProductContent extends ConsumerWidget {
                               child: Text(
                                 '\u20B9',
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black,
+                                  color: Colors.green,
                                 ),
                               ),
                             ),
                             Text(
                               hasOffer ? '$offerPrice/-' : '$productPrice/-',
                               style: const TextStyle(
-                                fontSize: 20,
-                                color: Color.fromARGB(255, 46, 125, 50),
-                                fontWeight: FontWeight.w600,
-                              ),
+                                  fontSize: 23,
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
@@ -396,7 +383,7 @@ class ProductContent extends ConsumerWidget {
                       productEAN: productEAN,
                       soh: productSoh,
                       imageurl: productImageUrl,
-                      maxQuantity: _isTrialDish(productName) ? 2 : null,
+                      type: docData['Type'] ?? '',
                     ),
                   ],
                 ),
@@ -420,7 +407,7 @@ class ProductContent extends ConsumerWidget {
                               context: context,
                               label: 'Macros',
                               details: detailsString,
-                              backgroundColor: Colors.blue.shade50,
+                              backgroundColor: Colors.white,
                             );
                           },
                         ),
@@ -441,7 +428,7 @@ class ProductContent extends ConsumerWidget {
                               context: context,
                               label: 'Micronutrients',
                               details: detailsString,
-                              backgroundColor: Colors.green.shade50,
+                              backgroundColor: Colors.white,
                             );
                           },
                         ),
@@ -461,7 +448,7 @@ class ProductContent extends ConsumerWidget {
                               context: context,
                               label: 'Ingredients',
                               details: detailsString,
-                              backgroundColor: Colors.yellow.shade50,
+                              backgroundColor: Colors.white,
                             );
                           },
                         ),
@@ -534,7 +521,7 @@ class ProductContent extends ConsumerWidget {
                                       MaterialPageRoute(
                                         builder: (context) => ProductPage(
                                             productId:
-                                                relatedProducts[index].id,),
+                                                relatedProducts[index].id),
                                       ),
                                     );
                                   }

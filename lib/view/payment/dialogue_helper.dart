@@ -38,12 +38,12 @@ class PaymentDialogHelper {
         });
 
         return WillPopScope(
-          onWillPop: () async => false, 
+          onWillPop: () async => false,
           child: AlertDialog(
             content: Consumer(
               builder: (context, ref, child) {
                 final countdown = ref.watch(countdownProvider);
-          
+
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -94,7 +94,7 @@ class PaymentDialogHelper {
       barrierDismissible: false,
       barrierColor: Colors.white, // Prevents tapping outside to dismiss
       builder: (context) => WillPopScope(
-        onWillPop: () async => false, 
+        onWillPop: () async => false,
         child: AlertDialog(
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -147,6 +147,23 @@ class PaymentDialogHelper {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  static void showCustomDialog(BuildContext context,
+      {required String title, required String description}) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(description),
+        actions: [
+          TextButton(
+            child: const Text("OK"),
+            onPressed: () => Navigator.of(context).pop(),
+          )
+        ],
       ),
     );
   }

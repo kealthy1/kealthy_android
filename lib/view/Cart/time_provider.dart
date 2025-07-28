@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:kealthy/view/Cart/cart.dart';
-
 import 'package:ntp/ntp.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -53,10 +52,6 @@ Future<String> calculateEstimatedDeliveryTime() async {
     double? latitude = prefs.getDouble('selectedLatitude');
     double? longitude = prefs.getDouble('selectedLongitude');
 
-    if (longitude == null) {
-      throw Exception("Latitude or Longitude is null. Address not selected.");
-    }
-
     const restaurantLatitude = 10.010279427438405;
     const restaurantLongitude = 76.38426666931349;
     const cookingTimeMinutes = 15;
@@ -66,7 +61,7 @@ Future<String> calculateEstimatedDeliveryTime() async {
       restaurantLatitude,
       restaurantLongitude,
       latitude!,
-      longitude,
+      longitude!,
     );
     double travelTimeMinutes =
         (distanceInMeters / averageSpeedMetersPerSecond) / 60;

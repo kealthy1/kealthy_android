@@ -81,27 +81,64 @@ class NotificationsScreen extends ConsumerWidget {
         data: (notifications) {
           if (notifications.isEmpty) return buildNoNotifications();
 
-          return ListView.builder(
-            physics: const BouncingScrollPhysics(),
-            itemCount: notifications.length,
-            itemBuilder: (context, index) {
-              final notification = notifications[index];
-              final orderId = notification['order_id'] ?? '';
+          // Remove duplicate notifications for the same product
+          final seenProducts = <String>{};
+          final firestore = FirebaseFirestore.instance;
 
-              if (orderId.isEmpty) return Container();
+          Future<void> removeDuplicates() async {
+            for (final notif
+                in List<Map<String, dynamic>>.from(notifications)) {
+              final docId = notif['id'];
+              final products = List<String>.from(notif['product_names'] ?? []);
+              final duplicate = products.any((p) => seenProducts.contains(p));
+              if (duplicate) {
+                await firestore.collection('Notifications').doc(docId).delete();
+                notifications.remove(notif);
+              } else {
+                seenProducts.addAll(products);
+              }
+            }
+          }
 
-              return Consumer(
-                builder: (context, ref, child) {
-                  final orderExistsAsync =
-                      ref.watch(orderExistsProvider(orderId));
+          return FutureBuilder(
+            future: removeDuplicates(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const Center(
+                  child: CupertinoActivityIndicator(
+                    color: Color.fromARGB(255, 65, 88, 108),
+                  ),
+                );
+              }
 
-                  return orderExistsAsync.when(
-                    data: (exists) {
-                      if (exists) return Container(); // Skip if order exists
-                      return _buildNotificationTile(notification, context, ref);
+              if (notifications.isEmpty) return buildNoNotifications();
+
+              return ListView.builder(
+                physics: const BouncingScrollPhysics(),
+                itemCount: notifications.length,
+                itemBuilder: (context, index) {
+                  final notification = notifications[index];
+                  final orderId = notification['order_id'] ?? '';
+
+                  if (orderId.isEmpty) return Container();
+
+                  return Consumer(
+                    builder: (context, ref, child) {
+                      final orderExistsAsync =
+                          ref.watch(orderExistsProvider(orderId));
+
+                      return orderExistsAsync.when(
+                        data: (exists) {
+                          if (exists) {
+                            return Container(); // Skip if order exists
+                          }
+                          return _buildNotificationTile(
+                              notification, context, ref);
+                        },
+                        loading: () => _buildLoadingNotificationTile(),
+                        error: (_, __) => _buildLoadingNotificationTile(),
+                      );
                     },
-                    loading: () => _buildLoadingNotificationTile(),
-                    error: (_, __) => _buildLoadingNotificationTile(),
                   );
                 },
               );

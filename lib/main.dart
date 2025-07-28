@@ -26,7 +26,7 @@ void main() async {
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent, // or any matching color
-      statusBarIconBrightness: Brightness.dark, // or Brightness.light
+      statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     ),
   );
@@ -47,7 +47,6 @@ void main() async {
     ),
   );
 }
-
 
 class MyApp extends ConsumerWidget {
   final GlobalKey<NavigatorState> navigatorKey;
@@ -106,8 +105,8 @@ class MyApp extends ConsumerWidget {
             secondary: Colors.white,
             onPrimary: Colors.white,
             onSecondary: Colors.black,
-            background: Colors.white,
-            onBackground: Colors.black,
+            surface: Colors.white,
+            onSurface: Colors.black,
           ),
           textTheme: GoogleFonts.poppinsTextTheme(
             Theme.of(context).textTheme,

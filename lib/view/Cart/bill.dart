@@ -39,7 +39,7 @@ class BillDetailsWidget extends StatelessWidget {
     double adjustedItemTotal = itemTotal - productDiscount;
 
     // Total amount to pay
-     double finalTotalToPay = adjustedItemTotal + discountedFee + handlingFee;
+    double finalTotalToPay = adjustedItemTotal + discountedFee + handlingFee;
     //double finalTotalToPay = 1;
 
     // Pass the calculated total up if callback is provided
