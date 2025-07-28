@@ -7,12 +7,14 @@ import 'package:kealthy/view/BottomNavBar/bottom_nav_bar.dart';
 
 class OtpState {
   final String? otp;
+  final String? verificationId;
   final bool isLoading;
   final String? error;
   final int timerValue;
 
   OtpState({
     this.otp,
+    this.verificationId,
     this.isLoading = false,
     this.error,
     this.timerValue = 60,
@@ -20,18 +22,21 @@ class OtpState {
 
   OtpState copyWith({
     String? otp,
+    String? verificationId,
     bool? isLoading,
     String? error,
     int? timerValue,
   }) {
     return OtpState(
       otp: otp ?? this.otp,
+      verificationId: verificationId ?? this.verificationId,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
       timerValue: timerValue ?? this.timerValue,
     );
   }
 }
+
 
 class OtpNotifier extends StateNotifier<OtpState> {
   OtpNotifier() : super(OtpState());

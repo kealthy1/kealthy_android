@@ -175,7 +175,7 @@ class OrderService {
   /// Saves a new order in Firebase (Realtime Database in this example).
   static Future<void> saveOrderToFirebase({
     // required double offerDiscount,
-     required String preferredTime,
+    required String preferredTime,
     required dynamic address,
     required double totalAmount,
     required double deliveryFee,
@@ -233,8 +233,8 @@ class OrderService {
         "status": "Order Placed",
         "totalAmountToPay": totalAmount.round(), // returns int
         "deliveryFee": deliveryFee,
-         "preferredTime": preferredTime,
-        "device": 'android', 
+        "preferredTime": preferredTime,
+        "device": 'android',
         // "offerDiscount": offerDiscount,
         // "instantDeliveryfee": instantDeliveryFee,
       };
@@ -247,7 +247,7 @@ class OrderService {
       await decrementSOHForItems(address);
 
       // Optionally save a notification doc to Firestore
-      await saveNotificationToFirestore(orderId, address.cartItems);
+      // await saveNotificationToFirestore(orderId, address.cartItems);
     } catch (error, stackTrace) {
       print('Error saving order: $error');
       print('StackTrace: $stackTrace');
@@ -331,33 +331,6 @@ class OrderService {
   }
 
   /// Saves a "review request" notification in Firestore
-  static Future<void> saveNotificationToFirestore(
-      String orderId, List cartItems) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final phoneNumber = prefs.getString('phoneNumber') ?? 'Unknown';
-      final productNames = cartItems.map((item) => item.name).toList();
-
-      final notificationData = {
-        'body': "How was your experience? Give us a quick star rating!",
-        'imageUrl':
-            "https://firebasestorage.googleapis.com/v0/b/kealthy-90c55.appspot.com/o/feedback%2Fa-minimalistic-design-for-a-healthy-food_38vJ50AsTdOxv4Z5Wt32LA_8cxtpxqbSYaVP_s8Ygh7bQ.jpeg?alt=media&token=03691f32-6713-44cb-8cb4-edf94ebf645a",
-        'order_id': orderId,
-        'payload': "review_screen",
-        'phoneNumber': phoneNumber,
-        'product_names': productNames,
-        'timestamp': DateTime.now().toUtc(),
-        'title': "Share Your Thoughts!",
-      };
-
-      await FirebaseFirestore.instance
-          .collection('Notifications')
-          .add(notificationData);
-      print("✅ Notification data saved successfully!");
-    } catch (e) {
-      print("❌ Error saving notification data: $e");
-    }
-  }
 
   /// Helper: Generate a unique-ish Order ID
   static String _generateOrderId() {

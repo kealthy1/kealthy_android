@@ -221,13 +221,13 @@ class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
                 const SizedBox(height: 16),
                 ...dishes.map(_buildFoodItem).toList(),
                 const SizedBox(height: 12),
-                Text(
-                  '*Introductory price',
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    color: Colors.black,
-                  ),
-                ),
+                // Text(
+                //   '*Introductory price',
+                //   style: GoogleFonts.poppins(
+                //     fontSize: 15,
+                //     color: Colors.black,
+                //   ),
+                // ),
               ],
             ),
           );
@@ -305,7 +305,7 @@ class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
            Row(
             children: [
               Text(
-                "\u20B9${dish.price}*",
+                "\u20B9${dish.price}",
                 style: GoogleFonts.poppins(
                   fontSize: 20,
                   color: dish.stock > 0 ? Colors.black87 : Colors.grey,
