@@ -1,5 +1,3 @@
-// Provider to manage expanded state for each ingredient block by dish name
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +8,6 @@ import 'package:kealthy/view/Cart/cart_controller.dart';
 import 'package:kealthy/view/product/product_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:kealthy/view/product/add_to_cart.dart';
 
 /// Model that maps your Firestore document
 class TrialDish {
@@ -18,28 +15,36 @@ class TrialDish {
   final String name;
   final int stock;
   final int price;
-  final String quantity;
-  final String ingredients; // single string
-  final String imageurl; // added
-  final String what; // added
-  final String nutrients; // added
-  final String fiber; // added
-  final String energy; // added
-  final String protein; // added
-  final String saturatedFat; // added
-  final String totalFat; // added
-  final String transFat; // added
-  final String unsaturatedFat; // added
-  final String whatisitusedfor; // added
-  final String sugar; // added
-  final String carbs; // added
+  final List<String> quantities;
+  final Map<String, dynamic> quantityIds;
+  final Map<String, num> quantityPrices;
+  final Set<num> prices;
+  Map<String, dynamic> productNames;
+  final String ingredients;
+  final String imageurl;
+  final String what;
+  final String nutrients;
+  final String fiber;
+  final String energy;
+  final String protein;
+  final String saturatedFat;
+  final String totalFat;
+  final String transFat;
+  final String unsaturatedFat;
+  final String whatisitusedfor;
+  final String sugar;
+  final String carbs;
 
   TrialDish({
     required this.id,
     required this.name,
     required this.stock,
     required this.price,
-    required this.quantity,
+    required this.quantities,
+    required this.quantityPrices,
+    required this.productNames,
+    required this.quantityIds,
+    required this.prices,
     required this.ingredients,
     required this.imageurl,
     required this.what,
@@ -56,10 +61,19 @@ class TrialDish {
     required this.carbs,
   });
 
-  factory TrialDish.fromFirestore(String id, Map<String, dynamic> data) {
+  factory TrialDish.fromFirestore(
+      String id,
+      Map<String, dynamic> data,
+      List<String> quantities,
+      Map<String, num> quantityPrices,
+      Map<String, dynamic> quantityIds,
+      Map<String, dynamic> productNames) {
+    // Create set of unique prices from quantityPrices
+    final prices = quantityPrices.values.toSet();
     return TrialDish(
       id: id,
       name: data['Name'] ?? '',
+      quantityIds: quantityIds,
       carbs: data['Total Carbohydrates (g)'] ?? '',
       sugar: data['Sugars (g)'] ?? '',
       unsaturatedFat: data['Unsaturated Fat (g)'] ?? '',
@@ -72,9 +86,16 @@ class TrialDish {
       energy: data['Energy (kcal)'] ?? '',
       fiber: data['Dietary Fiber (g)'] ?? '',
       nutrients: data['Vendor Name'] ?? '',
-      stock: data['SOH'] ?? 0,
-      price: data['Price'] ?? 0,
-      quantity: data['Qty'] ?? '',
+      stock: data['SOH'] is int
+          ? data['SOH']
+          : int.tryParse(data['SOH']?.toString() ?? '0') ?? 0,
+      price: data['Price'] is num
+          ? data['Price']
+          : int.tryParse(data['Price']?.toString() ?? '0') ?? 0,
+      quantities: quantities,
+      quantityPrices: quantityPrices,
+      productNames: productNames,
+      prices: prices,
       ingredients: (data['Ingredients'] as List?)?.join(', ') ?? '',
       imageurl: (data['ImageUrl'] is List && data['ImageUrl'].isNotEmpty)
           ? data['ImageUrl'][0]
@@ -83,7 +104,6 @@ class TrialDish {
   }
 }
 
-/// Riverpod StreamProvider to fetch data from Firestore
 final dishesProvider =
     StreamProvider.family<List<TrialDish>, String?>((ref, categoryName) async* {
   yield* FirebaseFirestore.instance
@@ -91,8 +111,81 @@ final dishesProvider =
       .where('Type', isEqualTo: categoryName)
       .snapshots()
       .map((snapshot) {
-    return snapshot.docs.map((doc) {
-      return TrialDish.fromFirestore(doc.id, doc.data());
+    final dishMap =
+        <String, Map<String, dynamic>>{}; // Base name to document data
+    final quantityMap = <String, List<String>>{}; // Base name to quantities
+    final priceMap =
+        <String, Map<String, num>>{}; // Base name to quantity:price
+    final baseNameMap = <String, String>{}; // Dish ID to base name
+    for (var doc in snapshot.docs) {
+      final fullName = doc.data()['Name']?.toString() ?? '';
+      final quantity = doc.data()['Qty']?.toString() ?? '';
+      final baseProductName =
+          doc.data()['BaseProductName']?.toString() ?? fullName;
+      final data = Map<String, dynamic>.from(doc.data())..['id'] = doc.id;
+
+      final baseName = RegExp(r'^(.*?)\s*\d+\s*[a-zA-Z]+$')
+              .firstMatch(fullName)
+              ?.group(1)
+              ?.trim() ??
+          baseProductName;
+
+      if (!dishMap.containsKey(baseName)) {
+        dishMap[baseName] = data;
+        dishMap[baseName]!['Name'] = baseName;
+      }
+
+      // Collect unique quantities and prices for this base name
+      if (quantity.isNotEmpty) {
+        quantityMap[baseName] = quantityMap[baseName] ?? [];
+        priceMap[baseName] = priceMap[baseName] ?? {};
+        if (!quantityMap[baseName]!.contains(quantity)) {
+          quantityMap[baseName]!.add(quantity);
+          priceMap[baseName]![quantity] =
+              (data['offer_price'] is num && data['offer_price'] > 0)
+                  ? data['offer_price']
+                  : (data['Price'] is num
+                      ? data['Price']
+                      : int.tryParse(data['Price']?.toString() ?? '0') ?? 0);
+        }
+      }
+
+      baseNameMap[doc.id] = baseName;
+    }
+
+    return dishMap.entries.map((entry) {
+      final baseName = entry.key;
+      final quantities = quantityMap[baseName] ?? ['Default'];
+      quantities.sort();
+
+      final priceData = priceMap[baseName] ?? {};
+
+      final quantityIds = <String, dynamic>{};
+      final productNames = <String, dynamic>{};
+
+      for (final qty in quantities) {
+        final id = entry.value['id'];
+
+        final name = entry.value['Name']?.toString() ?? baseName;
+
+        productNames[qty] = {
+          'id': id,
+          'name': name,
+        };
+
+        quantityIds[qty] = id;
+      }
+      final quantityPrices =
+          priceMap[baseName] ?? {quantities.first: entry.value['Price'] ?? 0};
+
+      return TrialDish.fromFirestore(
+        entry.value['id'] ?? '',
+        entry.value,
+        quantities,
+        quantityPrices,
+        quantityIds,
+        productNames,
+      );
     }).toList();
   });
 });
@@ -111,6 +204,8 @@ class FoodSubCategoryPage extends ConsumerStatefulWidget {
 
 class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
   final TextEditingController _suggestionController = TextEditingController();
+  final Map<String, String> _selectedQuantities = {};
+
   @override
   Widget build(BuildContext context) {
     final dishesAsync = ref.watch(dishesProvider(widget.categoryName));
@@ -217,71 +312,55 @@ class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          Column(
-                            children: [
-                              TextField(
-                                controller: _suggestionController,
-                                decoration: const InputDecoration(
-                                  hintText: 'Suggest a dish...',
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 10),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.black,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(5))),
-                                onPressed: () async {
-                                  final prefs =
-                                      await SharedPreferences.getInstance();
-                                  final phoneNumber =
-                                      prefs.getString('phoneNumber') ??
-                                          'Unknown';
-                                  final suggestion =
-                                      _suggestionController.text.trim();
+                          TextField(
+                            controller: _suggestionController,
+                            decoration: const InputDecoration(
+                              hintText: 'Suggest a dish...',
+                              border: OutlineInputBorder(),
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5))),
+                            onPressed: () async {
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              final phoneNumber =
+                                  prefs.getString('phoneNumber') ?? 'Unknown';
+                              final suggestion =
+                                  _suggestionController.text.trim();
 
-                                  if (suggestion.isNotEmpty) {
-                                    await FirebaseFirestore.instance
-                                        .collection('MenuSuggestions')
-                                        .add({
-                                      'suggestion': suggestion,
-                                      'phoneNumber': phoneNumber,
-                                      'timestamp': DateTime.now(),
-                                    });
-                                    _suggestionController.clear();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text(
-                                              'Thank you for your suggestion!')),
-                                    );
-                                  }
-                                },
-                                child: const Text(
-                                  'Submit',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ],
+                              if (suggestion.isNotEmpty) {
+                                await FirebaseFirestore.instance
+                                    .collection('MenuSuggestions')
+                                    .add({
+                                  'suggestion': suggestion,
+                                  'phoneNumber': phoneNumber,
+                                  'timestamp': DateTime.now(),
+                                });
+                                _suggestionController.clear();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          'Thank you for your suggestion!')),
+                                );
+                              }
+                            },
+                            child: const Text(
+                              'Submit',
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    ...dishes.map(_buildFoodItem),
                   ],
                 ),
-
-                // Text(
-                //   '*Introductory price',
-                //   style: GoogleFonts.poppins(
-                //     fontSize: 15,
-                //     color: Colors.black,
-                //   ),
-                // ),
               ),
             );
           }
@@ -293,7 +372,7 @@ class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
                 crossAxisCount: 2,
                 mainAxisSpacing: 16,
                 crossAxisSpacing: 16,
-                childAspectRatio: 0.7,
+                childAspectRatio: 0.65,
               ),
               itemBuilder: (context, index) {
                 return _buildFoodItem(dishes[index]);
@@ -306,12 +385,23 @@ class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
   }
 
   Widget _buildFoodItem(TrialDish dish) {
+    _selectedQuantities[dish.id] ??= dish.quantities.first;
+
+    final selectedPrice =
+        dish.quantityPrices[_selectedQuantities[dish.id]] ?? dish.price;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           CupertinoPageRoute(
-            builder: (context) => ProductPage(productId: dish.id),
+            builder: (context) => ProductPage(
+                productIds: dish.quantityIds,
+                prices: dish.quantityPrices,
+                productId: dish.id,
+                quantities: dish.quantities,
+                selectedQuantity: _selectedQuantities[dish.id],
+                productName: dish.productNames),
           ),
         );
       },
@@ -369,7 +459,7 @@ class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
                 Row(
                   children: [
                     Text(
-                      "\u20B9${dish.price}",
+                      "\u20B9$selectedPrice",
                       style: GoogleFonts.poppins(
                         fontSize: 15,
                         color: dish.stock > 0 ? Colors.black87 : Colors.grey,
@@ -377,10 +467,27 @@ class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
                       ),
                     ),
                     const Spacer(),
-                    Text(
-                      dish.quantity,
-                      style: GoogleFonts.poppins(
-                          fontSize: 14, color: Colors.black),
+                    DropdownButton<String>(
+                      value: _selectedQuantities[dish.id],
+                      items: dish.quantities.map((String quantity) {
+                        return DropdownMenuItem<String>(
+                          value: quantity,
+                          child: Text(
+                            quantity,
+                            style: GoogleFonts.poppins(
+                                fontSize: 14, color: Colors.black),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: dish.stock > 0
+                          ? (String? newValue) {
+                              setState(() {
+                                _selectedQuantities[dish.id] = newValue!;
+                                print(
+                                    '🔄 Selected quantity for ${dish.name}: $newValue, Price: ${dish.quantityPrices[newValue]}');
+                              });
+                            }
+                          : null,
                     ),
                   ],
                 ),
@@ -407,196 +514,8 @@ class _FoodSubCategoryPageState extends ConsumerState<FoodSubCategoryPage> {
                 ),
               ),
             ),
-          const SizedBox(width: 5),
-          Text(
-            "(${dish.quantity})",
-            style: GoogleFonts.poppins(fontSize: 14, color: Colors.black),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Ingredients:',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 4),
-          IngredientText(dish: dish),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Text(
-                "\u20B9${dish.price}",
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  color: dish.stock > 0 ? Colors.black87 : Colors.grey,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              if (dish.stock > 0)
-                AddToCartSection(
-                  productName: dish.name,
-                  productPrice: dish.price,
-                  productEAN: '',
-                  soh: dish.stock,
-                  imageurl: dish.imageurl,
-                  maxQuantity: 1,
-                )
-              else
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    'Out of Stock',
-                    style: GoogleFonts.poppins(
-                      color: Colors.redAccent,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-            ],
-          ),
         ],
       ),
-      // Move price/AddToCart row and ingredients section here
-    );
-  }
-}
-
-class IngredientText extends StatelessWidget {
-  final TrialDish dish;
-
-  const IngredientText({
-    super.key,
-    required this.dish,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final exceedsLimit = dish.ingredients.length > 100;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          dish.ingredients,
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
-        ),
-        if (exceedsLimit)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: Text(
-                          'Additional Information',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        content: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              RichText(
-                                text: TextSpan(
-                                  style: GoogleFonts.poppins(
-                                      fontSize: 14, color: Colors.black87),
-                                  children: [
-                                    const TextSpan(
-                                      text: 'Ingredients: ',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    TextSpan(text: dish.ingredients),
-                                    const TextSpan(text: '\n\n'),
-                                    TextSpan(text: dish.what),
-                                    const TextSpan(
-                                        text: '\n\nUsed for: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.whatisitusedfor),
-                                    const TextSpan(
-                                        text: '\n\nEnergy: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.energy),
-                                    const TextSpan(
-                                        text: '\nProtein: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.protein),
-                                    const TextSpan(
-                                        text: '\nFiber: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.fiber),
-                                    const TextSpan(
-                                        text: '\nTotal Fat: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.totalFat),
-                                    const TextSpan(
-                                        text: '\nSaturated Fat: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.saturatedFat),
-                                    const TextSpan(
-                                        text: '\nUnsaturated Fat: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.unsaturatedFat),
-                                    const TextSpan(
-                                        text: '\nTrans Fat: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.transFat),
-                                    const TextSpan(
-                                        text: '\nSugar: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.sugar),
-                                    const TextSpan(
-                                        text: '\nCarbs: ',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    TextSpan(text: dish.carbs),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: Text(
-                              'Close',
-                              style: GoogleFonts.poppins(),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-                child: Text(
-                  'More',
-                  style: GoogleFonts.poppins(fontSize: 14, color: Colors.green),
-                ),
-              ),
-            ],
-          ),
-      ],
     );
   }
 }

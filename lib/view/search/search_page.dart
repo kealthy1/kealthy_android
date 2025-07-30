@@ -319,7 +319,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          ProductPage(productId: product.id,),
+                                          ProductPage(productId: product.id,quantities: [product.qty],),
                                           
                                     ),
                                   );

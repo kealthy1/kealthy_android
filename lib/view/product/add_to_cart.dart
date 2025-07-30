@@ -110,7 +110,8 @@ class AddToCartSection extends ConsumerStatefulWidget {
   final int soh;
   final String imageurl; // Add Stock on Hand parameter
   final int? maxQuantity;
-  final String? type; // Optional category name for trial dish check
+  final String type; // Optional category name for trial dish check
+  final String quantityName;
 
   const AddToCartSection({
     super.key,
@@ -120,7 +121,8 @@ class AddToCartSection extends ConsumerStatefulWidget {
     required this.soh,
     required this.imageurl,
     this.maxQuantity,
-    this.type,
+    required this.type,
+    required this.quantityName,
     // Include in constructor
   });
 

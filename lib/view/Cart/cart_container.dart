@@ -35,7 +35,7 @@ class CartContainer extends ConsumerWidget {
       },
       child: Container(
         height: 70,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(10),
         decoration: const BoxDecoration(
           // color: Colors.white,
           gradient: LinearGradient(
@@ -80,7 +80,7 @@ class CartContainer extends ConsumerWidget {
               Text(
                 '$totalItems item(s) selected',
                 style: GoogleFonts.poppins(
-                  fontSize: 12,
+                  fontSize: 11,
                   color: Colors.black,
                 ),
               ),
@@ -101,13 +101,12 @@ class CartContainer extends ConsumerWidget {
                   end: Alignment.bottomCenter,
                 ),
                 shape: BoxShape.circle,
-                color: Colors
-                    .grey.shade200, // Change if you want a different background
+                color: Colors.grey.shade200,
               ),
               child: const Icon(
                 Icons.arrow_forward_ios,
                 color: Colors.black,
-                size: 18, // slightly smaller inside circle
+                size: 18,
               ),
             ),
           ],
